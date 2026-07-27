@@ -1,0 +1,472 @@
+<?php
+
+use App\Models\Booking;
+use App\Models\Person;
+use App\Models\Room;
+use App\Models\User;
+use App\Settings\GeneralSettings;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+beforeEach(function () {
+    $this->user = User::factory()->create(['role' => 'user']);
+    $this->admin = User::factory()->create(['role' => 'admin']);
+    $this->operator = User::factory()->create(['role' => 'operator']);
+    $this->room = Room::factory()->create();
+    $this->leader = Person::factory()->create();
+});
+
+test('user can view bookings page', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->get(route('bookings.index'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->component('bookings/index'));
+});
+
+test('user can view create booking page', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->get(route('bookings.create'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->component('bookings/create'));
+});
+
+test('user can create a booking', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
+        'title' => 'Team Meeting',
+        'description' => 'Weekly sync',
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'participants_count' => 15,
+        'attachment' => $file,
+    ]);
+
+    $response->assertRedirect(route('bookings.index'));
+    $this->assertDatabaseHas('bookings', [
+        'requested_id' => $this->user->id,
+        'room_id' => $this->room->id,
+        'title' => 'Team Meeting',
+        'status' => 'pending',
+    ]);
+    $booking = Booking::where('title', 'Team Meeting')->first();
+    $this->assertStringStartsWith('bookings/', $booking->attachment_path);
+});
+
+test('booking requires attachment', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->postJson(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Team Meeting',
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'participants_count' => 5,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['attachment']);
+});
+
+test('booking rejects overlapping time slots', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    Booking::factory()->create([
+        'room_id' => $this->room->id,
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(11, 0),
+        'status' => 'approved',
+    ]);
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->postJson(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Overlapping Meeting',
+        'start_time' => now()->addDays(1)->setTime(10, 0),
+        'end_time' => now()->addDays(1)->setTime(12, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['room_id']);
+});
+
+test('booking allows non-overlapping time slots', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    Booking::factory()->create([
+        'room_id' => $this->room->id,
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(11, 0),
+        'status' => 'approved',
+    ]);
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Non-overlapping Meeting',
+        'start_time' => now()->addDays(1)->setTime(11, 0),
+        'end_time' => now()->addDays(1)->setTime(12, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'title' => 'Non-overlapping Meeting',
+        'status' => 'pending',
+    ]);
+});
+
+test('booking rejects overlap with pending bookings', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    Booking::factory()->create([
+        'room_id' => $this->room->id,
+        'start_time' => now()->addDays(1)->setTime(14, 0),
+        'end_time' => now()->addDays(1)->setTime(16, 0),
+        'status' => 'pending',
+    ]);
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->postJson(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Conflict with Pending',
+        'start_time' => now()->addDays(1)->setTime(15, 0),
+        'end_time' => now()->addDays(1)->setTime(17, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertUnprocessable();
+});
+
+test('admin can view operator bookings page', function () {
+    $this->actingAs($this->admin);
+
+    $response = $this->get(route('admin.bookings.index'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->component('admin/bookings/index'));
+});
+
+test('operator can approve a booking', function () {
+    $this->actingAs($this->operator);
+
+    $booking = Booking::factory()->pending()->create([
+        'room_id' => $this->room->id,
+    ]);
+
+    $response = $this->post(route('admin.bookings.approve', $booking));
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'id' => $booking->id,
+        'status' => 'approved',
+        'approved_id' => $this->operator->id,
+    ]);
+});
+
+test('operator can reject a booking with reason', function () {
+    $this->actingAs($this->operator);
+
+    $booking = Booking::factory()->pending()->create([
+        'room_id' => $this->room->id,
+    ]);
+
+    $response = $this->postJson(route('admin.bookings.reject', $booking), [
+        'reason' => 'Room under maintenance',
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'id' => $booking->id,
+        'status' => 'rejected',
+        'reason' => 'Room under maintenance',
+    ]);
+});
+
+test('reject requires reason', function () {
+    $this->actingAs($this->operator);
+
+    $booking = Booking::factory()->pending()->create([
+        'room_id' => $this->room->id,
+    ]);
+
+    $response = $this->postJson(route('admin.bookings.reject', $booking), []);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['reason']);
+});
+
+test('regular user cannot approve bookings', function () {
+    $this->actingAs($this->user);
+
+    $booking = Booking::factory()->pending()->create();
+
+    $response = $this->post(route('admin.bookings.approve', $booking));
+    $response->assertForbidden();
+});
+
+test('regular user cannot reject bookings', function () {
+    $this->actingAs($this->user);
+
+    $booking = Booking::factory()->pending()->create();
+
+    $response = $this->postJson(route('admin.bookings.reject', $booking), [
+        'reason' => 'test',
+    ]);
+    $response->assertForbidden();
+});
+
+test('user can view their own bookings', function () {
+    $this->actingAs($this->user);
+
+    Booking::factory()->create(['requested_id' => $this->user->id]);
+    Booking::factory()->create(['requested_id' => $this->user->id]);
+
+    $response = $this->get(route('bookings.index'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->has('bookings.data'));
+});
+
+test('booking requires valid room', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->postJson(route('bookings.store'), [
+        'room_id' => 9999,
+        'title' => 'Test',
+        'start_time' => now()->addDays(1),
+        'end_time' => now()->addDays(1)->addHours(1),
+        'participants_count' => 1,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['room_id']);
+});
+
+test('booking rejected when within advance hours window', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $settings = app(GeneralSettings::class);
+    $settings->booking_advance_hours = 48;
+    $settings->save();
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->postJson(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Too Soon',
+        'start_time' => now()->addHours(24),
+        'end_time' => now()->addHours(25),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['start_time']);
+    $response->assertJsonFragment(['start_time' => ['Bookings must be made at least 48 hour(s) in advance.']]);
+});
+
+test('booking rejected when beyond max days ahead', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $settings = app(GeneralSettings::class);
+    $settings->booking_max_days_ahead = 7;
+    $settings->save();
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->postJson(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Too Far Ahead',
+        'start_time' => now()->addDays(14),
+        'end_time' => now()->addDays(14)->addHour(),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['start_time']);
+    $response->assertJsonFragment(['start_time' => ['Bookings cannot be made more than 7 day(s) in advance.']]);
+});
+
+test('booking allowed when within advance hours window', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $settings = app(GeneralSettings::class);
+    $settings->booking_advance_hours = 12;
+    $settings->save();
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'OK Booking',
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'title' => 'OK Booking',
+        'status' => 'pending',
+    ]);
+});
+
+test('booking allowed when within max days ahead', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $settings = app(GeneralSettings::class);
+    $settings->booking_max_days_ahead = 60;
+    $settings->save();
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Far Future OK',
+        'start_time' => now()->addDays(30)->setTime(9, 0),
+        'end_time' => now()->addDays(30)->setTime(10, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'title' => 'Far Future OK',
+        'status' => 'pending',
+    ]);
+});
+
+test('booking auto approved when setting enabled', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $settings = app(GeneralSettings::class);
+    $settings->auto_approve_bookings = true;
+    $settings->save();
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Auto Approved',
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'title' => 'Auto Approved',
+        'status' => 'approved',
+        'approved_id' => $this->user->id,
+    ]);
+    $this->assertDatabaseHas('bookings', [
+        'title' => 'Auto Approved',
+        'approved_at' => now()->format('Y-m-d H:i:s'),
+    ]);
+});
+
+test('booking pending when auto approve disabled', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $settings = app(GeneralSettings::class);
+    $settings->auto_approve_bookings = false;
+    $settings->save();
+
+    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Manual Approval',
+        'start_time' => now()->addDays(1)->setTime(9, 0),
+        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'participants_count' => 5,
+        'attachment' => $file,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'title' => 'Manual Approval',
+        'status' => 'pending',
+        'approved_id' => null,
+        'approved_at' => null,
+    ]);
+});
+
+test('user can view their own booking detail', function () {
+    $this->actingAs($this->user);
+
+    $booking = Booking::factory()->create([
+        'requested_id' => $this->user->id,
+        'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
+    ]);
+
+    $response = $this->get(route('bookings.show', $booking));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->component('bookings/show'));
+});
+
+test('user cannot view other users booking detail', function () {
+    $this->actingAs($this->user);
+
+    $otherUser = User::factory()->create(['role' => 'user']);
+    $booking = Booking::factory()->create([
+        'requested_id' => $otherUser->id,
+    ]);
+
+    $response = $this->get(route('bookings.show', $booking));
+
+    $response->assertForbidden();
+});
+
+test('booking detail shows osh level', function () {
+    $this->actingAs($this->user);
+
+    $booking = Booking::factory()->create([
+        'requested_id' => $this->user->id,
+        'room_id' => $this->room->id,
+        'participants_count' => 15,
+    ]);
+
+    $response = $this->get(route('bookings.show', $booking));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('bookings/show')
+        ->has('booking.osh_level')
+    );
+});
+
+test('unauthenticated user cannot view booking detail', function () {
+    $booking = Booking::factory()->create();
+
+    $response = $this->get(route('bookings.show', $booking));
+
+    $response->assertRedirect('/login');
+});

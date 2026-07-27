@@ -1,0 +1,27 @@
+:root {
+    --tracking-normal: 0.02em;
+    --pln-blue: oklch(0.69 0.13 232);
+    --pln-yellow: oklch(0.92 0.19 104);
+    --pln-red: oklch(0.6 0.23 27.2);
+}
+
+@theme {
+    --background-image-siger: url('@/../assets/images/siger.png');
+    --background-image-siger-diagonal: url('@/../assets/images/siger-diagonal.png');
+    --background-image-kaluk-paku: url('@/../assets/images/kaluk-paku.png');
+
+    --color-pln-blue: var(--pln-blue);
+    --color-pln-yellow: var(--pln-yellow);
+    --color-pln-red: var(--pln-red);
+
+    --background-pln-blue: var(--pln-blue);
+    --background-pln-yellow: var(--pln-yellow);
+    --background-pln-red: var(--pln-red);
+}
+
+@layer base {
+    body {
+        @apply bg-background text-foreground;
+        letter-spacing: var(--tracking-normal);
+    }
+}
