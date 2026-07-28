@@ -49,27 +49,26 @@ Status: `todo` · `in_progress` · `done`
 
 - [x] Run `php artisan migrate:fresh && php artisan db:seed` → 3 users only
 - [x] Run `php artisan db:seed --class=DummySeeder` → full data, idempotent on re-run
-- [ ] Admin dashboard shows real stats, user dashboard shows upcoming bookings
-- [ ] Display pages render today's bookings with media
 
 ---
 
-## Phase 11: Improve UI
+## Phase 11: Dashboards (Role-Based)
 
-> Both dashboards are hardcoded stubs with em-dashes. Build real data-driven pages.
+> Dashboards exist but need real data. Content varies by role.
 
 ### Admin Dashboard
 
-- [ ] Update `DashboardController` (or `BookingController`) to pass real stats: total buildings, total rooms, pending bookings count, total users, recent 5 bookings
-- [ ] Update `dashboard.tsx` — replace hardcoded em-dashes with live stats from Inertia props
+- [ ] Create `AdminDashboardController` (or extend `DashboardController`) — pass: totalBuildings, totalRooms, pendingBookingsCount, totalUsers, recent 5 bookings
+- [ ] Wire admin dashboard route
+- [ ] Update `admin/dashboard.tsx` — replace hardcoded stubs with Inertia props
 - [ ] Show pending approval queue (5 most recent pending bookings with quick approve/reject)
 - [ ] Show recent activity (5 most recent bookings with status badges)
 - [ ] Write feature test: admin dashboard returns correct stats
 
 ### User Dashboard
 
-- [ ] Update `DashboardController` or create `DashboardController` to pass user-specific data: upcoming approved bookings count, next 3 upcoming bookings, total rooms available
-- [ ] Update `dashboard.tsx` — replace hardcoded zeros with live data
+- [ ] Update `DashboardController` — pass user-specific data: upcoming approved bookings count, next 3 upcoming bookings, total rooms available
+- [ ] Update `dashboard.tsx` — show role-appropriate content (admin/operator → admin panel; user → user dashboard)
 - [ ] Add quick link to booking create form
 - [ ] Write feature test: user dashboard returns correct data
 
@@ -78,14 +77,110 @@ Status: `todo` · `in_progress` · `done`
 - [ ] Audit admin/operator sidebar on mobile — ensure sidebar collapses, tables scroll horizontally, modals are full-width on small screens
 - [ ] Audit user dashboard on mobile — ensure cards stack, text is readable, quick book button is accessible
 
-### Display Refresh Fix
+---
 
-- [ ] Fix all 3 display pages (lobby, room, osh) — remove simultaneous polling+WebSocket, use WebSocket as primary with polling fallback only when Echo disconnects
-- [ ] Verify: when WebSocket connected, no polling requests are made; when WebSocket disconnects, polling activates automatically
+## Phase 12: Notifications + Real-Time
+
+> In-app notification system with audio + WebSocket real-time delivery.
+
+### 12a: Backend — Broadcasting on All Booking Lifecycle Events
+
+> Currently only update/approve/reject broadcast. Store and destroy don't.
+
+- [ ] Add `broadcast(new BookingUpdated($booking))` to `BookingController::store()` — after creation (including auto-approved)
+- [ ] Create `BookingDeleted` event (or reuse `BookingUpdated` with action type) — broadcast on `BookingController::destroy()`
+- [ ] Verify `BookingUpdated` event data includes all fields needed by frontend (booking id, title, room, status, time, OSH level, event leader)
+- [ ] Create `MediaUpdated` event — broadcast when media is uploaded, deleted, reordered, or toggled
+- [ ] Broadcast `MediaUpdated` to `room.{room_id}` and `room-group.{group_id}` channels
+- [ ] Ensure `BookingCreated`, `BookingApproved`, `BookingRejected` notifications are dispatched in correct controller methods
+
+### 12b: Backend — Notification CRUD
+
+> `NotificationController` is currently entirely stubbed (all methods empty).
+
+- [ ] Implement `NotificationController::index()` — return paginated notifications for authenticated user
+- [ ] Implement `NotificationController::show()` — mark as read, return data
+- [ ] Implement `NotificationController::markAsRead()` — mark single notification read
+- [ ] Implement `NotificationController::markAllAsRead()` — mark all as read
+- [ ] Implement `NotificationController::clearAll()` — delete all user's notifications
+- [ ] Add route `GET /notifications/unread-count` — return count
+- [ ] Add route `PATCH /notifications/{notification}/read` — mark single as read
+- [ ] Write tests for all notification endpoints
+
+### 12c: Frontend — Notification Bell + Audio
+
+- [ ] Move `notification-bell.tsx` from `--old/` layout to active layout
+- [ ] Subscribe to `bookings` channel for `booking.updated` events
+- [ ] Add audio playback: `new Audio('/audio/notification.mp3').play()` on event received
+- [ ] Add mute/unmute toggle (localStorage preference)
+- [ ] Create `notifications/index.tsx` — list page with read/unread states, mark all button, clear button
+- [ ] Wire notification bell unread count to real API endpoint
+- [ ] Badge count updates in real-time via Echo
+
+### 12d: Notification Sound
+
+- [ ] Add notification sound file at `public/audio/notification.mp3`
+- [ ] Confirm existing `public/audio/beep.wav` — reuse or replace
 
 ---
 
-## Phase 12: UAT (User Acceptance Testing)
+## Phase 13: Display System
+
+> Three public display types. No auth. Real-time updates via WebSocket + polling fallback.
+
+### 13a: Backend — DisplayController
+
+- [ ] Implement `DisplayController::index()` — list all displayable items (room groups, rooms) for IT staff to pick
+- [ ] Implement `DisplayController::show()` — route `/display/{type}/{id?}` where type = `lobby|room|osh`
+- [ ] Lobby endpoint: return room group + its rooms + today's approved bookings + active media
+- [ ] Room endpoint: return room + current/upcoming bookings + active media + refresh interval
+- [ ] OSH endpoint: return today + tomorrow approved bookings with OSH level + color
+- [ ] Ensure endpoints are outside auth middleware (already the case)
+- [ ] Write tests: each display type returns correct data structure
+
+### 13b: Frontend — Display Pages
+
+#### Lobby Display (`display/group-display.tsx`)
+
+- [ ] Show room grouping name + all rooms in the group
+- [ ] Media section: autoplay + loop through room group's active media (images, videos, PDFs as slideshow)
+- [ ] Schedule section: today's bookings for all rooms (time, room name, event title, event leader)
+- [ ] Subscribe to `room-group.{id}` channel — refresh schedule on `booking.updated`
+- [ ] Subscribe to `room-group.{id}` channel — refresh media on `media.updated`
+- [ ] Auto-refresh polling fallback (interval from `GeneralSettings.display_refresh_interval`)
+
+#### Room Display (`display/room-display.tsx`)
+
+- [ ] If event in progress: show event title, event leader, OSH level (color badge), start/end time, next event
+- [ ] If room idle: autoplay + loop through room's active media
+- [ ] Subscribe to `room.{id}` channel — refresh on `booking.updated`
+- [ ] Subscribe to `room.{id}` channel — refresh media on `media.updated`
+- [ ] Auto-refresh polling fallback
+
+#### OSH Display (`display/osh-display.tsx`)
+
+- [ ] Two tables: today's events + tomorrow's events
+- [ ] Columns: room, time, event title, event leader, participants count, OSH level (color badge)
+- [ ] Subscribe to `bookings` channel — refresh on `booking.updated`
+- [ ] **Audio indicator**: play sound when new approved event appears
+- [ ] Auto-refresh polling fallback
+
+### 13c: Display Layouts (Portrait + Landscape)
+
+- [ ] Each display type supports portrait and landscape orientations
+- [ ] Orientation from cookie (`display_orientation`) or query param
+- [ ] Tailwind responsive classes or separate layout components
+- [ ] Full-screen kiosk mode (no browser chrome)
+
+### 13d: Display Launch Flow (IT Staff)
+
+- [ ] Create display index page at `/display` — list all room groups, rooms with thumbnail
+- [ ] Pick a display + choose orientation (landscape/portrait) → opens in full-screen
+- [ ] URL pattern: `/display/lobby/{roomGroupId}?orientation=landscape`
+
+---
+
+## Phase 14: UAT (User Acceptance Testing)
 
 > Run end-to-end scenarios manually. Each scenario is a checklist item.
 
@@ -100,20 +195,20 @@ Status: `todo` · `in_progress` · `done`
 - [ ] Upload media to a room → appears in media manager
 - [ ] Upload media to a room group → appears in media manager
 - [ ] View bookings list → search, filter by status, sort, paginate
-- [ ] Approve a pending booking → user receives notification
-- [ ] Reject a pending booking with reason → user receives notification
+- [ ] Approve a pending booking → user receives in-app notification
+- [ ] Reject a pending booking with reason → user receives in-app notification
+- [ ] Reschedule a booking (admin only, with overlap validation)
 - [ ] Delete a booking → removed from list
 - [ ] Manage users (create, edit role, delete)
 - [ ] Update general settings (advance hours, auto-approve toggle)
-- [ ] View lobby display → shows today's schedule + media
-- [ ] View room display → shows current event or media slideshow
-- [ ] View OSH display → shows today/tomorrow events with color badges
 
 ### Scenario: Operator Flow
 
-- [ ] Login as operator → redirected to admin panel
+- [ ] Login as operator → redirected to management dashboard
 - [ ] Can view/approve/reject bookings
-- [ ] Can CRUD buildings, rooms, room groups, people, OSH levels
+- [ ] Cannot reschedule a booking
+- [ ] Can CRUD people only
+- [ ] Cannot manage buildings, rooms, room groups, OSH levels (admin only)
 - [ ] Cannot manage users (403 on user routes)
 
 ### Scenario: User Flow
@@ -123,26 +218,39 @@ Status: `todo` · `in_progress` · `done`
 - [ ] Create a booking (fill form, upload PDF, submit)
 - [ ] View own bookings list → search, sort, paginate
 - [ ] View booking detail → see status, OSH level
-- [ ] Cancel a pending/upcoming booking (if within cancellation window)
-- [ ] Receive notification when booking is approved/rejected
+- [ ] Receive in-app notification when booking is approved/rejected
+- [ ] Cannot cancel or reschedule own bookings (no UI option)
+
+### Scenario: Notifications
+
+- [ ] When user creates booking → all admin/operator receive in-app notification + audio
+- [ ] When booking approved/rejected → requesting user receives in-app notification + audio
+- [ ] Notification bell shows unread count badge
+- [ ] Click notification → mark as read
+- [ ] Mark all as read → clears badge
+- [ ] Clear all notifications → removes all
 
 ### Scenario: Display Kiosk
 
-- [ ] Open lobby display URL (no auth required) → renders schedule + media
+- [ ] IT staff can browse display list, pick orientation, launch display
+- [ ] Open lobby display URL (no auth) → renders schedule + media
 - [ ] Open room display URL → shows current event info or idle media
-- [ ] Open OSH display URL → shows today/tomorrow tables with color badges
+- [ ] Open OSH display URL → shows today/tomorrow tables with color badges + audio on new events
 - [ ] WebSocket push works (booking change instantly reflected on display)
-- [ ] Polling fallback activates only when WebSocket disconnects (not both simultaneously)
+- [ ] Media change on display → display updates in real-time
+- [ ] Polling fallback activates only when WebSocket disconnects
 
 ---
 
-## Phase 13: Polish
+## Phase 15: Polish
 
 > Fix issues found during UAT + final cleanup.
 
 - [ ] Fix any UI bugs discovered during UAT
 - [ ] Fix any data inconsistencies found during UAT
 - [ ] Add rate limiting to booking creation endpoint
+- [ ] Fix `.env.example` — add missing `REVERB_*` vars
+- [ ] Remove duplicate `BROADCAST_CONNECTION` in `.env`
 - [ ] Run `vendor/bin/pint --dirty --format agent`
 - [ ] Run `php artisan test --compact` — all tests pass
 - [ ] Run `npm run build` — frontend builds without errors
