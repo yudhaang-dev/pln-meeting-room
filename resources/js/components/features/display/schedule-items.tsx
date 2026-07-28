@@ -11,6 +11,7 @@ import {
 import { id } from 'date-fns/locale';
 import { ClockIcon, MapPinIcon, User2Icon } from 'lucide-react';
 import type { ComponentProps } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -22,7 +23,7 @@ import {
 } from '@/components/ui/card';
 
 import {
-    Item,
+    Item as AtomItem,
     ItemContent,
     ItemDescription,
     ItemMedia,
@@ -30,7 +31,9 @@ import {
 } from '@/components/ui/item';
 import { cn } from '@/lib/utils';
 
-type Item = {
+type BadgeVariant = 'outline' | 'default' | 'secondary' | 'destructive';
+
+type ItemType = {
     id: number;
     title: string;
     start_time: string;
@@ -56,149 +59,189 @@ type Item = {
 };
 
 type Props = {
-    items?: Item[];
+    items?: ItemType[];
 } & ComponentProps<'div'>;
 
-function ScheduleItem({ item }: { item: Item }) {
-    const start = new Date(item.start_time);
-    const end = new Date(item.end_time);
-    const now = new Date(); // Waktu saat ini
+// Komponen Card Satuan (Menerima parameter 'now' yang up-to-date dari parent)
+function ScheduleItem({
+    item,
+    now,
+    className,
+}: { item: ItemType; now: Date } & ComponentProps<'div'>) {
+    // Gunakan useMemo untuk membungkus seluruh perhitungan tanggal demi performa yang stabil
+    const computedSchedule = useMemo(() => {
+        const start = new Date(item.start_time);
+        const end = new Date(item.end_time);
 
-    // 1. Logika Penentuan Status Jadwal
-    let statusText = 'Akan datang';
-    let badgeVariant: 'outline' | 'default' | 'secondary' | 'destructive' =
-        'outline';
+        // 1. Logika Penentuan Status Jadwal
+        let statusText = 'Akan datang';
+        let badgeVariant: BadgeVariant = 'outline';
 
-    if (isAfter(now, end)) {
-        statusText = 'Sudah selesai';
-        badgeVariant = 'secondary'; // Warna abu-abu / netral
-    } else if (isAfter(now, start) && isBefore(now, end)) {
-        statusText = 'Sedang berlangsung';
-        badgeVariant = 'default'; // Warna utama (aktif)
-    }
+        if (isAfter(now, end)) {
+            statusText = 'Sudah selesai';
+            badgeVariant = 'secondary';
+        } else if (isAfter(now, start) && isBefore(now, end)) {
+            statusText = 'Sedang berlangsung';
+            badgeVariant = 'default';
+        }
 
-    // 2. Logika format waktu (Cross Day handling)
-    const isSameDate = isSameDay(start, end);
-    const startTimeStr = format(start, 'HH:mm');
-    const endTimeStr = isSameDate
-        ? format(end, 'HH:mm')
-        : format(end, 'HH:mm (d MMM)', { locale: id });
+        // 2. Logika format waktu (Cross Day handling)
+        const isSameDate = isSameDay(start, end);
+        const startTimeStr = format(start, 'HH:mm');
+        const endTimeStr = isSameDate
+            ? format(end, 'HH:mm')
+            : format(end, 'HH:mm (d MMM)', { locale: id });
 
-    const duration = formatDuration(
-        intervalToDuration({
-            start: start,
-            end: end,
-        }),
-        {
-            format: ['hours', 'minutes'], // Exclude seconds entirely
-            locale: id, // Translate the units
-        },
-    );
+        // 3. Hitung Durasi Pertemuan
+        const durationStr = formatDuration(
+            intervalToDuration({
+                start: start,
+                end: end,
+            }),
+            {
+                format: ['hours', 'minutes'],
+                locale: id,
+            },
+        );
+
+        return {
+            statusText,
+            badgeVariant,
+            startTimeStr,
+            endTimeStr,
+            durationStr,
+        };
+    }, [now, item.start_time, item.end_time]);
 
     return (
         <Card
             className={cn(
-                'shadow-sm',
-                statusText === 'Sudah selesai' ? 'opacity-70' : '',
+                'shadow-sm transition-all duration-500',
+                computedSchedule.statusText === 'Sudah selesai'
+                    ? 'opacity-50 grayscale-[30%]'
+                    : '',
+                computedSchedule.statusText === 'Sedang berlangsung'
+                    ? 'ring-primary bg-primary/5 ring-2'
+                    : '',
+                className,
             )}
         >
             <CardHeader>
                 <CardAction>
-                    <Badge variant={badgeVariant}>{statusText}</Badge>
+                    <Badge variant={computedSchedule.badgeVariant}>
+                        {computedSchedule.statusText}
+                    </Badge>
                 </CardAction>
-                <CardTitle className="text-foreground flex flex-row items-center gap-2">
+                <CardTitle className="text-foreground flex flex-row items-center gap-2 text-sm font-medium">
+                    <ClockIcon className="text-muted-foreground size-4" />
                     <span>
-                        <ClockIcon className="size-4" />
-                    </span>
-                    <span>
-                        {startTimeStr}
+                        {computedSchedule.startTimeStr}
                         {' - '}
-                        {endTimeStr}
+                        {computedSchedule.endTimeStr}
                     </span>
                 </CardTitle>
-                <CardDescription className="text-foreground text-2xl font-bold">
+                <CardDescription className="text-foreground mt-1 text-2xl font-bold">
                     {item.title}
                 </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-                <div className="grid grid-cols-2">
-                    <Item className="p-0">
+            <CardContent className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <AtomItem className="p-0">
                         <ItemMedia
                             variant="icon"
                             className="text-muted-foreground"
                         >
-                            <MapPinIcon />
+                            <MapPinIcon className="size-4" />
                         </ItemMedia>
                         <ItemContent>
-                            <ItemTitle className="text-muted-foreground">
+                            <ItemTitle className="text-muted-foreground text-xs">
                                 Ruangan
                             </ItemTitle>
-                            <ItemDescription className="text-foreground text-lg font-bold">
+                            <ItemDescription className="text-foreground text-base font-bold">
                                 {item.room.name}
                             </ItemDescription>
                         </ItemContent>
-                    </Item>
-                    <Item className="p-0">
+                    </AtomItem>
+                    <AtomItem className="p-0">
                         <ItemMedia
                             variant="icon"
                             className="text-muted-foreground"
                         >
-                            <MapPinIcon />
+                            <MapPinIcon className="size-4" />
                         </ItemMedia>
                         <ItemContent>
-                            <ItemTitle className="text-muted-foreground">
+                            <ItemTitle className="text-muted-foreground text-xs">
                                 Gedung
                             </ItemTitle>
-                            <ItemDescription className="text-foreground text-lg font-bold">
+                            <ItemDescription className="text-foreground text-base font-bold">
                                 {item.room?.building?.name ?? '-'}
                             </ItemDescription>
                         </ItemContent>
-                    </Item>
+                    </AtomItem>
                 </div>
-                <div className="grid grid-cols-2">
-                    <Item className="p-0">
+                <div className="grid grid-cols-2 gap-4">
+                    <AtomItem className="p-0">
                         <ItemMedia
                             variant="icon"
                             className="text-muted-foreground"
                         >
-                            <User2Icon />
+                            <User2Icon className="size-4" />
                         </ItemMedia>
                         <ItemContent>
-                            <ItemTitle className="text-muted-foreground">
+                            <ItemTitle className="text-muted-foreground text-xs">
                                 Pimpinan
                             </ItemTitle>
-                            <ItemDescription className="text-foreground text-lg font-bold">
+                            <ItemDescription className="text-foreground text-base font-bold">
                                 {item.chairperson.name}
                             </ItemDescription>
                         </ItemContent>
-                    </Item>
-                    <Item className="p-0">
+                    </AtomItem>
+                    <AtomItem className="p-0">
                         <ItemMedia
                             variant="icon"
                             className="text-muted-foreground"
                         >
-                            <ClockIcon />
+                            <ClockIcon className="size-4" />
                         </ItemMedia>
                         <ItemContent>
-                            <ItemTitle className="text-muted-foreground">
+                            <ItemTitle className="text-muted-foreground text-xs">
                                 Durasi
                             </ItemTitle>
-                            <ItemDescription className="text-foreground text-lg font-bold">
-                                {duration}
+                            <ItemDescription className="text-foreground text-base font-bold">
+                                {computedSchedule.durationStr || '0 menit'}
                             </ItemDescription>
                         </ItemContent>
-                    </Item>
+                    </AtomItem>
                 </div>
             </CardContent>
         </Card>
     );
 }
 
+// Komponen Utama List Jadwal (Parent yang memegang detak timer utama)
 export function ScheduleItems({ items = [], className }: Props) {
+    const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+    useEffect(() => {
+        // Detak jam diperbarui setiap 5 detik sekali demi efisiensi resource kiosk
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 5000);
+
+        return () => clearInterval(timer);
+    }, []);
+
     return (
-        <div className={cn('flex flex-col gap-4', className)}>
+        <div
+            className={cn('flex items-center justify-center gap-4', className)}
+        >
             {items.map((item, index) => (
-                <ScheduleItem key={`booking-${item.id}-${index}`} item={item} />
+                <ScheduleItem
+                    className="w-full max-w-lg"
+                    key={`booking-${item.id}-${index}`}
+                    item={item}
+                    now={currentTime} // Salurkan data jam yang sama ke seluruh anak
+                />
             ))}
         </div>
     );

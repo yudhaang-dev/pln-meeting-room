@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Events\MediaUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Room;
@@ -55,6 +56,10 @@ class MediaController extends Controller
                 'sort_order' => $maxSort + $index + 1,
                 'is_active' => true,
             ]);
+        }
+
+        foreach ($created as $media) {
+            broadcast(new MediaUpdated($media));
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
@@ -138,6 +143,8 @@ class MediaController extends Controller
 
         $this->cleanupChunks($validated['upload_id']);
 
+        broadcast(new MediaUpdated($media));
+
         return response()->json([
             'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
         ]);
@@ -151,6 +158,14 @@ class MediaController extends Controller
             Media::where('id', $mediaId)->update(['sort_order' => $index]);
         }
 
+        if (count($order) > 0) {
+            $media = Media::with('mediable')->find($order[0]);
+
+            if ($media) {
+                broadcast(new MediaUpdated($media));
+            }
+        }
+
         return back();
     }
 
@@ -158,12 +173,17 @@ class MediaController extends Controller
     {
         $media->update(['is_active' => ! $media->is_active]);
 
+        broadcast(new MediaUpdated($media));
+
         return back();
     }
 
     public function destroy(mixed $parent, Media $media): RedirectResponse
     {
         $this->authorize('delete', $media);
+
+        $media->load('mediable');
+        broadcast(new MediaUpdated($media));
 
         $media->deleteFile();
         $media->delete();
@@ -190,10 +210,12 @@ class MediaController extends Controller
         $mediaItems = Media::whereIn('id', $mediaIds)
             ->where('mediable_type', $mediable::class)
             ->where('mediable_id', $mediable->id)
+            ->with('mediable')
             ->get();
 
         foreach ($mediaItems as $media) {
             $this->authorize('delete', $media);
+            broadcast(new MediaUpdated($media));
             $media->deleteFile();
             $media->delete();
         }

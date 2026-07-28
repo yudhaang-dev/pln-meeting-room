@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', Web\HomeController::class)->name('home');
 Route::get('/display', [Web\DisplayController::class, 'index'])->name('display.index');
-Route::get('/display/{type}/{id?}', [Web\DisplayController::class, 'show'])->name('display.show');
+Route::get('/display/lobby/{roomGroup}', [Web\DisplayController::class, 'lobby'])->name('display.lobby');
+Route::get('/display/room/{room}', [Web\DisplayController::class, 'room'])->name('display.room');
+Route::get('/display/osh', [Web\DisplayController::class, 'osh'])->name('display.osh');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('osh-levels', Web\OshLevelController::class)->except(['create', 'show', 'edit']);

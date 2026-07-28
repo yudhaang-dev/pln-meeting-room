@@ -2,7 +2,7 @@
 
 import { ImageIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Empty,
     EmptyDescription,
@@ -11,6 +11,7 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty';
 import { cn } from '@/lib/utils';
+import { PdfViewer } from './pdf-viewer';
 
 type Item = {
     id: number;
@@ -48,31 +49,69 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
     }, [duration]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    // State untuk memicu kelas animasi opacity
     const [isFade, setIsFade] = useState(true);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const item = useMemo(() => {
-        return items[currentIndex];
+        if (items.length === 0) {
+            return null;
+        }
+
+        return items[currentIndex] || items[0];
     }, [items, currentIndex]);
 
-    const isVideo = item?.type.startsWith('video') ?? false;
-
+    // PERBAIKAN UTAMA: Menggunakan flag penjaga agar pergantian indeks lebih stabil
     const handleNextItem = useCallback(() => {
-        setIsFade(false); // Mulai fade-out
-
-        // Tunggu animasi keluar selesai (300ms) sebelum ganti konten
-        setTimeout(() => {
-            setCurrentIndex((prev) => (prev + 1) % items.length);
-            setIsFade(true); // Mulai fade-in untuk konten baru
-        }, 300);
-    }, [setIsFade, items]);
-
-    useEffect(() => {
-        if (isVideo) {
+        if (items.length <= 1) {
             return;
         }
 
-        // Atur timer dikurangi waktu animasi agar totalnya pas sesuai durasi props
+        setIsFade(false); // Mulai efek memudar keluar
+
+        const timer = setTimeout(() => {
+            setCurrentIndex((prev) => (prev + 1) % items.length);
+            setIsFade(true); // Memudar masuk dengan konten baru
+        }, 350); // Diberi kelonggaran sedikit di atas durasi CSS transition (300ms)
+
+        return () => clearTimeout(timer);
+    }, [items.length]);
+
+    // Memaksa video berputar otomatis dari awal dengan aman
+    useEffect(() => {
+        if (!item || !item.type.startsWith('video') || !videoRef.current) {
+            return;
+        }
+
+        const playVideo = async () => {
+            try {
+                if (videoRef.current) {
+                    videoRef.current.load();
+                    // Berikan jeda mikro agar elemen DOM video ter-render sempurna sebelum diputar
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                    await videoRef.current.play();
+                }
+            } catch (error) {
+                console.warn(
+                    'Autoplay terblokir browser, mencoba putar paksa (silent):',
+                    error,
+                );
+
+                if (videoRef.current) {
+                    videoRef.current.muted = true;
+                    videoRef.current.play().catch(() => {});
+                }
+            }
+        };
+
+        playVideo();
+    }, [currentIndex, item]);
+
+    // Timer otomatis khusus untuk tipe Gambar (Image)
+    useEffect(() => {
+        if (!item || !item.type.startsWith('image') || items.length <= 1) {
+            return;
+        }
+
         const timer = setTimeout(
             () => {
                 handleNextItem();
@@ -81,9 +120,8 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         );
 
         return () => clearTimeout(timer);
-    }, [currentIndex, items.length, isVideo, intervalDuration, handleNextItem]);
+    }, [currentIndex, item, items.length, intervalDuration, handleNextItem]);
 
-    // Handle jika items kosong
     if (!item) {
         return <EmptyItem />;
     }
@@ -91,7 +129,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
     return (
         <div
             className={cn(
-                'flex size-full items-center justify-center overflow-hidden',
+                'flex size-full items-center justify-center overflow-hidden bg-black',
                 className,
             )}
         >
@@ -100,19 +138,37 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
                     isFade ? 'opacity-100' : 'opacity-0'
                 }`}
             >
-                {isVideo ? (
+                {/* 1. Tipe Video */}
+                {item.type.startsWith('video') && (
                     <video
-                        key={item.id}
+                        ref={videoRef}
+                        key={`video-${item.id}`} // Ditambahkan prefix unik pada key
                         src={item.file_url}
                         className="size-full object-contain"
                         autoPlay
                         muted
                         playsInline
+                        preload="auto"
                         onEnded={handleNextItem}
                     />
-                ) : (
+                )}
+
+                {/* 2. Tipe Dokumen (PDF) */}
+                {item.type.startsWith('document') && (
+                    <PdfViewer
+                        key={`pdf-${item.id}`} // Ditambahkan prefix unik pada key
+                        src={item.file_url}
+                        duration={duration}
+                        onEnded={handleNextItem}
+                        className="size-full"
+                        loop={items.length < 2}
+                    />
+                )}
+
+                {/* 3. Tipe Gambar (Image) */}
+                {item.type.startsWith('image') && (
                     <img
-                        key={item.id}
+                        key={`image-${item.id}`} // Ditambahkan prefix unik pada key
                         src={item.file_url}
                         alt={item.name ?? ''}
                         className="size-full object-contain"

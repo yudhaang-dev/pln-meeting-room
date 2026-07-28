@@ -8,6 +8,7 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import AccountSettingLayout from './layouts/app-layout/account-setting-layout';
 import AppLayout from './layouts/app-layout/app-layout';
 import AuthLayout from './layouts/auth-layout/auth-layout';
+import DisplayLayout from './layouts/display-layout/display-layout';
 
 configureEcho({
     broadcaster: 'reverb',
@@ -23,6 +24,8 @@ createInertiaApp({
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
+            case name.startsWith('display/'):
+                return DisplayLayout;
             case name.startsWith('settings/account/'):
                 return [AppLayout, AccountSettingLayout];
             default:

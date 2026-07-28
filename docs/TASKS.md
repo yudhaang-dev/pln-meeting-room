@@ -87,40 +87,40 @@ Status: `todo` · `in_progress` · `done`
 
 > Currently only update/approve/reject broadcast. Store and destroy don't.
 
-- [ ] Add `broadcast(new BookingUpdated($booking))` to `BookingController::store()` — after creation (including auto-approved)
+- [x] Add `broadcast(new BookingUpdated($booking))` to `BookingController::store()` — after creation (including auto-approved)
 - [ ] Create `BookingDeleted` event (or reuse `BookingUpdated` with action type) — broadcast on `BookingController::destroy()`
-- [ ] Verify `BookingUpdated` event data includes all fields needed by frontend (booking id, title, room, status, time, OSH level, event leader)
-- [ ] Create `MediaUpdated` event — broadcast when media is uploaded, deleted, reordered, or toggled
-- [ ] Broadcast `MediaUpdated` to `room.{room_id}` and `room-group.{group_id}` channels
-- [ ] Ensure `BookingCreated`, `BookingApproved`, `BookingRejected` notifications are dispatched in correct controller methods
+- [x] Verify `BookingUpdated` event data includes all fields needed by frontend (booking id, title, room, status, time, OSH level, event leader)
+- [x] Create `MediaUpdated` event — broadcast when media is uploaded, deleted, reordered, or toggled
+- [x] Broadcast `MediaUpdated` to `room.{room_id}` and `room-group.{group_id}` channels
+- [x] Ensure `BookingCreated`, `BookingApproved`, `BookingRejected` notifications are dispatched in correct controller methods
 
 ### 12b: Backend — Notification CRUD
 
 > `NotificationController` is currently entirely stubbed (all methods empty).
 
-- [ ] Implement `NotificationController::index()` — return paginated notifications for authenticated user
-- [ ] Implement `NotificationController::show()` — mark as read, return data
-- [ ] Implement `NotificationController::markAsRead()` — mark single notification read
-- [ ] Implement `NotificationController::markAllAsRead()` — mark all as read
-- [ ] Implement `NotificationController::clearAll()` — delete all user's notifications
-- [ ] Add route `GET /notifications/unread-count` — return count
-- [ ] Add route `PATCH /notifications/{notification}/read` — mark single as read
-- [ ] Write tests for all notification endpoints
+- [x] Implement `NotificationController::index()` — return paginated notifications for authenticated user
+- [x] Implement `NotificationController::show()` — mark as read, return data
+- [x] Implement `NotificationController::markAsRead()` — mark single notification read
+- [x] Implement `NotificationController::markAllAsRead()` — mark all as read
+- [x] Implement `NotificationController::clearAll()` — delete all user's notifications
+- [x] Add route `GET /notifications/unread-count` — return count
+- [x] Add route `PATCH /notifications/{notification}/read` — mark single as read
+- [x] Write tests for all notification endpoints
 
 ### 12c: Frontend — Notification Bell + Audio
 
-- [ ] Move `notification-bell.tsx` from `--old/` layout to active layout
-- [ ] Subscribe to `bookings` channel for `booking.updated` events
-- [ ] Add audio playback: `new Audio('/audio/notification.mp3').play()` on event received
+- [x] Move `notification-bell.tsx` from `--old/` layout to active layout
+- [x] Subscribe to `bookings` channel for `booking.updated` events
+- [x] Add audio playback: `new Audio('/audio/notification.mp3').play()` on event received
 - [ ] Add mute/unmute toggle (localStorage preference)
-- [ ] Create `notifications/index.tsx` — list page with read/unread states, mark all button, clear button
-- [ ] Wire notification bell unread count to real API endpoint
-- [ ] Badge count updates in real-time via Echo
+- [x] Create `notifications/index.tsx` — list page with read/unread states, mark all button, clear button
+- [x] Wire notification bell unread count to real API endpoint
+- [x] Badge count updates in real-time via Echo
 
 ### 12d: Notification Sound
 
-- [ ] Add notification sound file at `public/audio/notification.mp3`
-- [ ] Confirm existing `public/audio/beep.wav` — reuse or replace
+- [x] Add notification sound file at `public/audio/notification.mp3`
+- [x] Confirm existing `public/audio/beep.wav` — reuse or replace
 
 ---
 
@@ -130,53 +130,53 @@ Status: `todo` · `in_progress` · `done`
 
 ### 13a: Backend — DisplayController
 
-- [ ] Implement `DisplayController::index()` — list all displayable items (room groups, rooms) for IT staff to pick
-- [ ] Implement `DisplayController::show()` — route `/display/{type}/{id?}` where type = `lobby|room|osh`
-- [ ] Lobby endpoint: return room group + its rooms + today's approved bookings + active media
-- [ ] Room endpoint: return room + current/upcoming bookings + active media + refresh interval
-- [ ] OSH endpoint: return today + tomorrow approved bookings with OSH level + color
-- [ ] Ensure endpoints are outside auth middleware (already the case)
-- [ ] Write tests: each display type returns correct data structure
+- [x] Implement `DisplayController::index()` — list all displayable items (room groups, rooms) for IT staff to pick
+- [x] Implement `DisplayController::show()` — route `/display/{type}/{id?}` where type = `lobby|room|osh`
+- [x] Lobby endpoint: return room group + its rooms + today's approved bookings + active media
+- [x] Room endpoint: return room + current/upcoming bookings + active media + refresh interval
+- [x] OSH endpoint: return today + tomorrow approved bookings with OSH level + color
+- [x] Ensure endpoints are outside auth middleware (already the case)
+- [x] Write tests: each display type returns correct data structure
 
 ### 13b: Frontend — Display Pages
 
 #### Lobby Display (`display/group-display.tsx`)
 
-- [ ] Show room grouping name + all rooms in the group
-- [ ] Media section: autoplay + loop through room group's active media (images, videos, PDFs as slideshow)
-- [ ] Schedule section: today's bookings for all rooms (time, room name, event title, event leader)
-- [ ] Subscribe to `room-group.{id}` channel — refresh schedule on `booking.updated`
-- [ ] Subscribe to `room-group.{id}` channel — refresh media on `media.updated`
-- [ ] Auto-refresh polling fallback (interval from `GeneralSettings.display_refresh_interval`)
+- [x] Show room grouping name + all rooms in the group
+- [x] Media section: autoplay + loop through room group's active media (images, videos, PDFs as slideshow)
+- [x] Schedule section: today's bookings for all rooms (time, room name, event title, event leader)
+- [x] Subscribe to `room-group.{id}` channel — refresh schedule on `booking.updated`
+- [x] Subscribe to `room-group.{id}` channel — refresh media on `media.updated`
+- [x] Auto-refresh polling fallback (interval from `GeneralSettings.display_refresh_interval`)
 
 #### Room Display (`display/room-display.tsx`)
 
-- [ ] If event in progress: show event title, event leader, OSH level (color badge), start/end time, next event
-- [ ] If room idle: autoplay + loop through room's active media
-- [ ] Subscribe to `room.{id}` channel — refresh on `booking.updated`
-- [ ] Subscribe to `room.{id}` channel — refresh media on `media.updated`
-- [ ] Auto-refresh polling fallback
+- [x] If event in progress: show event title, event leader, OSH level (color badge), start/end time, next event
+- [x] If room idle: autoplay + loop through room's active media
+- [x] Subscribe to `room.{id}` channel — refresh on `booking.updated`
+- [x] Subscribe to `room.{id}` channel — refresh media on `media.updated`
+- [x] Auto-refresh polling fallback
 
 #### OSH Display (`display/osh-display.tsx`)
 
-- [ ] Two tables: today's events + tomorrow's events
-- [ ] Columns: room, time, event title, event leader, participants count, OSH level (color badge)
-- [ ] Subscribe to `bookings` channel — refresh on `booking.updated`
-- [ ] **Audio indicator**: play sound when new approved event appears
-- [ ] Auto-refresh polling fallback
+- [x] Two tables: today's events + tomorrow's events
+- [x] Columns: room, time, event title, event leader, participants count, OSH level (color badge)
+- [x] Subscribe to `bookings` channel — refresh on `booking.updated`
+- [x] **Audio indicator**: play sound when new approved event appears
+- [x] Auto-refresh polling fallback
 
 ### 13c: Display Layouts (Portrait + Landscape)
 
-- [ ] Each display type supports portrait and landscape orientations
-- [ ] Orientation from cookie (`display_orientation`) or query param
-- [ ] Tailwind responsive classes or separate layout components
-- [ ] Full-screen kiosk mode (no browser chrome)
+- [x] Each display type supports portrait and landscape orientations
+- [x] Orientation from cookie (`display_orientation`) or query param
+- [x] Tailwind responsive classes or separate layout components
+- [x] Full-screen kiosk mode (no browser chrome)
 
 ### 13d: Display Launch Flow (IT Staff)
 
-- [ ] Create display index page at `/display` — list all room groups, rooms with thumbnail
-- [ ] Pick a display + choose orientation (landscape/portrait) → opens in full-screen
-- [ ] URL pattern: `/display/lobby/{roomGroupId}?orientation=landscape`
+- [x] Create display index page at `/display` — list all room groups, rooms with thumbnail
+- [x] Pick a display + choose orientation (landscape/portrait) → opens in full-screen
+- [x] URL pattern: `/display/lobby/{roomGroupId}?orientation=landscape`
 
 ---
 

@@ -44,7 +44,7 @@ class Room extends Model
     public function media(): HasMany
     {
         return $this->hasMany(Media::class, 'mediable_id')
-            ->where('mediable_type', self::class);
+            ->where('mediable_type', self::class)->orderBy('sort_order');
     }
 
     public function bookings(): HasMany
