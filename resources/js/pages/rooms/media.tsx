@@ -1,4 +1,6 @@
-import MediaPage from '@/components/features/booking/media-page';
+import { MediaManager } from '@/components/features/media/media-manager';
+import { PageContainer } from '@/components/shared/page-container';
+import { PageHeader } from '@/components/shared/page-header';
 import rooms from '@/routes/rooms';
 
 type MediaItem = {
@@ -23,13 +25,18 @@ type Props = {
 
 export default function RoomMedia({ room }: Props) {
     return (
-        <MediaPage
-            name={room.name}
-            mediableType="rooms"
-            mediableId={room.id}
-            media={room.media}
-            backHref={rooms.index()}
-        />
+        <PageContainer>
+            <PageHeader
+                title={`Media — ${room.name}`}
+                backHref={rooms.index()}
+            />
+
+            <MediaManager
+                mediableType="room-groups"
+                mediableId={room.id}
+                media={room.media}
+            />
+        </PageContainer>
     );
 }
 
