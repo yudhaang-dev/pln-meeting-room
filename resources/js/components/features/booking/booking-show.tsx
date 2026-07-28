@@ -17,6 +17,7 @@ type Booking = {
     participants_count: number;
     reason: string | null;
     attachment_url: string | null;
+    qr_attendance_url: string | null;
     created_at: string;
     room: { id: number; name: string; capacity: number };
     requested_by?: { id: number; name: string; email: string };
@@ -150,6 +151,19 @@ export default function BookingShow({ booking, backHref, children }: Props) {
                                         title="Attachment preview"
                                     />
                                 </div>
+                            </div>
+                        )}
+
+                        {booking.qr_attendance_url && (
+                            <div className="rounded-md border p-4">
+                                <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+                                    QR Attendance
+                                </h2>
+                                <img
+                                    src={booking.qr_attendance_url}
+                                    alt="QR Attendance"
+                                    className="h-40 w-40 rounded border object-contain"
+                                />
                             </div>
                         )}
                     </div>

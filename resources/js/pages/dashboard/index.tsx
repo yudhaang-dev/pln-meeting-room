@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { CalendarPlus, CalendarRange, DoorOpen } from 'lucide-react';
+import { PageContainer } from '@/components/shared/page-container';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,14 +35,12 @@ export default function Dashboard({
     totalRooms,
 }: Props) {
     return (
-        <div className="space-y-6">
+        <PageContainer>
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Dashboard</h1>
-                <Button asChild>
-                    <Link href={bookings.create().url}>
-                        <CalendarPlus className="mr-2 size-4" />
-                        Book a Room
-                    </Link>
+                <Button render={<Link href={bookings.index().url} />}>
+                    <CalendarPlus className="mr-2 size-4" />
+                    Book a Room
                 </Button>
             </div>
 
@@ -78,10 +77,11 @@ export default function Dashboard({
                             <p className="text-muted-foreground mb-4 text-sm">
                                 You have no upcoming bookings.
                             </p>
-                            <Button asChild variant="outline">
-                                <Link href={bookings.create().url}>
-                                    Book a Room
-                                </Link>
+                            <Button
+                                render={<Link href={bookings.index().url} />}
+                                variant="outline"
+                            >
+                                Book a Room
                             </Button>
                         </div>
                     ) : (
@@ -110,6 +110,6 @@ export default function Dashboard({
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </PageContainer>
     );
 }

@@ -74,7 +74,7 @@ test('booking approval notifies user', function () {
 
     $this->actingAs($this->operator);
 
-    $this->post(route('admin.bookings.approve', $booking));
+    $this->post(route('bookings.approve', $booking));
 
     Notification::assertSentTo($this->user, BookingApproved::class);
     Notification::assertNotSentTo($this->operator, BookingApproved::class);
@@ -90,7 +90,7 @@ test('booking rejection notifies user', function () {
 
     $this->actingAs($this->operator);
 
-    $this->postJson(route('admin.bookings.reject', $booking), [
+    $this->postJson(route('bookings.reject', $booking), [
         'reason' => 'Room under maintenance',
     ]);
 
@@ -112,7 +112,7 @@ test('user can get unread count', function () {
         Booking::factory()->create(['requested_id' => $this->user->id, 'room_id' => $this->room->id])
     ));
 
-    $response = $this->get(route('notifications.unread-count'));
+    $response = $this->get(route('notifications.unreadCount'));
     $response->assertOk();
     $response->assertJson(['count' => 1]);
 });
@@ -163,4 +163,22 @@ test('notification contains correct data', function () {
     $this->assertEquals($booking->id, $data['booking_id']);
     $this->assertStringContainsString('Important Meeting', $data['message']);
     $this->assertEquals('Important Meeting', $data['booking']['title']);
+});
+
+test('user can get recent unread notifications', function () {
+    $this->actingAs($this->user);
+
+    $booking = Booking::factory()->create(['requested_id' => $this->user->id, 'room_id' => $this->room->id]);
+    $this->user->notify(new BookingCreated($booking));
+    $this->user->notify(new BookingCreated($booking));
+
+    $response = $this->get(route('notifications.recent'));
+    $response->assertOk();
+    $response->assertJsonStructure([
+        'count',
+        'notifications' => [
+            '*' => ['id', 'data', 'created_at'],
+        ],
+    ]);
+    $response->assertJsonPath('count', 2);
 });

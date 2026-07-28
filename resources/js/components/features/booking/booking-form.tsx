@@ -37,6 +37,7 @@ type BookingData = {
     room_id: number;
     chairperson_id: number | null;
     attachment_url: string | null;
+    qr_attendance_url: string | null;
 };
 
 type Props = {
@@ -57,6 +58,7 @@ const emptyForm = {
     end_time: '',
     participants_count: 1,
     attachment: null as File | null,
+    qr_attendance: null as File | null,
 };
 
 export function BookingForm({
@@ -69,7 +71,9 @@ export function BookingForm({
 }: Props) {
     const isEditing = !!booking;
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const qrInputRef = useRef<HTMLInputElement>(null);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [qrFileName, setQrFileName] = useState<string | null>(null);
 
     const { data, setData, post, processing, reset, errors } = useForm({
         ...emptyForm,
@@ -94,6 +98,7 @@ export function BookingForm({
         const onSuccessCallback = () => {
             reset();
             setFileName(null);
+            setQrFileName(null);
             onOpenChange(false);
             onSuccess?.();
         };
@@ -119,6 +124,7 @@ export function BookingForm({
     const handleClose = () => {
         reset();
         setFileName(null);
+        setQrFileName(null);
         onOpenChange(false);
     };
 
@@ -340,6 +346,45 @@ export function BookingForm({
                             )}
                         </div>
                     )}
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="qr_attendance">
+                            QR Attendance{!isEditing ? '' : ''}
+                        </Label>
+                        {isEditing && booking.qr_attendance_url && (
+                            <div className="mb-2">
+                                <img
+                                    src={booking.qr_attendance_url}
+                                    alt="QR Attendance"
+                                    className="h-32 w-32 rounded border object-contain"
+                                />
+                            </div>
+                        )}
+                        <Input
+                            id="qr_attendance"
+                            type="file"
+                            accept="image/*"
+                            ref={qrInputRef}
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+
+                                if (file) {
+                                    setData('qr_attendance', file);
+                                    setQrFileName(file.name);
+                                }
+                            }}
+                        />
+                        {qrFileName && (
+                            <p className="text-muted-foreground text-xs">
+                                Selected: {qrFileName}
+                            </p>
+                        )}
+                        {errors.qr_attendance && (
+                            <p className="text-destructive text-sm">
+                                {errors.qr_attendance}
+                            </p>
+                        )}
+                    </div>
 
                     <DialogFooter>
                         <Button

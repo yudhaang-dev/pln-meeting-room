@@ -26,6 +26,7 @@ class UpdateBookingRequest extends FormRequest
             'participants_count' => ['sometimes', 'required', 'integer', 'min:1'],
             'status' => ['sometimes', 'required', Rule::in(['pending', 'approved', 'rejected'])],
             'reason' => ['nullable', 'string', 'max:1000'],
+            'qr_attendance' => ['nullable', 'image', 'max:5120'],
         ];
     }
 

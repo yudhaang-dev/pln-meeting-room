@@ -58,19 +58,19 @@ Status: `todo` · `in_progress` · `done`
 
 ### Admin Dashboard
 
-- [ ] Create `AdminDashboardController` (or extend `DashboardController`) — pass: totalBuildings, totalRooms, pendingBookingsCount, totalUsers, recent 5 bookings
-- [ ] Wire admin dashboard route
-- [ ] Update `admin/dashboard.tsx` — replace hardcoded stubs with Inertia props
-- [ ] Show pending approval queue (5 most recent pending bookings with quick approve/reject)
-- [ ] Show recent activity (5 most recent bookings with status badges)
-- [ ] Write feature test: admin dashboard returns correct stats
+- [x] Create `AdminDashboardController` (or extend `DashboardController`) — pass: totalBuildings, totalRooms, pendingBookingsCount, totalUsers, recent 5 bookings
+- [x] Wire admin dashboard route
+- [x] Update `admin/dashboard.tsx` — replace hardcoded stubs with Inertia props
+- [x] Show pending approval queue (5 most recent pending bookings with quick approve/reject)
+- [x] Show recent activity (5 most recent bookings with status badges)
+- [x] Write feature test: admin dashboard returns correct stats
 
 ### User Dashboard
 
-- [ ] Update `DashboardController` — pass user-specific data: upcoming approved bookings count, next 3 upcoming bookings, total rooms available
-- [ ] Update `dashboard.tsx` — show role-appropriate content (admin/operator → admin panel; user → user dashboard)
-- [ ] Add quick link to booking create form
-- [ ] Write feature test: user dashboard returns correct data
+- [x] Update `DashboardController` — pass user-specific data: upcoming approved bookings count, next 3 upcoming bookings, total rooms available
+- [x] Update `dashboard.tsx` — show role-appropriate content (admin/operator → admin panel; user → user dashboard)
+- [x] Add quick link to booking create form
+- [x] Write feature test: user dashboard returns correct data
 
 ### Responsive Polish
 

@@ -14,10 +14,6 @@ class LoginResponse implements LoginResponseContract
     {
         $user = $request->user();
 
-        // if ($user->isAdmin() || $user->isOperator()) {
-        //     return redirect()->intended(route('admin.dashboard'));
-        // }
-
         return redirect()->intended(route('dashboard'));
     }
 }

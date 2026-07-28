@@ -34,6 +34,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('media/assemble', [Web\MediaController::class, 'assemble'])->name('media.assemble');
 
     Route::resource('bookings', Web\BookingController::class)->except(['create', 'edit']);
+    Route::post('/bookings/{booking}/status/reject', [Web\BookingController::class, 'reject'])->name('bookings.reject');
+    Route::post('/bookings/{booking}/status/approve', [Web\BookingController::class, 'approve'])->name('bookings.approve');
+
+    Route::get('/notifications/unread-count', [Web\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::get('/notifications/recent', [Web\NotificationController::class, 'recent'])->name('notifications.recent');
+    Route::post('/notifications/mark-all-as-read', [Web\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::patch('/notifications/clear', [Web\NotificationController::class, 'clearAll'])->name('notifications.clear');
+    Route::post('/notifications/{notification}/read', [Web\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::resource('notifications', Web\NotificationController::class)->only(['index', 'show', 'destroy']);
 
     Route::middleware('role:admin')->group(function () {
@@ -41,10 +49,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/dashboard', Web\DashboardController::class)->name('dashboard');
-    Route::patch('/bookings/{booking}/status/reject', [Web\BookingController::class, 'reject'])->name('bookings.reject');
-    Route::patch('/bookings/{booking}/status/approve', [Web\BookingController::class, 'approve'])->name('bookings.approve');
-    Route::patch('/notifications/mark-all-as-read', [Web\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
-    Route::patch('/notifications/clear', [Web\NotificationController::class, 'clearAll'])->name('notifications.clear');
 
     Route::redirect('settings', '/settings/account/profile');
     Route::prefix('settings/account')->name('settings.account.')->group(function () {

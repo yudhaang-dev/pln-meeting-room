@@ -34,7 +34,7 @@ class Booking extends Model
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
 
-    protected $appends = ['attachment_url', 'osh_level'];
+    protected $appends = ['attachment_url', 'qr_attendance_url', 'osh_level'];
 
     protected function casts(): array
     {
@@ -101,10 +101,22 @@ class Booking extends Model
         return $this->attachment_path ? Storage::disk('public')->url($this->attachment_path) : null;
     }
 
+    public function getQrAttendanceUrlAttribute(): ?string
+    {
+        return $this->qr_attendance_path ? Storage::disk('public')->url($this->qr_attendance_path) : null;
+    }
+
     public function deleteAttachment(): void
     {
         if ($this->attachment_path && Storage::disk('public')->exists($this->attachment_path)) {
             Storage::disk('public')->delete($this->attachment_path);
+        }
+    }
+
+    public function deleteQrAttendance(): void
+    {
+        if ($this->qr_attendance_path && Storage::disk('public')->exists($this->qr_attendance_path)) {
+            Storage::disk('public')->delete($this->qr_attendance_path);
         }
     }
 }

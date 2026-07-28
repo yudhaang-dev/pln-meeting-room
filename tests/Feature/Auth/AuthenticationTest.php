@@ -31,7 +31,7 @@ test('admin users are redirected to admin dashboard after login', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('admin.dashboard', absolute: false));
+    $response->assertRedirect(route('dashboard', absolute: false));
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {

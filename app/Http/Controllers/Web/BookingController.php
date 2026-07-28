@@ -9,7 +9,9 @@ use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
 use App\Models\Person;
 use App\Models\Room;
+use App\Models\User;
 use App\Notifications\BookingApproved;
+use App\Notifications\BookingCreated;
 use App\Notifications\BookingRejected;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
@@ -87,6 +89,11 @@ class BookingController extends Controller
             $attachmentPath = $file->store('bookings', 'public');
         }
 
+        $qrAttendancePath = null;
+        if ($request->hasFile('qr_attendance')) {
+            $qrAttendancePath = $request->file('qr_attendance')->store('bookings/qr', 'public');
+        }
+
         $settings = app(GeneralSettings::class);
         $shouldAutoApprove = $settings->auto_approve_bookings;
 
@@ -100,14 +107,19 @@ class BookingController extends Controller
             'end_time' => $validated['end_time'],
             'participants_count' => $validated['participants_count'],
             'attachment_path' => $attachmentPath,
+            'qr_attendance_path' => $qrAttendancePath,
             'status' => $shouldAutoApprove ? 'approved' : 'pending',
             'approved_id' => $shouldAutoApprove ? Auth::user()->id : null,
             'approved_at' => $shouldAutoApprove ? now() : null,
         ]);
 
-        if ($shouldAutoApprove) {
-            $booking->requestedBy->notify(new BookingApproved($booking));
+        if (! $shouldAutoApprove) {
+            User::where('role', 'admin')->orWhere('role', 'operator')->each(
+                fn (User $recipient) => $recipient->notify(new BookingCreated($booking))
+            );
         }
+
+        broadcast(new BookingUpdated($booking));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking created successfully.']);
 
@@ -140,7 +152,15 @@ class BookingController extends Controller
     {
         $this->authorize('update', $booking);
 
-        $booking->update($request->validated());
+        $validated = $request->validated();
+
+        if ($request->hasFile('qr_attendance')) {
+            $booking->deleteQrAttendance();
+            $validated['qr_attendance_path'] = $request->file('qr_attendance')->store('bookings/qr', 'public');
+            unset($validated['qr_attendance']);
+        }
+
+        $booking->update($validated);
 
         broadcast(new BookingUpdated($booking));
 

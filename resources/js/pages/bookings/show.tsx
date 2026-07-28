@@ -30,6 +30,7 @@ type Booking = {
     participants_count: number;
     reason: string | null;
     attachment_url: string | null;
+    qr_attendance_url: string | null;
     created_at: string;
     room: { id: number; name: string; capacity: number };
     requested_by: { id: number; name: string; email: string };
@@ -66,7 +67,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
 
     const handleApprove = () => {
         setProcessing(true);
-        router.patch(
+        router.post(
             bookings.approve(booking.id).url,
             {},
             {
@@ -85,7 +86,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
         }
 
         setProcessing(true);
-        router.patch(
+        router.post(
             bookings.reject(booking.id).url,
             { reason: rejectReason },
             {
@@ -295,6 +296,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
                     room_id: booking.room.id,
                     chairperson_id: booking.chairperson?.id ?? null,
                     attachment_url: booking.attachment_url,
+                    qr_attendance_url: booking.qr_attendance_url,
                 }}
             />
         </>

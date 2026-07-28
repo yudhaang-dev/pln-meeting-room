@@ -1,7 +1,8 @@
 import { router, usePage } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
+import { useEchoNotification } from '@laravel/echo-react';
 import { Bell } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import beepSound from '@/../assets/audio/beep.wav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,20 +13,49 @@ import {
 } from '@/components/ui/dropdown-menu';
 import notifications from '@/routes/notifications';
 
-const audio = new Audio('/audio/beep.wav');
+let audioUnlocked = false;
+
+function unlockAudio() {
+    if (audioUnlocked) {
+        return;
+    }
+
+    const ctx = new AudioContext();
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+    audioUnlocked = true;
+    ctx.close();
+}
+
+function playBeep() {
+    const audio = new Audio(beepSound);
+    audio.volume = 1;
+    audio.play().catch(() => {});
+}
+
+interface NotificationItem {
+    id: string;
+    data: Record<string, unknown>;
+    created_at: string;
+}
 
 export function NotificationBell() {
     const { auth } = usePage().props as {
         auth: { user: { id: number } | null };
     };
     const [unreadCount, setUnreadCount] = useState(0);
+    const [items, setItems] = useState<NotificationItem[]>([]);
     const hasFetched = useRef(false);
 
     const fetchNotifications = useCallback(async () => {
         try {
-            const res = await fetch(notifications.unreadCount.url());
+            const res = await fetch(notifications.recent.url());
             const data = await res.json();
             setUnreadCount(data.count);
+            setItems(data.notifications);
         } catch {
             // silent
         }
@@ -40,28 +70,56 @@ export function NotificationBell() {
         fetchNotifications();
     }, [auth.user, fetchNotifications]);
 
-    useEcho(
-        'bookings',
-        'booking.updated',
-        () => {
-            fetchNotifications();
-            audio.play().catch(() => {});
-        },
-        [],
-        'public',
-    );
+    useEffect(() => {
+        const handler = () => unlockAudio();
+        document.addEventListener('click', handler, { once: true });
 
-    const handleMarkAllAsRead = () => {
-        router.post(
-            notifications.markAllAsRead.url(),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setUnreadCount(0);
-                },
+        return () => document.removeEventListener('click', handler);
+    }, []);
+
+    useEchoNotification(`App.Models.User.${auth.user?.id}`, () => {
+        fetchNotifications();
+
+        if (audioUnlocked) {
+            playBeep();
+        }
+    });
+
+    const postJson = async (url: string) => {
+        const csrf =
+            document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content') ?? '';
+
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrf,
+                Accept: 'application/json',
             },
-        );
+            credentials: 'same-origin',
+        });
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            await postJson(notifications.markAllAsRead.url());
+            setUnreadCount(0);
+            setItems([]);
+        } catch {
+            // silent
+        }
+    };
+
+    const handleMarkAsRead = async (id: string) => {
+        try {
+            await postJson(notifications.markAsRead.url({ notification: id }));
+            setItems((prev) => prev.filter((n) => n.id !== id));
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+        } catch {
+            // silent
+        }
     };
 
     if (!auth.user) {
@@ -70,7 +128,11 @@ export function NotificationBell() {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="relative" />}>
+            <DropdownMenuTrigger
+                render={
+                    <Button variant="ghost" size="icon" className="relative" />
+                }
+            >
                 <Bell className="size-5" />
                 {unreadCount > 0 && (
                     <Badge
@@ -92,23 +154,43 @@ export function NotificationBell() {
                             onClick={handleMarkAllAsRead}
                         >
                             Mark all read
-                </Button>
+                        </Button>
                     )}
                 </div>
-                {unreadCount === 0 ? (
+                {items.length === 0 ? (
                     <div className="text-muted-foreground px-4 py-6 text-center text-sm">
                         No new notifications
                     </div>
                 ) : (
                     <div className="max-h-80 overflow-y-auto">
+                        {items.map((notification) => (
+                            <DropdownMenuItem
+                                key={notification.id}
+                                className="flex cursor-pointer flex-col items-start gap-1 px-4 py-3"
+                                onClick={() =>
+                                    handleMarkAsRead(notification.id)
+                                }
+                            >
+                                <span className="text-sm font-medium">
+                                    {String(
+                                        notification.data.title ??
+                                            notification.data.message ??
+                                            'Notification',
+                                    )}
+                                </span>
+                                <span className="text-muted-foreground text-xs">
+                                    {String(notification.data.body ?? '')}
+                                </span>
+                            </DropdownMenuItem>
+                        ))}
                         <DropdownMenuItem
-                            className="flex cursor-pointer flex-col items-start gap-1"
+                            className="flex cursor-pointer justify-center border-t px-4 py-2"
                             onClick={() =>
                                 router.visit(notifications.index.url())
                             }
                         >
                             <span className="text-muted-foreground text-xs">
-                                View all {unreadCount} unread notification
+                                View all {unreadCount} notification
                                 {unreadCount !== 1 ? 's' : ''}
                             </span>
                         </DropdownMenuItem>

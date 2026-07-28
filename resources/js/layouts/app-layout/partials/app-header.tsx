@@ -1,3 +1,4 @@
+import { NotificationBell } from '@/components/features/notification/notification-bell';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { AppBreadcrumbs } from './app-breadcrumbs';
@@ -13,7 +14,9 @@ export function AppHeader({ breadcrumbs }: Props) {
                 <SidebarTrigger className="-ml-1" />
                 <AppBreadcrumbs breadcrumbs={breadcrumbs} />
             </div>
-            <div className="ml-auto"></div>
+            <div className="ml-auto">
+                <NotificationBell />
+            </div>
         </header>
     );
 }

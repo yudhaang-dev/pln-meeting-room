@@ -8,6 +8,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { PageContainer } from '@/components/shared/page-container';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,7 +66,7 @@ const stats = [
     { key: 'totalUsers', label: 'Users', icon: Users },
 ] as const;
 
-export default function AdminDashboard({
+export default function DashboardAdmin({
     totalBuildings,
     totalRooms,
     pendingBookingsCount,
@@ -86,7 +87,7 @@ export default function AdminDashboard({
 
     const handleApprove = (id: number) => {
         setProcessing(true);
-        router.patch(
+        router.post(
             bookings.approve(id).url,
             {},
             {
@@ -102,7 +103,7 @@ export default function AdminDashboard({
         }
 
         setProcessing(true);
-        router.patch(
+        router.post(
             bookings.reject(rejectId).url,
             { reason: rejectReason },
             {
@@ -117,7 +118,7 @@ export default function AdminDashboard({
     };
 
     return (
-        <div className="space-y-6">
+        <PageContainer>
             <h1 className="text-2xl font-bold">Dashboard</h1>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -143,9 +144,11 @@ export default function AdminDashboard({
                             <span>Pending Approvals</span>
                             {pendingBookingsCount > 5 && (
                                 <Link
-                                    href={bookings.index({
-                                        query: { status: 'pending' },
-                                    }).url}
+                                    href={
+                                        bookings.index({
+                                            query: { status: 'pending' },
+                                        }).url
+                                    }
                                     className="text-muted-foreground text-sm font-normal hover:underline"
                                 >
                                     View all ({pendingBookingsCount})
@@ -229,13 +232,11 @@ export default function AdminDashboard({
                                             <TableCell className="max-w-[120px] truncate font-medium">
                                                 {booking.title}
                                             </TableCell>
-                                            <TableCell className="max-w-[80px] truncate text-muted-foreground">
+                                            <TableCell className="text-muted-foreground max-w-[80px] truncate">
                                                 {booking.room.name}
                                             </TableCell>
                                             <TableCell className="text-muted-foreground whitespace-nowrap">
-                                                {formatDate(
-                                                    booking.start_time,
-                                                )}
+                                                {formatDate(booking.start_time)}
                                             </TableCell>
                                             <TableCell>
                                                 <StatusBadge
@@ -293,6 +294,6 @@ export default function AdminDashboard({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </PageContainer>
     );
 }

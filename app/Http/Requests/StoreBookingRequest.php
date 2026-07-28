@@ -27,6 +27,7 @@ class StoreBookingRequest extends FormRequest
             'end_time' => ['required', 'date', 'after:start_time'],
             'participants_count' => ['required', 'integer', 'min:1'],
             'attachment' => ['required', 'file', 'max:10240'],
+            'qr_attendance' => ['nullable', 'image', 'max:5120'],
         ];
     }
 

@@ -154,7 +154,7 @@ export function BookingDataTable({
 
         setProcessing(true);
 
-        router.patch(
+        router.post(
             bookings.approve(approveId).url,
             {},
             {
@@ -177,7 +177,7 @@ export function BookingDataTable({
         }
 
         setProcessing(true);
-        router.patch(
+        router.post(
             bookings.reject(rejectId).url,
             { reason: rejectReason },
             {
