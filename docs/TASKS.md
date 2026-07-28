@@ -197,7 +197,7 @@ Status: `todo` · `in_progress` · `done`
 - [ ] View bookings list → search, filter by status, sort, paginate
 - [ ] Approve a pending booking → user receives in-app notification
 - [ ] Reject a pending booking with reason → user receives in-app notification
-- [ ] Reschedule a booking (admin only, with overlap validation)
+- [ ] Reschedule a booking → overlap validation enforced
 - [ ] Delete a booking → removed from list
 - [ ] Manage users (create, edit role, delete)
 - [ ] Update general settings (advance hours, auto-approve toggle)
@@ -206,7 +206,7 @@ Status: `todo` · `in_progress` · `done`
 
 - [ ] Login as operator → redirected to management dashboard
 - [ ] Can view/approve/reject bookings
-- [ ] Cannot reschedule a booking
+- [ ] Cannot reschedule a booking (with overlap validation)
 - [ ] Can CRUD people only
 - [ ] Cannot manage buildings, rooms, room groups, OSH levels (admin only)
 - [ ] Cannot manage users (403 on user routes)
