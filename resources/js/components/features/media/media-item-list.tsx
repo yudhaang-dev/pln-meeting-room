@@ -10,7 +10,7 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import {
     SortableContext,
     sortableKeyboardCoordinates,
-    rectSortingStrategy, // Khusus untuk layout Grid (3 kolom)
+    rectSortingStrategy,
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -40,15 +40,24 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
-type MediaItem = {
+export type MediaItem = {
     id: number;
     path: string;
     type: string;
     name: string | null;
+    size: number;
+    mime: string | null;
     sort_order: number;
     is_active: boolean;
     file_url: string | null;
 };
+
+function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(i > 0 ? 0 : 0)} ${units[i]}`;
+}
 
 type ItemProps = {
     item: MediaItem;
@@ -164,8 +173,10 @@ function DragableItem({
                 <div className="w-3/4">
                     <div className="text-sm font-normal">{item.name}</div>
                     <div className="text-muted-foreground space-x-2 text-xs">
-                        <span>video</span>
-                        <span>13MB</span>
+                        <span>{item.type}</span>
+                        {item.size > 0 && (
+                            <span>{formatFileSize(item.size)}</span>
+                        )}
                     </div>
                 </div>
             </div>

@@ -173,6 +173,36 @@ class MediaController extends Controller
         return back();
     }
 
+    public function bulkDelete(Room $room): RedirectResponse
+    {
+        return $this->doBulkDelete($room);
+    }
+
+    public function bulkDeleteFromGrouping(RoomGroup $roomGroup): RedirectResponse
+    {
+        return $this->doBulkDelete($roomGroup);
+    }
+
+    private function doBulkDelete(Room|RoomGroup $mediable): RedirectResponse
+    {
+        $mediaIds = request()->input('media_ids', []);
+
+        $mediaItems = Media::whereIn('id', $mediaIds)
+            ->where('mediable_type', $mediable::class)
+            ->where('mediable_id', $mediable->id)
+            ->get();
+
+        foreach ($mediaItems as $media) {
+            $this->authorize('delete', $media);
+            $media->deleteFile();
+            $media->delete();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
+
+        return back();
+    }
+
     private function determineFileType(string $extension): string
     {
         return match (strtolower($extension)) {

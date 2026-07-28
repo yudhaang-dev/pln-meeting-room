@@ -19,12 +19,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('rooms/{room}/media', [Web\RoomController::class, 'media'])->name('rooms.media');
     Route::post('rooms/{room}/media', [Web\MediaController::class, 'store'])->name('rooms.media.store');
     Route::post('rooms/{room}/media/reorder', [Web\MediaController::class, 'reorder'])->name('rooms.media.reorder');
+    Route::post('rooms/{room}/media/bulk-delete', [Web\MediaController::class, 'bulkDelete'])->name('rooms.media.bulkDelete');
     Route::put('rooms/{room}/media/{media}/toggle-active', [Web\MediaController::class, 'toggleActive'])->name('rooms.media.toggleActive');
     Route::delete('rooms/{room}/media/{media}', [Web\MediaController::class, 'destroy'])->name('rooms.media.destroy');
 
     Route::get('room-groups/{roomGroup}/media', [Web\RoomGroupController::class, 'media'])->name('room-groups.media');
     Route::post('room-groups/{roomGroup}/media', [Web\MediaController::class, 'storeFromGrouping'])->name('room-groups.media.store');
     Route::post('room-groups/{roomGroup}/media/reorder', [Web\MediaController::class, 'reorder'])->name('room-groups.media.reorder');
+    Route::post('room-groups/{roomGroup}/media/bulk-delete', [Web\MediaController::class, 'bulkDeleteFromGrouping'])->name('room-groups.media.bulkDelete');
     Route::put('room-groups/{roomGroup}/media/{media}/toggle-active', [Web\MediaController::class, 'toggleActive'])->name('room-groups.media.toggleActive');
     Route::delete('room-groups/{roomGroup}/media/{media}', [Web\MediaController::class, 'destroy'])->name('room-groups.media.destroy');
 
