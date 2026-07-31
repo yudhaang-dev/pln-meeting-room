@@ -38,7 +38,10 @@ export default function Dashboard({
         <PageContainer>
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Dashboard</h1>
-                <Button render={<Link href={bookings.index().url} />}>
+                <Button
+                    nativeButton={false}
+                    render={<Link href={bookings.index().url} />}
+                >
                     <CalendarPlus className="mr-2 size-4" />
                     Book a Room
                 </Button>

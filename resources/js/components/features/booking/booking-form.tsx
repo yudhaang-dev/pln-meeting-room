@@ -1,4 +1,4 @@
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -75,7 +75,7 @@ export function BookingForm({
     const [fileName, setFileName] = useState<string | null>(null);
     const [qrFileName, setQrFileName] = useState<string | null>(null);
 
-    const { data, setData, post, processing, reset, errors } = useForm({
+    const { data, setData, post, put, processing, reset, errors } = useForm({
         ...emptyForm,
         ...(booking
             ? {
@@ -85,8 +85,8 @@ export function BookingForm({
                       : '',
                   title: booking.title,
                   description: booking.description ?? '',
-                  start_time: booking.start_time,
-                  end_time: booking.end_time,
+                  start_time: booking.start_time.replace(' ', 'T'),
+                  end_time: booking.end_time.replace(' ', 'T'),
                   participants_count: booking.participants_count,
               }
             : {}),
@@ -104,19 +104,16 @@ export function BookingForm({
         };
 
         if (isEditing && booking) {
-            router.post(
-                bookings.update(booking.id).url,
-                {
-                    ...data,
-                    _method: 'PUT',
-                },
-                {
-                    onSuccess: onSuccessCallback,
-                },
-            );
+            put(bookings.update(booking.id).url, {
+                onSuccess: onSuccessCallback,
+                preserveState: true,
+                preserveScroll: true,
+            });
         } else {
             post(bookings.store().url, {
                 onSuccess: onSuccessCallback,
+                preserveState: true,
+                preserveScroll: true,
             });
         }
     };
@@ -148,24 +145,21 @@ export function BookingForm({
                             items={rooms}
                             value={
                                 rooms.find(
-                                    (r) =>
-                                        String(r.id) === data.room_id,
+                                    (r) => String(r.id) === data.room_id,
                                 ) ?? null
                             }
                             onValueChange={(room) =>
-                                setData(
-                                    'room_id',
-                                    room ? String(room.id) : '',
-                                )
+                                setData('room_id', room ? String(room.id) : '')
                             }
                             itemToStringValue={(room) => String(room.id)}
                             itemToStringLabel={(room) => room.name}
                         >
-                            <ComboboxInput placeholder="Select room" showClear />
+                            <ComboboxInput
+                                placeholder="Select room"
+                                showClear
+                            />
                             <ComboboxContent>
-                                <ComboboxEmpty>
-                                    No rooms found.
-                                </ComboboxEmpty>
+                                <ComboboxEmpty>No rooms found.</ComboboxEmpty>
                                 <ComboboxList>
                                     {(room) => (
                                         <ComboboxItem
@@ -297,7 +291,10 @@ export function BookingForm({
                                 }
                                 itemToStringLabel={(person) => person.name}
                             >
-                                <ComboboxInput placeholder="Select leader" showClear />
+                                <ComboboxInput
+                                    placeholder="Select leader"
+                                    showClear
+                                />
                                 <ComboboxContent>
                                     <ComboboxEmpty>
                                         No people found.
@@ -317,35 +314,47 @@ export function BookingForm({
                         </div>
                     </div>
 
-                    {!isEditing && (
-                        <div className="grid gap-2">
-                            <Label htmlFor="attachment">Attachment *</Label>
-                            <Input
-                                id="attachment"
-                                type="file"
-                                accept=".pdf,image/*"
-                                ref={fileInputRef}
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
+                    <div className="grid gap-2">
+                        <Label htmlFor="attachment">
+                            Attachment{isEditing ? '' : ' *'}
+                        </Label>
+                        {isEditing && booking.attachment_url && (
+                            <div className="mb-2">
+                                <a
+                                    href={booking.attachment_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-blue-600 hover:underline"
+                                >
+                                    Current attachment
+                                </a>
+                            </div>
+                        )}
+                        <Input
+                            id="attachment"
+                            type="file"
+                            accept=".pdf,image/*"
+                            ref={fileInputRef}
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
 
-                                    if (file) {
-                                        setData('attachment', file);
-                                        setFileName(file.name);
-                                    }
-                                }}
-                            />
-                            {fileName && (
-                                <p className="text-muted-foreground text-xs">
-                                    Selected: {fileName}
-                                </p>
-                            )}
-                            {errors.attachment && (
-                                <p className="text-destructive text-sm">
-                                    {errors.attachment}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                                if (file) {
+                                    setData('attachment', file);
+                                    setFileName(file.name);
+                                }
+                            }}
+                        />
+                        {fileName && (
+                            <p className="text-muted-foreground text-xs">
+                                Selected: {fileName}
+                            </p>
+                        )}
+                        {errors.attachment && (
+                            <p className="text-destructive text-sm">
+                                {errors.attachment}
+                            </p>
+                        )}
+                    </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="qr_attendance">

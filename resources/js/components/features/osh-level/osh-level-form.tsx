@@ -38,7 +38,7 @@ const emptyForm = {
     color: '#22c55e',
     min_participants: 1,
     max_participants: 100,
-    sort_order: 0,
+    sort_order: 1,
     is_active: true,
 };
 
@@ -193,12 +193,12 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                             <Input
                                 id="sort_order"
                                 type="number"
-                                min={0}
+                                min={1}
                                 value={data.sort_order}
                                 onChange={(e) =>
                                     setData(
                                         'sort_order',
-                                        parseInt(e.target.value) || 0,
+                                        parseInt(e.target.value) || 1,
                                     )
                                 }
                             />

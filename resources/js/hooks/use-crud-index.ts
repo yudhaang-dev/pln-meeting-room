@@ -35,6 +35,9 @@ export function useCrudIndex({
     const [perPage, setPerPage] = useState(
         initialQuery.per_page ?? urlParams.get('per_page') ?? defaultPerPage,
     );
+    const [page, setPage] = useState(
+        initialQuery.page ?? urlParams.get('page') ?? '1',
+    );
     const [status, setStatus] = useState<string | undefined>(
         (initialQuery.status ?? urlParams.get('status') ?? undefined) as
             | string
@@ -59,6 +62,9 @@ export function useCrudIndex({
         const nextPerPage = overrides.per_page !== undefined
             ? String(overrides.per_page)
             : perPage;
+        const nextPage = overrides.page !== undefined
+            ? String(overrides.page)
+            : page;
         const nextStatus = 'status' in overrides
             ? (overrides.status as string | undefined)
             : status;
@@ -67,6 +73,7 @@ export function useCrudIndex({
         setSortBy(nextSortBy);
         setSortDirection(nextSortDirection as 'asc' | 'desc');
         setPerPage(nextPerPage);
+        setPage(nextPage);
         setStatus(nextStatus);
 
         const query = buildQuery({
@@ -75,6 +82,7 @@ export function useCrudIndex({
             sort_by: nextSortBy,
             sort_direction: nextSortDirection,
             per_page: nextPerPage,
+            page: nextPage,
             status: nextStatus,
         });
         router.get(indexRoute, query, {
@@ -93,11 +101,13 @@ export function useCrudIndex({
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        navigate({ search: value });
+        setPage('1');
+        navigate({ search: value, page: 1 });
     };
 
     const handlePerPage = (value: string) => {
         setPerPage(value);
+        setPage('1');
         navigate({ per_page: value, page: 1 });
     };
 
@@ -131,6 +141,7 @@ export function useCrudIndex({
         sortBy,
         sortDirection,
         perPage,
+        page,
         status,
         dialogOpen,
         editingId,

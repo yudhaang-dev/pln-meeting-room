@@ -10,9 +10,23 @@ class BookingCancelled extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public Booking $booking,
-    ) {}
+    private array $data;
+
+    public function __construct(Booking $booking)
+    {
+        $this->data = [
+            'type' => 'booking_cancelled',
+            'booking_id' => $booking->id,
+            'message' => 'Booking "'.$booking->title.'" has been cancelled.',
+            'booking' => [
+                'id' => $booking->id,
+                'title' => $booking->title,
+                'room' => $booking->room->name,
+                'start_time' => $booking->start_time->toISOString(),
+                'end_time' => $booking->end_time->toISOString(),
+            ],
+        ];
+    }
 
     public function via(object $notifiable): array
     {
@@ -21,17 +35,6 @@ class BookingCancelled extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'booking_cancelled',
-            'booking_id' => $this->booking->id,
-            'message' => 'Booking "'.$this->booking->title.'" has been cancelled.',
-            'booking' => [
-                'id' => $this->booking->id,
-                'title' => $this->booking->title,
-                'room' => $this->booking->room->name,
-                'start_time' => $this->booking->start_time->toISOString(),
-                'end_time' => $this->booking->end_time->toISOString(),
-            ],
-        ];
+        return $this->data;
     }
 }

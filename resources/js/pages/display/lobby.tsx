@@ -1,10 +1,10 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, router, usePoll } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
+import { useMemo } from 'react';
 import { MediaPlayer } from '@/components/features/display/media-player';
-import { MonitorFrame } from '@/components/features/display/monitor-frame';
 import { ScheduleItems } from '@/components/features/display/schedule-items';
-import AppLogo from '@/components/shared/brand/app-logo';
+import { TopBar } from '@/components/shared/general/top-bar';
 import { cn } from '@/lib/utils';
 
 type Media = {
@@ -58,9 +58,11 @@ type Props = PageProps & {
     roomGroup: RoomGroup;
     bookings: Booking[];
     orientation: string;
+    refreshInterval: number;
+    mediaLoopDuration: number;
 };
 
-export default function Lobby({ roomGroup, bookings, orientation }: Props) {
+export default function Lobby({ roomGroup, bookings, orientation, refreshInterval, mediaLoopDuration }: Props) {
     useEcho(`room-group.${roomGroup.id}`, 'booking.updated', () => {
         router.reload({ only: ['bookings'] });
     });
@@ -69,57 +71,55 @@ export default function Lobby({ roomGroup, bookings, orientation }: Props) {
         router.reload({ only: ['roomGroup'] });
     });
 
-    usePoll(30_000, {
+    usePoll(refreshInterval * 1000, {
         only: ['bookings'],
     });
 
     const isLandscape = orientation == 'landscape';
 
+    const player = useMemo(() => {
+        return (
+            <MediaPlayer
+                items={roomGroup.media ?? []}
+                className="max-h-full bg-black"
+            />
+        );
+    }, [roomGroup.media]);
+
     return (
         <>
             <Head title={`${roomGroup.name} — Lobby Display`} />
-            {isLandscape ? (
-                <div className={cn('flex h-svh w-full flex-row')}>
+            {bookings.length > 0 ? (
+                <main
+                    className={cn(
+                        'grid h-svh w-full',
+                        isLandscape
+                            ? 'grid-cols-6 grid-rows-1'
+                            : 'grid-cols-1 grid-rows-6',
+                    )}
+                >
                     <div
                         className={cn(
-                            'flex flex-col items-center justify-center gap-6 p-6',
-                            isLandscape ? 'w-[70%]' : 'w-full',
+                            'flex size-full flex-1 flex-col gap-4 overflow-hidden',
+                            isLandscape ? 'col-span-4' : 'row-span-2',
                         )}
                     >
-                        <AppLogo />
-                        <MonitorFrame className="w-[90%]">
-                            <MediaPlayer items={roomGroup.media} />
-                        </MonitorFrame>
+                        {player}
                     </div>
                     <div
                         className={cn(
-                            'bg-pln-yellow/40 flex flex-col gap-6 p-6',
-                            isLandscape ? 'w-[30%]' : 'w-full',
+                            'flex size-full min-h-0 flex-col overflow-hidden',
+                            isLandscape ? 'col-span-2' : 'row-span-4',
                         )}
                     >
-                        <h1 className="text-center text-5xl font-bold uppercase text-cyan-700">
-                            Agenda Hari Ini
-                        </h1>
-                        <ScheduleItems items={bookings} />
+                        <TopBar className="h-auto p-6" logoClass="max-h-10" />
+                        <div className="size-full min-h-0 flex-1 overflow-y-auto p-6">
+                            <ScheduleItems items={bookings} />
+                        </div>
                     </div>
-                </div>
+                </main>
             ) : (
-                <div className={cn('flex h-svh w-full flex-col')}>
-                    <div className="bg-pln-blue/40 h-[30%]">
-                        <MediaPlayer items={roomGroup.media} />
-                    </div>
-                    <div
-                        className={cn(
-                            'border-pln-red flex h-[70%] flex-col gap-6 border-t-8 p-6',
-                            'bg-pln-yellow/40',
-                        )}
-                    >
-                        <h1 className="text-center text-5xl font-bold uppercase text-cyan-700">
-                            Agenda Hari Ini
-                        </h1>
-                        <ScheduleItems items={bookings} />
-                    </div>
-                </div>
+                <main className="h-svh w-full">{player}</main>
             )}
         </>
     );

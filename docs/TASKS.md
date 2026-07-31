@@ -88,7 +88,7 @@ Status: `todo` · `in_progress` · `done`
 > Currently only update/approve/reject broadcast. Store and destroy don't.
 
 - [x] Add `broadcast(new BookingUpdated($booking))` to `BookingController::store()` — after creation (including auto-approved)
-- [ ] Create `BookingDeleted` event (or reuse `BookingUpdated` with action type) — broadcast on `BookingController::destroy()`
+- [x] Create `BookingDeleted` event (or reuse `BookingUpdated` with action type) — broadcast on `BookingController::destroy()`
 - [x] Verify `BookingUpdated` event data includes all fields needed by frontend (booking id, title, room, status, time, OSH level, event leader)
 - [x] Create `MediaUpdated` event — broadcast when media is uploaded, deleted, reordered, or toggled
 - [x] Broadcast `MediaUpdated` to `room.{room_id}` and `room-group.{group_id}` channels
@@ -187,16 +187,16 @@ Status: `todo` · `in_progress` · `done`
 ### Scenario: Admin Full Flow
 
 - [ ] Login as admin → dashboard shows real stats
-- [ ] CRUD buildings (create, edit, delete)
-- [ ] CRUD room groups (create with room assignment, edit, delete)
-- [ ] CRUD rooms (create with capacity, edit, delete)
-- [ ] CRUD event leaders (create with photo, edit, delete)
-- [ ] CRUD OSH levels (create with color, edit, delete, reorder)
-- [ ] Upload media to a room → appears in media manager
-- [ ] Upload media to a room group → appears in media manager
-- [ ] View bookings list → search, filter by status, sort, paginate
-- [ ] Approve a pending booking → user receives in-app notification
-- [ ] Reject a pending booking with reason → user receives in-app notification
+- [x] CRUD buildings (create, edit, delete)
+- [x] CRUD room groups (create with room assignment, edit, delete)
+- [x] CRUD rooms (create with capacity, edit, delete)
+- [x] CRUD event leaders (create with photo, edit, delete)
+- [x] CRUD OSH levels (create with color, edit, delete, reorder)
+- [x] Upload media to a room → appears in media manager
+- [x] Upload media to a room group → appears in media manager
+- [x] View bookings list → search, filter by status, sort, paginate
+- [x] Approve a pending booking → user receives in-app notification
+- [x] Reject a pending booking with reason → user receives in-app notification
 - [ ] Reschedule a booking → overlap validation enforced
 - [ ] Delete a booking → removed from list
 - [ ] Manage users (create, edit role, delete)
@@ -218,14 +218,14 @@ Status: `todo` · `in_progress` · `done`
 - [ ] Create a booking (fill form, upload PDF, submit)
 - [ ] View own bookings list → search, sort, paginate
 - [ ] View booking detail → see status, OSH level
-- [ ] Receive in-app notification when booking is approved/rejected
+- [x] Receive in-app notification when booking is approved/rejected
 - [ ] Cannot cancel or reschedule own bookings (no UI option)
 
 ### Scenario: Notifications
 
-- [ ] When user creates booking → all admin/operator receive in-app notification + audio
-- [ ] When booking approved/rejected → requesting user receives in-app notification + audio
-- [ ] Notification bell shows unread count badge
+- [x] When user creates booking → all admin/operator receive in-app notification + audio
+- [x] When booking approved/rejected → requesting user receives in-app notification + audio
+- [x] Notification bell shows unread count badge
 - [ ] Click notification → mark as read
 - [ ] Mark all as read → clears badge
 - [ ] Clear all notifications → removes all
@@ -255,3 +255,15 @@ Status: `todo` · `in_progress` · `done`
 - [ ] Run `php artisan test --compact` — all tests pass
 - [ ] Run `npm run build` — frontend builds without errors
 - [ ] Final `composer run ci:check` — all lint, type, and test checks pass
+
+---
+
+## Phase 16: Service Monitoring
+
+> Monitoring page untuk service backend yang berjalan di production (queue worker + Reverb).
+
+- [ ] Create service monitoring page (admin only) — status queue worker & Reverb
+- [ ] Queue status: connected/active, job count, pending vs failed_jobs count, worker process alive check
+- [ ] Reverb status: server up/down, connected clients count, uptime
+- [ ] Show on dashboard or dedicated page with refresh interval (manual + auto)
+- [ ] Write feature test: only admin can access monitoring page

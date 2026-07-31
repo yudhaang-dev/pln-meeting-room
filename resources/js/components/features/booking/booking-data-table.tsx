@@ -1,5 +1,5 @@
-import { Link, router, usePage } from '@inertiajs/react';
-import { Check, Pencil, SearchIcon, Trash2, X } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LengthOptions } from '@/components/shared/data-table/length-options';
 import { NavPagination } from '@/components/shared/data-table/nav-pagination';
@@ -7,16 +7,7 @@ import { SortableHeader } from '@/components/shared/data-table/sortable-header';
 import { OshBadge } from '@/components/shared/osh-badge';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
 import {
     Table,
     TableBody,
@@ -72,19 +63,6 @@ export function BookingDataTable({
     onChange,
     onSort,
 }: Props) {
-    const { auth } = usePage().props;
-
-    const isOperator = auth.user.role == 'operator';
-    const isAdmin = auth.user.role == 'admin';
-
-    const isAllowAction = isOperator || isAdmin;
-
-    const [deleteId, setDeleteId] = useState<number | null>(null);
-    const [approveId, setApproveId] = useState<number | null>(null);
-    const [rejectId, setRejectId] = useState<number | null>(null);
-    const [rejectReason, setRejectReason] = useState('');
-    const [processing, setProcessing] = useState(false);
-
     const [searchInput, setSearchInput] = useState(search);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const statusRef = useRef(status);
@@ -146,64 +124,6 @@ export function BookingDataTable({
         },
         [onChange, search, perPage],
     );
-
-    const handleApprove = useCallback(() => {
-        if (!approveId) {
-            return;
-        }
-
-        setProcessing(true);
-
-        router.post(
-            bookings.approve(approveId).url,
-            {},
-            {
-                onFinish: () => {
-                    setProcessing(false);
-                    setApproveId(null);
-                },
-                preserveState: true,
-            },
-        );
-    }, [approveId]);
-
-    const handleReject = useCallback(() => {
-        if (!rejectId) {
-            return;
-        }
-
-        if (!rejectReason.trim()) {
-            return;
-        }
-
-        setProcessing(true);
-        router.post(
-            bookings.reject(rejectId).url,
-            { reason: rejectReason },
-            {
-                onFinish: () => {
-                    setProcessing(false);
-                    setRejectId(null);
-                    setRejectReason('');
-                },
-                preserveState: true,
-            },
-        );
-    }, [rejectId, rejectReason]);
-
-    const handleDelete = useCallback(() => {
-        if (!deleteId) {
-            return;
-        }
-
-        setProcessing(true);
-        router.delete(bookings.destroy(deleteId).url, {
-            onFinish: () => {
-                setProcessing(false);
-                setDeleteId(null);
-            },
-        });
-    }, [deleteId]);
 
     return (
         <div className={cn('w-full divide-y overflow-x-auto', className)}>
@@ -269,13 +189,13 @@ export function BookingDataTable({
                         >
                             Status
                         </SortableHeader>
-                        <TableHead className="text-right">Actions</TableHead>
+
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {rows.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
+                            <TableCell colSpan={6} className="h-24 text-center">
                                 <p className="text-muted-foreground text-sm">
                                     No bookings found.
                                 </p>
@@ -315,65 +235,6 @@ export function BookingDataTable({
                                 <TableCell>
                                     <StatusBadge label={row.status} />
                                 </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex items-center justify-end gap-1">
-                                        {isAllowAction &&
-                                            row.status === 'pending' && (
-                                                <>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-green-600 hover:text-green-600"
-                                                        onClick={() =>
-                                                            setApproveId(row.id)
-                                                        }
-                                                        disabled={processing}
-                                                    >
-                                                        <Check className="size-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-destructive hover:text-destructive"
-                                                        onClick={() => {
-                                                            setRejectId(row.id);
-                                                            setRejectReason('');
-                                                        }}
-                                                        disabled={processing}
-                                                    >
-                                                        <X className="size-4" />
-                                                    </Button>
-                                                </>
-                                            )}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            nativeButton={false}
-                                            render={
-                                                <a
-                                                    href={
-                                                        bookings.show(row.id)
-                                                            .url
-                                                    }
-                                                />
-                                            }
-                                        >
-                                            <Pencil className="size-4" />
-                                        </Button>
-                                        {isAllowAction && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-destructive hover:text-destructive"
-                                                onClick={() =>
-                                                    setDeleteId(row.id)
-                                                }
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </TableCell>
                             </TableRow>
                         ))
                     )}
@@ -390,108 +251,6 @@ export function BookingDataTable({
                     <NavPagination data={pagination} onChange={handlePage} />
                 </div>
             </div>
-
-            <Dialog
-                open={deleteId !== null}
-                onOpenChange={(open) => !open && setDeleteId(null)}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Delete Booking</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this booking? This
-                            action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteId(null)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={processing}
-                        >
-                            {processing && <Spinner />}
-                            Delete
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog
-                open={approveId !== null}
-                onOpenChange={(open) => !open && setApproveId(null)}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Approve Booking</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to approve this booking?
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setApproveId(null)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button onClick={handleApprove} disabled={processing}>
-                            {processing && <Spinner />}
-                            Approve
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog
-                open={rejectId !== null}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setRejectId(null);
-                        setRejectReason('');
-                    }
-                }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Reject Booking</DialogTitle>
-                        <DialogDescription>
-                            Please provide a reason for rejecting this booking.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-2">
-                        <Input
-                            placeholder="Enter rejection reason..."
-                            value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setRejectId(null);
-                                setRejectReason('');
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleReject}
-                            disabled={processing || !rejectReason.trim()}
-                        >
-                            {processing && <Spinner />}
-                            Reject
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

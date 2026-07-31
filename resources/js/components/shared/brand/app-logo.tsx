@@ -1,17 +1,6 @@
 import type { ComponentProps } from 'react';
-import LogoImage from '@/../assets/images/pln-logo.png';
-import { cn } from '@/lib/utils';
+import { PlnLogo } from './pln-logo';
 
-export default function AppLogo({
-    className,
-    ...props
-}: ComponentProps<'img'>) {
-    return (
-        <img
-            src={LogoImage}
-            className={cn('h-20', className)}
-            title="Logo"
-            {...props}
-        />
-    );
+export function AppLogo({ ...props }: ComponentProps<'img'>) {
+    return <PlnLogo {...props} />;
 }

@@ -7,32 +7,45 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class MediaUpdated implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
-    public function __construct(
-        public Media $media,
-    ) {}
+    private array $channelNames;
 
-    public function broadcastOn(): array
+    private array $payload;
+
+    public function __construct(Media $media)
     {
-        $channels = [];
-        $mediable = $this->media->mediable;
+        $channelNames = [];
+        $mediable = $media->mediable;
 
         if ($mediable) {
-            $channels[] = new Channel(strtolower(class_basename($mediable)).'.'.$mediable->id);
+            $channelNames[] = strtolower(class_basename($mediable)).'.'.$mediable->id;
 
             if (method_exists($mediable, 'roomGroups')) {
                 foreach ($mediable->roomGroups as $group) {
-                    $channels[] = new Channel('room-group.'.$group->id);
+                    $channelNames[] = 'room-group.'.$group->id;
                 }
             }
         }
 
-        return $channels;
+        $this->channelNames = $channelNames;
+
+        $this->payload = [
+            'id' => $media->id,
+            'type' => $media->type,
+            'name' => $media->name,
+            'file_url' => $media->file_url,
+            'sort_order' => $media->sort_order,
+            'is_active' => $media->is_active,
+        ];
+    }
+
+    public function broadcastOn(): array
+    {
+        return array_map(fn (string $name) => new Channel($name), $this->channelNames);
     }
 
     public function broadcastAs(): string
@@ -42,13 +55,6 @@ class MediaUpdated implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        return [
-            'id' => $this->media->id,
-            'type' => $this->media->type,
-            'name' => $this->media->name,
-            'file_url' => $this->media->file_url,
-            'sort_order' => $this->media->sort_order,
-            'is_active' => $this->media->is_active,
-        ];
+        return $this->payload;
     }
 }

@@ -1,21 +1,39 @@
 import type { ComponentProps } from 'react';
-import PlnIcon from '@/../assets/images/pln-icon.png';
+import ImageDanantara from '@/../assets/images/danantara-logo.png';
+import ImageLogo from '@/../assets/images/nusantara-power-logo.png';
+import ImageIcon from '@/../assets/images/pln-icon.png';
+
 import { cn } from '@/lib/utils';
 
-export function PlnLogo({ className }: ComponentProps<'div'>) {
+export function PlnLogo({ className, ...props }: ComponentProps<'img'>) {
     return (
-        <div className={cn('flex flex-row items-center gap-4', className)}>
-            <img src={PlnIcon} alt="Pln Logo Icon" className="size-20" />
-            <div className="flex w-full flex-col text-xl font-bold">
-                <div className="text-pln-blue flex w-full flex-1 flex-row gap-4 text-4xl leading-5">
-                    <span className="w-auto text-left">P</span>
-                    <span className="w-auto text-left">L</span>
-                    <span className="w-auto text-left">N</span>
-                </div>
-                <div className="w-full text-justify text-gray-800">
-                    UPK Tarahan
-                </div>
-            </div>
-        </div>
+        <img
+            src={ImageLogo}
+            alt="PLN Nusatara Power Logo"
+            {...props}
+            className={cn('h-auto max-h-20 w-auto', className)}
+        />
+    );
+}
+
+export function DanantaraLogo({ className, ...props }: ComponentProps<'img'>) {
+    return (
+        <img
+            src={ImageDanantara}
+            alt="Danantara Logo"
+            {...props}
+            className={cn('h-auto max-h-20 w-auto', className)}
+        />
+    );
+}
+
+export function PlnIcon({ className, ...props }: ComponentProps<'img'>) {
+    return (
+        <img
+            src={ImageIcon}
+            alt="PLN Icon"
+            {...props}
+            className={cn('h-auto max-h-20 w-auto', className)}
+        />
     );
 }

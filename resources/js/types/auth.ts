@@ -11,6 +11,20 @@ export type User = {
 
 export type Auth = {
     user: User;
+    notifications: {
+        count: number;
+        items: {
+            id: string;
+            data: {
+                type?: string;
+                booking_id?: number;
+                title?: string;
+                message?: string;
+                body?: string;
+            };
+            created_at: string;
+        }[];
+    };
 };
 
 /* @chisel-passkeys */

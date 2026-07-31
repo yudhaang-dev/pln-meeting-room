@@ -304,7 +304,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                             </button>
                         </p>
                         <p className="text-muted-foreground text-xs">
-                            Images, videos and PDFs up to 50 MB
+                            Images, videos and PDFs (large files supported via chunk upload)
                         </p>
                     </>
                 )}

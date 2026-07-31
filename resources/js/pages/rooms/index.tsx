@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { DoorOpen, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { RoomDataTable } from '@/components/features/room/room-data-table';
 import { RoomForm } from '@/components/features/room/room-form';
 import { PageContainer } from '@/components/shared/page-container';
@@ -36,10 +36,22 @@ type Props = {
 
 export default function RoomsIndex({ rooms, buildings }: Props) {
     const {
-        search, sortBy, sortDirection, perPage,
-        dialogOpen, editingId, deleteId, setDeleteId,
-        navigate, handleSort, handleSearch, handlePerPage,
-        openCreate, openEdit, closeDialog, handleDelete,
+        search,
+        sortBy,
+        sortDirection,
+        perPage,
+        dialogOpen,
+        editingId,
+        deleteId,
+        setDeleteId,
+        navigate,
+        handleSort,
+        handleSearch,
+        handlePerPage,
+        openCreate,
+        openEdit,
+        closeDialog,
+        handleDelete,
     } = useCrudIndex({
         indexRoute: roomRoutes.index().url,
         defaultSortBy: 'name',
@@ -75,7 +87,9 @@ export default function RoomsIndex({ rooms, buildings }: Props) {
                     onPageChange={(page) => navigate({ page })}
                     onEdit={handleOpenEdit}
                     onDeleteRequest={setDeleteId}
-                    onDeleteConfirm={() => handleDelete(roomRoutes.destroy(deleteId!).url)}
+                    onDeleteConfirm={() =>
+                        handleDelete(roomRoutes.destroy(deleteId!).url)
+                    }
                     onMedia={(roomId) => {
                         window.location.href = roomRoutes.media(roomId).url;
                     }}
@@ -84,9 +98,16 @@ export default function RoomsIndex({ rooms, buildings }: Props) {
                 <RoomForm
                     open={dialogOpen}
                     onOpenChange={(open) => {
-                        if (!open) closeDialog();
+                        if (!open) {
+                            closeDialog();
+                        }
                     }}
-                    room={editingId ? rooms.data.find((r) => r.id === editingId) ?? null : null}
+                    room={
+                        editingId
+                            ? (rooms.data.find((r) => r.id === editingId) ??
+                              null)
+                            : null
+                    }
                     buildings={buildings}
                     onSuccess={closeDialog}
                 />

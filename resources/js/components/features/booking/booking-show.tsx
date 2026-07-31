@@ -45,9 +45,7 @@ export default function BookingShow({ booking, backHref, children }: Props) {
             <Head title={`Booking: ${booking.title}`} />
 
             <PageContainer className="gap-6">
-                <PageHeader title={booking.title} backHref={backHref}>
-                    <StatusBadge label={booking.status} />
-                </PageHeader>
+                <PageHeader title={booking.title} backHref={backHref} />
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="grid gap-6 lg:col-span-2">
@@ -193,6 +191,9 @@ export default function BookingShow({ booking, backHref, children }: Props) {
                             <h2 className="text-muted-foreground mb-3 text-sm font-medium">
                                 Status
                             </h2>
+                            <div className="mb-3">
+                                <StatusBadge label={booking.status} />
+                            </div>
                             <dl className="grid gap-2 text-sm">
                                 {booking.approved_by && (
                                     <div>

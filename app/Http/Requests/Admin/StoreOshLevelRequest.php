@@ -18,7 +18,7 @@ class StoreOshLevelRequest extends FormRequest
             'color' => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'min_participants' => ['required', 'integer', 'min:1'],
             'max_participants' => ['required', 'integer', 'min:1', 'gte:min_participants'],
-            'sort_order' => ['required', 'integer', 'min:0'],
+            'sort_order' => ['required', 'integer', 'min:1'],
             'is_active' => ['required', 'boolean'],
         ];
     }

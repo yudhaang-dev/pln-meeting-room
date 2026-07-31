@@ -7,28 +7,44 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class BookingUpdated implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
-    public function __construct(
-        public Booking $booking,
-    ) {}
+    private array $channelNames;
+
+    private array $payload;
+
+    public function __construct(Booking $booking)
+    {
+        $channelNames = [
+            'room.'.$booking->room_id,
+            'bookings',
+        ];
+
+        foreach ($booking->room->roomGroups as $grouping) {
+            $channelNames[] = 'room-group.'.$grouping->id;
+        }
+
+        $this->channelNames = $channelNames;
+
+        $this->payload = [
+            'id' => $booking->id,
+            'title' => $booking->title,
+            'start_time' => $booking->start_time->toISOString(),
+            'end_time' => $booking->end_time->toISOString(),
+            'status' => $booking->status,
+            'participants_count' => $booking->participants_count,
+            'room_id' => $booking->room_id,
+            'event_leader' => $booking->chairperson?->only('id', 'name'),
+            'osh_level' => $booking->osh_level?->only('id', 'name', 'color'),
+        ];
+    }
 
     public function broadcastOn(): array
     {
-        $channels = [
-            new Channel('room.'.$this->booking->room_id),
-            new Channel('bookings'),
-        ];
-
-        foreach ($this->booking->room->roomGroups as $grouping) {
-            $channels[] = new Channel('room-group.'.$grouping->id);
-        }
-
-        return $channels;
+        return array_map(fn (string $name) => new Channel($name), $this->channelNames);
     }
 
     public function broadcastAs(): string
@@ -38,16 +54,6 @@ class BookingUpdated implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        return [
-            'id' => $this->booking->id,
-            'title' => $this->booking->title,
-            'start_time' => $this->booking->start_time->toISOString(),
-            'end_time' => $this->booking->end_time->toISOString(),
-            'status' => $this->booking->status,
-            'participants_count' => $this->booking->participants_count,
-            'room_id' => $this->booking->room_id,
-            'event_leader' => $this->booking->chairperson?->only('id', 'name'),
-            'osh_level' => $this->booking->osh_level?->only('id', 'name', 'color'),
-        ];
+        return $this->payload;
     }
 }

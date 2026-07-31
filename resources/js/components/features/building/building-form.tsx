@@ -52,6 +52,7 @@ export function BuildingForm({
         if (!value) {
             reset();
         }
+
         onOpenChange(value);
     };
 

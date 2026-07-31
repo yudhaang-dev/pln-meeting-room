@@ -3,7 +3,7 @@ import { Head, router, usePoll } from '@inertiajs/react';
 import { useEcho } from '@laravel/echo-react';
 import { useEffect, useRef } from 'react';
 import { TableSchedule } from '@/components/features/display/table-schedule';
-import { PageContainer } from '@/components/shared/page-container';
+import { TopBar } from '@/components/shared/general/top-bar';
 import { cn, formatDayDate } from '@/lib/utils';
 
 type Booking = {
@@ -33,12 +33,14 @@ type Props = PageProps & {
     todayBookings: Booking[];
     tomorrowBookings: Booking[];
     orientation: string;
+    refreshInterval: number;
 };
 
 export default function Osh({
     todayBookings,
     tomorrowBookings,
     orientation,
+    refreshInterval,
 }: Props) {
     const prevCountRef = useRef(todayBookings.length);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -82,11 +84,9 @@ export default function Osh({
     };
 
     useEffect(() => {
-        // Jalankan beep hanya jika jumlah booking bertambah dari data sebelumnya
         if (todayBookings.length > prevCountRef.current) {
             playBeep();
         }
-        // WAJIB: Update nilai ref dengan jumlah terbaru agar sinkron
 
         prevCountRef.current = todayBookings.length;
     }, [todayBookings.length]);
@@ -95,17 +95,18 @@ export default function Osh({
         router.reload({ only: ['todayBookings', 'tomorrowBookings'] });
     });
 
-    usePoll(30_000, {
+    usePoll(refreshInterval * 1000, {
         only: ['todayBookings', 'tomorrowBookings'],
     });
 
     return (
         <>
             <Head title="OSH Display" />
-            <PageContainer className="p-8">
+            <div className="flex min-h-svh w-full flex-col">
+                <TopBar className="w-full gap-6 p-6" logoClass="max-h-12" />
                 <div
                     className={cn(
-                        'grid w-full gap-8',
+                        'grid w-full gap-8 p-6',
                         orientation == 'portrait' ? '' : 'grid-cols-2',
                     )}
                 >
@@ -120,7 +121,7 @@ export default function Osh({
                         date={formatDayDate(new Date())}
                     />
                 </div>
-            </PageContainer>
+            </div>
         </>
     );
 }

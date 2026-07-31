@@ -118,16 +118,25 @@ class MediaController extends Controller
         $name = Str::random(40).'.'.$extension;
         $finalPath = 'media/'.$name;
 
-        $content = '';
-        for ($i = 0; $i < $validated['total_chunks']; $i++) {
-            $chunkPath = $chunkDir.'/'.$i;
-            if (! $localDisk->exists($chunkPath)) {
-                return response()->json(['message' => "Chunk {$i} not found."], 422);
-            }
-            $content .= $localDisk->get($chunkPath);
+        $targetPath = Storage::disk('public')->path($finalPath);
+        $target = fopen($targetPath, 'wb');
+        if ($target === false) {
+            return response()->json(['message' => 'Could not open target file.'], 500);
         }
 
-        Storage::disk('public')->put($finalPath, $content);
+        for ($i = 0; $i < $validated['total_chunks']; $i++) {
+            $relativeChunkPath = $chunkDir.'/'.$i;
+            if (! $localDisk->exists($relativeChunkPath)) {
+                fclose($target);
+
+                return response()->json(['message' => "Chunk {$i} not found."], 422);
+            }
+            $chunk = fopen($localDisk->path($relativeChunkPath), 'rb');
+            stream_copy_to_stream($chunk, $target);
+            fclose($chunk);
+        }
+
+        fclose($target);
 
         $maxSort = $mediable->media()->max('sort_order') ?? 0;
         $media = Media::create([
@@ -155,7 +164,7 @@ class MediaController extends Controller
         $order = request()->input('order', []);
 
         foreach ($order as $index => $mediaId) {
-            Media::where('id', $mediaId)->update(['sort_order' => $index]);
+            Media::where('id', $mediaId)->update(['sort_order' => $index + 1]);
         }
 
         if (count($order) > 0) {
@@ -187,6 +196,7 @@ class MediaController extends Controller
 
         $media->deleteFile();
         $media->delete();
+        $this->resequenceSortOrder($media->mediable);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Media deleted.']);
 
@@ -220,9 +230,22 @@ class MediaController extends Controller
             $media->delete();
         }
 
+        $first = $mediaItems->first();
+        if ($first !== null) {
+            $this->resequenceSortOrder($first->mediable);
+        }
+
         Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
 
         return back();
+    }
+
+    private function resequenceSortOrder(Room|RoomGroup $mediable): void
+    {
+        $items = $mediable->media()->orderBy('sort_order')->get();
+        foreach ($items as $index => $item) {
+            $item->updateQuietly(['sort_order' => $index + 1]);
+        }
     }
 
     private function determineFileType(string $extension): string

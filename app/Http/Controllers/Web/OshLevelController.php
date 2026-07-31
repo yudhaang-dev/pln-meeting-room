@@ -40,7 +40,7 @@ class OshLevelController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level created.')]);
 
-        return to_route('osh-level.index');
+        return to_route('osh-levels.index');
     }
 
     public function update(UpdateOshLevelRequest $request, OshLevel $oshLevel): RedirectResponse

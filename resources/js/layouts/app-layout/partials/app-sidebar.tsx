@@ -10,7 +10,7 @@ import {
     UserPlus2Icon,
     Users2Icon,
 } from 'lucide-react';
-import AppLogoIcon from '@/components/shared/brand/app-logo-icon';
+import { AppLogo } from '@/components/shared/brand/app-logo';
 import {
     Sidebar,
     SidebarContent,
@@ -20,7 +20,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { home } from '@/routes';
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
 
@@ -73,11 +73,11 @@ export function AppSidebar() {
                     <SidebarMenuItem className="p-0">
                         <SidebarMenuButton
                             render={
-                                <Link href={dashboard()} prefetch>
-                                    <AppLogoIcon className="h-auto max-h-12 rounded-lg transition-all duration-300 ease-in-out" />
+                                <Link href={home()} prefetch>
+                                    <AppLogo className="h-auto w-full rounded-lg transition-all duration-300 ease-in-out" />
                                     <div className="transition-all duration-300 ease-in-out">
                                         <p className="font-bold uppercase">
-                                            Dashboard
+                                            Home
                                         </p>
                                         <p className="text-muted-foreground text-xs">
                                             {name}

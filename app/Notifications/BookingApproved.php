@@ -11,9 +11,23 @@ class BookingApproved extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public Booking $booking,
-    ) {}
+    private array $data;
+
+    public function __construct(Booking $booking)
+    {
+        $this->data = [
+            'type' => 'booking_approved',
+            'booking_id' => $booking->id,
+            'message' => 'Your booking "'.$booking->title.'" has been approved.',
+            'booking' => [
+                'id' => $booking->id,
+                'title' => $booking->title,
+                'room' => $booking->room->name,
+                'start_time' => $booking->start_time->toISOString(),
+                'end_time' => $booking->end_time->toISOString(),
+            ],
+        ];
+    }
 
     public function via(object $notifiable): array
     {
@@ -22,22 +36,11 @@ class BookingApproved extends Notification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        return new BroadcastMessage($this->toArray($notifiable));
+        return new BroadcastMessage($this->data);
     }
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'booking_approved',
-            'booking_id' => $this->booking->id,
-            'message' => 'Your booking "'.$this->booking->title.'" has been approved.',
-            'booking' => [
-                'id' => $this->booking->id,
-                'title' => $this->booking->title,
-                'room' => $this->booking->room->name,
-                'start_time' => $this->booking->start_time->toISOString(),
-                'end_time' => $this->booking->end_time->toISOString(),
-            ],
-        ];
+        return $this->data;
     }
 }

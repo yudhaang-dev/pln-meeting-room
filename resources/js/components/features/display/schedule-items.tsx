@@ -117,12 +117,8 @@ function ScheduleItem({
         <Card
             className={cn(
                 'shadow-sm transition-all duration-500',
-                computedSchedule.statusText === 'Sudah selesai'
-                    ? 'opacity-50 grayscale-[30%]'
-                    : '',
-                computedSchedule.statusText === 'Sedang berlangsung'
-                    ? 'ring-primary bg-primary/5 ring-2'
-                    : '',
+                computedSchedule.statusText === 'Sudah selesai' ? '' : '',
+                computedSchedule.statusText === 'Sedang berlangsung' ? '' : '',
                 className,
             )}
         >
@@ -158,7 +154,7 @@ function ScheduleItem({
                                 Ruangan
                             </ItemTitle>
                             <ItemDescription className="text-foreground text-base font-bold">
-                                {item.room.name}
+                                {item?.room?.name ?? '-'}
                             </ItemDescription>
                         </ItemContent>
                     </AtomItem>
@@ -174,7 +170,7 @@ function ScheduleItem({
                                 Gedung
                             </ItemTitle>
                             <ItemDescription className="text-foreground text-base font-bold">
-                                {item.room?.building?.name ?? '-'}
+                                {item?.room?.building?.name ?? '-'}
                             </ItemDescription>
                         </ItemContent>
                     </AtomItem>
@@ -192,7 +188,7 @@ function ScheduleItem({
                                 Pimpinan
                             </ItemTitle>
                             <ItemDescription className="text-foreground text-base font-bold">
-                                {item.chairperson.name}
+                                {item?.chairperson?.name ?? '-'}
                             </ItemDescription>
                         </ItemContent>
                     </AtomItem>
@@ -233,11 +229,14 @@ export function ScheduleItems({ items = [], className }: Props) {
 
     return (
         <div
-            className={cn('flex items-center justify-center gap-4', className)}
+            className={cn(
+                'flex w-full flex-1 flex-col items-center justify-center gap-4 overflow-y-auto',
+                className,
+            )}
         >
             {items.map((item, index) => (
                 <ScheduleItem
-                    className="w-full max-w-lg"
+                    className="w-full"
                     key={`booking-${item.id}-${index}`}
                     item={item}
                     now={currentTime} // Salurkan data jam yang sama ke seluruh anak

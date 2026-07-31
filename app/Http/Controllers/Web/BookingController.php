@@ -154,6 +154,12 @@ class BookingController extends Controller
 
         $validated = $request->validated();
 
+        if ($request->hasFile('attachment')) {
+            $booking->deleteAttachment();
+            $validated['attachment_path'] = $request->file('attachment')->store('bookings', 'public');
+            unset($validated['attachment']);
+        }
+
         if ($request->hasFile('qr_attendance')) {
             $booking->deleteQrAttendance();
             $validated['qr_attendance_path'] = $request->file('qr_attendance')->store('bookings/qr', 'public');
@@ -177,6 +183,9 @@ class BookingController extends Controller
         $this->authorize('delete', $booking);
 
         $booking->deleteAttachment();
+
+        broadcast(new BookingUpdated($booking));
+
         $booking->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking deleted.']);

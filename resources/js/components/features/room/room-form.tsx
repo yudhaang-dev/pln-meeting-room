@@ -65,7 +65,7 @@ export function RoomForm({
         } else {
             reset();
         }
-    }, [room]);
+    }, [room, reset, setData]);
 
     const handleOpenChange = (value: boolean) => {
         if (!value) {
@@ -120,71 +120,66 @@ export function RoomForm({
                             </p>
                         )}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="capacity">Capacity</Label>
-                            <Input
-                                id="capacity"
-                                type="number"
-                                min={1}
-                                value={data.capacity}
-                                onChange={(e) =>
-                                    setData(
-                                        'capacity',
-                                        parseInt(e.target.value) || 1,
-                                    )
-                                }
+                    <div className="grid gap-2">
+                        <Label htmlFor="capacity">Capacity</Label>
+                        <Input
+                            id="capacity"
+                            type="number"
+                            min={1}
+                            value={data.capacity}
+                            onChange={(e) =>
+                                setData(
+                                    'capacity',
+                                    parseInt(e.target.value) || 1,
+                                )
+                            }
+                        />
+                        {errors.capacity && (
+                            <p className="text-destructive text-sm">
+                                {errors.capacity}
+                            </p>
+                        )}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="building_id">Building</Label>
+                        <Combobox
+                            items={buildings}
+                            value={
+                                buildings.find(
+                                    (b) => String(b.id) === data.building_id,
+                                ) ?? null
+                            }
+                            onValueChange={(building) =>
+                                setData(
+                                    'building_id',
+                                    building ? String(building.id) : '',
+                                )
+                            }
+                            itemToStringValue={(building) =>
+                                String(building.id)
+                            }
+                            itemToStringLabel={(building) => building.name}
+                        >
+                            <ComboboxInput
+                                placeholder="Select building"
+                                showClear
                             />
-                            {errors.capacity && (
-                                <p className="text-destructive text-sm">
-                                    {errors.capacity}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="building_id">Building</Label>
-                            <Combobox
-                                items={buildings}
-                                value={
-                                    buildings.find(
-                                        (b) =>
-                                            String(b.id) ===
-                                            data.building_id,
-                                    ) ?? null
-                                }
-                                onValueChange={(building) =>
-                                    setData(
-                                        'building_id',
-                                        building
-                                            ? String(building.id)
-                                            : '',
-                                    )
-                                }
-                                itemToStringValue={(building) =>
-                                    String(building.id)
-                                }
-                                itemToStringLabel={(building) =>
-                                    building.name
-                                }
-                            >
-                                <ComboboxInput placeholder="Select building" showClear />
-                                <ComboboxContent>
-                                    <ComboboxEmpty>
-                                        No buildings found.
-                                    </ComboboxEmpty>
-                                    <ComboboxList>
-                                        {(building) => (
-                                            <ComboboxItem
-                                                key={building.id}
-                                                value={building}
-                                            >
-                                                {building.name}
-                                            </ComboboxItem>
-                                        )}
-                                    </ComboboxList>
-                                </ComboboxContent>
-                            </Combobox>
-                        </div>
+                            <ComboboxContent>
+                                <ComboboxEmpty>
+                                    No buildings found.
+                                </ComboboxEmpty>
+                                <ComboboxList>
+                                    {(building) => (
+                                        <ComboboxItem
+                                            key={building.id}
+                                            value={building}
+                                        >
+                                            {building.name}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
                     </div>
                     <div className="flex items-center gap-3 pb-0.5">
                         <Switch

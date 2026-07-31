@@ -1,6 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/shared/general/input-error';
 import PasskeyVerify from '@/components/features/auth/passkey-verify';
+import InputError from '@/components/shared/general/input-error';
 import PasswordInput from '@/components/shared/general/password-input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';

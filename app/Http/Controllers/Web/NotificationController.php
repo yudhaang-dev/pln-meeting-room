@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,6 +10,9 @@ use Inertia\Response;
 
 class NotificationController extends Controller
 {
+    /**
+     * Menampilkan halaman daftar semua notifikasi.
+     */
     public function index(Request $request): Response
     {
         $notifications = $request->user()
@@ -23,48 +25,62 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $id): RedirectResponse|JsonResponse
+    /**
+     * Menandai satu notifikasi sebagai selesai dibaca.
+     */
+    public function markAsRead(Request $request, string $notification): RedirectResponse
     {
         $notification = $request->user()
             ->notifications()
-            ->where('id', $id)
+            ->where('id', $notification)
             ->firstOrFail();
 
         $notification->markAsRead();
 
-        if ($request->header('X-Inertia')) {
-            return back();
-        }
-
-        return response()->json([
-            'count' => $request->user()->unreadNotifications()->count(),
-        ]);
+        // Mengembalikan back() agar Inertia me-refresh properti global secara otomatis
+        return back();
     }
 
-    public function destroy(Request $request, string $id): RedirectResponse|JsonResponse
+    /**
+     * Menandai seluruh notifikasi user sebagai selesai dibaca.
+     */
+    public function markAllAsRead(Request $request): RedirectResponse
+    {
+        $request->user()->unreadNotifications()->update([
+            'read_at' => now(),
+        ]);
+
+        return back();
+    }
+
+    /**
+     * Menghapus satu data notifikasi.
+     */
+    public function destroy(Request $request, string $id): RedirectResponse
     {
         $request->user()
             ->notifications()
             ->where('id', $id)
             ->delete();
 
-        if ($request->header('X-Inertia')) {
-            return back();
-        }
-
-        return response()->json([
-            'count' => $request->user()->unreadNotifications()->count(),
-        ]);
+        return back();
     }
 
-    public function unreadCount(Request $request): JsonResponse
+    /**
+     * Menghapus seluruh riwayat notifikasi user.
+     */
+    public function clearAll(Request $request): RedirectResponse
     {
-        return response()->json([
-            'count' => $request->user()->unreadNotifications()->count(),
-        ]);
+        $request->user()->notifications()->delete();
+
+        return back();
     }
 
-    public function recent(Request $request): JsonResponse
+    /**
+     * PENTING: Dua method di bawah ini tetap mengembalikan JsonResponse
+     * karena sifatnya asinkronus (untuk backend fetching/polling/Echo listener di React)
+     */
+    public function recent(Request $request)
     {
         $notifications = $request->user()
             ->unreadNotifications()
@@ -83,49 +99,10 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markAsRead(Request $request, string $notification): RedirectResponse|JsonResponse
+    public function unreadCount(Request $request)
     {
-        $notification = $request->user()
-            ->notifications()
-            ->where('id', $notification)
-            ->firstOrFail();
-
-        $notification->markAsRead();
-
-        if ($request->header('X-Inertia')) {
-            return back();
-        }
-
         return response()->json([
             'count' => $request->user()->unreadNotifications()->count(),
-        ]);
-    }
-
-    public function markAllAsRead(Request $request): RedirectResponse|JsonResponse
-    {
-        $request->user()->unreadNotifications()->update([
-            'read_at' => now(),
-        ]);
-
-        if ($request->header('X-Inertia')) {
-            return back();
-        }
-
-        return response()->json([
-            'count' => 0,
-        ]);
-    }
-
-    public function clearAll(Request $request): RedirectResponse|JsonResponse
-    {
-        $request->user()->notifications()->delete();
-
-        if ($request->header('X-Inertia')) {
-            return back();
-        }
-
-        return response()->json([
-            'count' => 0,
         ]);
     }
 }

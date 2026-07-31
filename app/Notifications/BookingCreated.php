@@ -11,9 +11,25 @@ class BookingCreated extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        public Booking $booking,
-    ) {}
+    private array $data;
+
+    public function __construct(Booking $booking)
+    {
+        $this->data = [
+            'type' => 'booking_created',
+            'booking_id' => $booking->id,
+            'message' => 'New booking "'.$booking->title.'" submitted by '.$booking->requestedBy->name.' for room '.$booking->room->name,
+            'booking' => [
+                'id' => $booking->id,
+                'title' => $booking->title,
+                'room' => $booking->room->name,
+                'requested_by' => $booking->requestedBy->name,
+                'start_time' => $booking->start_time->toISOString(),
+                'end_time' => $booking->end_time->toISOString(),
+                'participants_count' => $booking->participants_count,
+            ],
+        ];
+    }
 
     public function via(object $notifiable): array
     {
@@ -22,24 +38,11 @@ class BookingCreated extends Notification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        return new BroadcastMessage($this->toArray($notifiable));
+        return new BroadcastMessage($this->data);
     }
 
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'booking_created',
-            'booking_id' => $this->booking->id,
-            'message' => 'New booking "'.$this->booking->title.'" submitted by '.$this->booking->requestedBy->name.' for room '.$this->booking->room->name,
-            'booking' => [
-                'id' => $this->booking->id,
-                'title' => $this->booking->title,
-                'room' => $this->booking->room->name,
-                'requested_by' => $this->booking->requestedBy->name,
-                'start_time' => $this->booking->start_time->toISOString(),
-                'end_time' => $this->booking->end_time->toISOString(),
-                'participants_count' => $this->booking->participants_count,
-            ],
-        ];
+        return $this->data;
     }
 }

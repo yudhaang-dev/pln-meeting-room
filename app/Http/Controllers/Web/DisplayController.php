@@ -32,6 +32,9 @@ class DisplayController extends Controller
     public function lobby(Request $request, RoomGroup $roomGroup): Response
     {
         $orientation = $request->query('orientation', $request->cookie('display_orientation', 'landscape'));
+        $settings = app(GeneralSettings::class);
+        $refreshInterval = $settings->display_refresh_interval;
+        $mediaLoopDuration = $settings->media_loop_duration;
 
         $roomGroup->load([
             'media' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
@@ -51,6 +54,8 @@ class DisplayController extends Controller
             'roomGroup' => $roomGroup,
             'bookings' => $bookings,
             'orientation' => $orientation,
+            'refreshInterval' => $refreshInterval,
+            'mediaLoopDuration' => $mediaLoopDuration,
         ]);
     }
 
@@ -60,6 +65,7 @@ class DisplayController extends Controller
         $refreshInterval = app(GeneralSettings::class)->display_refresh_interval;
 
         $room->load([
+            'building',
             'media' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
         ]);
 
@@ -89,6 +95,7 @@ class DisplayController extends Controller
     public function osh(Request $request): Response
     {
         $orientation = $request->query('orientation', $request->cookie('display_orientation', 'landscape'));
+        $refreshInterval = app(GeneralSettings::class)->display_refresh_interval;
 
         $todayBookings = Booking::with(['room.building', 'chairperson'])
             ->where('status', 'approved')
@@ -106,6 +113,7 @@ class DisplayController extends Controller
             'todayBookings' => $todayBookings,
             'tomorrowBookings' => $tomorrowBookings,
             'orientation' => $orientation,
+            'refreshInterval' => $refreshInterval,
         ]);
     }
 }

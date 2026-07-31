@@ -12,9 +12,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import bookings from '@/routes/bookings';
 
 type Room = { id: number; name: string; capacity: number };
@@ -110,52 +110,46 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
     return (
         <>
             <BookingShow booking={booking} backHref={bookings.index()}>
-                {isAllowAction && booking.status === 'pending' && (
-                    <div className="rounded-md border p-4">
-                        <h2 className="text-muted-foreground mb-3 text-sm font-medium">
-                            Actions
-                        </h2>
-                        <div className="grid gap-2">
-                            <Button
-                                size="sm"
-                                className="w-full justify-start gap-2"
-                                onClick={() => setApproveOpen(true)}
-                                disabled={processing}
-                            >
-                                {processing ? (
-                                    <Spinner />
-                                ) : (
-                                    <Check className="size-4" />
-                                )}
-                                Approve
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="destructive"
-                                className="w-full justify-start gap-2"
-                                onClick={() => {
-                                    setRejectOpen(true);
-                                    setRejectReason('');
-                                }}
-                                disabled={processing}
-                            >
-                                {processing ? (
-                                    <Spinner />
-                                ) : (
-                                    <X className="size-4" />
-                                )}
-                                Reject
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
                 {isAllowAction && (
                     <div className="rounded-md border p-4">
                         <h2 className="text-muted-foreground mb-3 text-sm font-medium">
                             Actions
                         </h2>
                         <div className="grid gap-2">
+                            {booking.status === 'pending' && (
+                                <>
+                                    <Button
+                                        size="sm"
+                                        className="w-full justify-start gap-2"
+                                        onClick={() => setApproveOpen(true)}
+                                        disabled={processing}
+                                    >
+                                        {processing ? (
+                                            <Spinner />
+                                        ) : (
+                                            <Check className="size-4" />
+                                        )}
+                                        Approve
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="w-full justify-start gap-2"
+                                        onClick={() => {
+                                            setRejectOpen(true);
+                                            setRejectReason('');
+                                        }}
+                                        disabled={processing}
+                                    >
+                                        {processing ? (
+                                            <Spinner />
+                                        ) : (
+                                            <X className="size-4" />
+                                        )}
+                                        Reject
+                                    </Button>
+                                </>
+                            )}
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -251,11 +245,12 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
                     </DialogHeader>
                     <div className="grid gap-2">
                         <Label htmlFor="reject-reason">Reason *</Label>
-                        <Input
+                        <Textarea
                             id="reject-reason"
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             placeholder="Enter rejection reason..."
+                            rows={3}
                         />
                     </div>
                     <DialogFooter>

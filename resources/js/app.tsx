@@ -5,14 +5,22 @@ import { configureEcho } from '@laravel/echo-react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
+import { setupAudioUnlock } from '@/lib/notification-audio';
 import AccountSettingLayout from './layouts/app-layout/account-setting-layout';
 import AppLayout from './layouts/app-layout/app-layout';
 import AuthLayout from './layouts/auth-layout/auth-layout';
-import DisplayLayout from './layouts/display-layout/display-layout';
+
+import.meta.glob([
+    '../assets/fonts/**/*',
+    '../assets/images/**/*',
+    '../assets/audio/**/*',
+]);
 
 configureEcho({
     broadcaster: 'reverb',
 });
+
+setupAudioUnlock();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -22,10 +30,10 @@ createInertiaApp({
         switch (true) {
             case name === 'home':
                 return null;
+            case name.startsWith('display/'):
+                return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
-            case name.startsWith('display/'):
-                return DisplayLayout;
             case name.startsWith('settings/account/'):
                 return [AppLayout, AccountSettingLayout];
             default:
@@ -46,5 +54,4 @@ createInertiaApp({
     },
 });
 
-// This will set light / dark mode on load...
 initializeTheme();

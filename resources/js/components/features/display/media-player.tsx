@@ -129,7 +129,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
     return (
         <div
             className={cn(
-                'flex size-full items-center justify-center overflow-hidden bg-black',
+                'flex size-full items-center justify-center overflow-hidden',
                 className,
             )}
         >
@@ -145,6 +145,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
                         key={`video-${item.id}`} // Ditambahkan prefix unik pada key
                         src={item.file_url}
                         className="size-full object-contain"
+                        loop
                         autoPlay
                         muted
                         playsInline
