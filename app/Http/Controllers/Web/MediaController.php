@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Events\MediaUpdated;
+use App\Events\PublicBroadcast;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Room;
@@ -58,8 +58,8 @@ class MediaController extends Controller
             ]);
         }
 
-        foreach ($created as $media) {
-            broadcast(new MediaUpdated($media));
+        if (count($created) > 0) {
+            $this->handleMediableBroadcast($mediable);
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
@@ -152,7 +152,7 @@ class MediaController extends Controller
 
         $this->cleanupChunks($validated['upload_id']);
 
-        broadcast(new MediaUpdated($media));
+        $this->handleMediableBroadcast($media->mediable);
 
         return response()->json([
             'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
@@ -171,7 +171,7 @@ class MediaController extends Controller
             $media = Media::with('mediable')->find($order[0]);
 
             if ($media) {
-                broadcast(new MediaUpdated($media));
+                $this->handleMediableBroadcast($media->mediable);
             }
         }
 
@@ -182,7 +182,7 @@ class MediaController extends Controller
     {
         $media->update(['is_active' => ! $media->is_active]);
 
-        broadcast(new MediaUpdated($media));
+        $this->handleMediableBroadcast($media->mediable);
 
         return back();
     }
@@ -190,14 +190,12 @@ class MediaController extends Controller
     public function destroy(mixed $parent, Media $media): RedirectResponse
     {
         $this->authorize('delete', $media);
-
         $media->load('mediable');
-        broadcast(new MediaUpdated($media));
-
+        $mediable = $media->mediable;
         $media->deleteFile();
         $media->delete();
-        $this->resequenceSortOrder($media->mediable);
-
+        $this->resequenceSortOrder($mediable);
+        $this->handleMediableBroadcast($mediable);
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Media deleted.']);
 
         return back();
@@ -225,7 +223,6 @@ class MediaController extends Controller
 
         foreach ($mediaItems as $media) {
             $this->authorize('delete', $media);
-            broadcast(new MediaUpdated($media));
             $media->deleteFile();
             $media->delete();
         }
@@ -234,6 +231,8 @@ class MediaController extends Controller
         if ($first !== null) {
             $this->resequenceSortOrder($first->mediable);
         }
+
+        $this->handleMediableBroadcast($mediable);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
 
@@ -267,5 +266,16 @@ class MediaController extends Controller
             $disk->delete($file);
         }
         $disk->deleteDirectory($chunkDir);
+    }
+
+    private function handleMediableBroadcast(Room|RoomGroup $mediable)
+    {
+        if ($mediable instanceof Room) {
+            PublicBroadcast::dispatch('Display.Room.'.$mediable->id, 'MediaUpdated', $mediable->toarray());
+        }
+
+        if ($mediable instanceof RoomGroup) {
+            PublicBroadcast::dispatch('Display.RoomGroup.'.$mediable->id, 'MediaUpdated', $mediable->toarray());
+        }
     }
 }

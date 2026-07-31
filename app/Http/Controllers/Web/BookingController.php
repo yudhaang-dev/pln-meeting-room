@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Events\BookingCreated;
 use App\Events\BookingUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookingRequest;
@@ -9,10 +10,6 @@ use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
 use App\Models\Person;
 use App\Models\Room;
-use App\Models\User;
-use App\Notifications\BookingApproved;
-use App\Notifications\BookingCreated;
-use App\Notifications\BookingRejected;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -113,13 +110,7 @@ class BookingController extends Controller
             'approved_at' => $shouldAutoApprove ? now() : null,
         ]);
 
-        if (! $shouldAutoApprove) {
-            User::where('role', 'admin')->orWhere('role', 'operator')->each(
-                fn (User $recipient) => $recipient->notify(new BookingCreated($booking))
-            );
-        }
-
-        broadcast(new BookingUpdated($booking));
+        BookingCreated::dispatch($booking);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking created successfully.']);
 
@@ -168,7 +159,7 @@ class BookingController extends Controller
 
         $booking->update($validated);
 
-        broadcast(new BookingUpdated($booking));
+        BookingUpdated::dispatch($booking);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking updated.']);
 
@@ -184,7 +175,7 @@ class BookingController extends Controller
 
         $booking->deleteAttachment();
 
-        broadcast(new BookingUpdated($booking));
+        BookingUpdated::dispatch($booking);
 
         $booking->delete();
 
@@ -206,9 +197,7 @@ class BookingController extends Controller
             'approved_at' => now(),
         ]);
 
-        $booking->requestedBy->notify(new BookingApproved($booking));
-
-        broadcast(new BookingUpdated($booking));
+        BookingUpdated::dispatch($booking);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking approved.']);
 
@@ -229,11 +218,11 @@ class BookingController extends Controller
         $booking->update([
             'status' => 'rejected',
             'reason' => $request->input('reason'),
+            'approved_id' => Auth::user()->id,
+            'approved_at' => now(),
         ]);
 
-        $booking->requestedBy->notify(new BookingRejected($booking));
-
-        broadcast(new BookingUpdated($booking));
+        BookingUpdated::dispatch($booking);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking rejected.']);
 

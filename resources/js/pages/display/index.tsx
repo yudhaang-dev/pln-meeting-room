@@ -87,43 +87,49 @@ export default function DisplayIndex({ roomGroups, rooms }: Props) {
                             Select a display to launch in full-screen kiosk
                             mode.
                         </p>
-                        <h2 className="mb-4 text-xl font-semibold">
-                            Lobby Displays
-                        </h2>
-                        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {roomGroups.map((group, index) => (
-                                <CardItem
-                                    key={`display-lobby-${index}`}
-                                    title={group.name}
-                                    description={group.building?.name}
-                                    href={`/display/lobby/${group.id}`}
-                                />
-                            ))}
-                        </div>
-
-                        <h2 className="mb-4 text-xl font-semibold">
-                            Room Displays
-                        </h2>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {rooms.map((room, index) => (
-                                <CardItem
-                                    key={`display-room-${index}`}
-                                    title={room.name}
-                                    description={room.building?.name}
-                                    href={`/display/room/${room.id}`}
-                                />
-                            ))}
-                        </div>
-
-                        <h2 className="mb-4 mt-10 text-xl font-semibold">
-                            OSH Display
-                        </h2>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <CardItem
-                                title="OSH Display"
-                                description="Support display"
-                                href={`/display/osh`}
-                            />
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <div className="space-y-3">
+                                <h2 className="text-xl font-semibold">
+                                    Lobby Displays
+                                </h2>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {roomGroups.map((group, index) => (
+                                        <CardItem
+                                            key={`display-lobby-${index}`}
+                                            title={group.name}
+                                            description={group.building?.name}
+                                            href={`/display/lobby/${group.id}`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <h2 className="text-xl font-semibold">
+                                    Room Displays
+                                </h2>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {rooms.map((room, index) => (
+                                        <CardItem
+                                            key={`display-room-${index}`}
+                                            title={room.name}
+                                            description={room.building?.name}
+                                            href={`/display/room/${room.id}`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <h2 className="text-xl font-semibold">
+                                    OSH Display
+                                </h2>
+                                <div className="grid grid-cols-1">
+                                    <CardItem
+                                        title="OSH Display"
+                                        description="Support display"
+                                        href={`/display/osh`}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </main>

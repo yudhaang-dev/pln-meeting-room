@@ -1,8 +1,8 @@
 import type { PageProps } from '@inertiajs/core';
 import { usePoll } from '@inertiajs/react';
 import { Head, router } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
-import { useMemo } from 'react';
+import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
+import { useEffect, useMemo } from 'react';
 import { MediaPlayer } from '@/components/features/display/media-player';
 import { TopBar } from '@/components/shared/general/top-bar';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
@@ -63,17 +63,39 @@ type Props = PageProps & {
 };
 
 export default function Room({ room, currentBooking, refreshInterval }: Props) {
-    useEcho(`room.${room.id}`, 'booking.updated', () => {
-        router.reload({ only: ['currentBooking', 'nextBooking'] });
-    });
+    // 1. Ambil status koneksi WebSocket Reverb ("connected", "disconnected", "connecting", dll)
+    const connectionStatus = useConnectionStatus();
 
-    useEcho(`room.${room.id}`, 'media.updated', () => {
-        router.reload({ only: ['room'] });
-    });
+    // 2. Gunakan usePoll Inertia dengan opsi manual (autoStart: false)
+    const { start: startPolling, stop: stopPolling } = usePoll(
+        refreshInterval * 1000,
+        {
+            only: ['bookings', 'room'],
+        },
+        {
+            autoStart: false, // Mencegah polling berjalan saat pertama kali render
+        },
+    );
 
-    usePoll(refreshInterval * 1000, {
-        only: ['currentBooking', 'nextBooking'],
-    });
+    // 3. Listen Event menggunakan useEcho jika WebSocket aktif
+    useEchoPublic(`Display.Room.${room.id}`, 'BookingUpdated', () =>
+        router.reload({ only: ['currentBooking'] }),
+    );
+
+    useEchoPublic(`Display.Room.${room.id}`, 'MediaUpdated', () =>
+        router.reload({ only: ['room'] }),
+    );
+
+    // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
+    useEffect(() => {
+        if (connectionStatus === 'connected') {
+            stopPolling();
+        } else {
+            startPolling();
+        }
+
+        return () => stopPolling();
+    }, [connectionStatus, startPolling, stopPolling]);
 
     const player = useMemo(() => {
         return (

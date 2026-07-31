@@ -1,7 +1,7 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, router, usePoll } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
-import { useMemo } from 'react';
+import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
+import { useEffect, useMemo } from 'react';
 import { MediaPlayer } from '@/components/features/display/media-player';
 import { ScheduleItems } from '@/components/features/display/schedule-items';
 import { TopBar } from '@/components/shared/general/top-bar';
@@ -62,18 +62,51 @@ type Props = PageProps & {
     mediaLoopDuration: number;
 };
 
-export default function Lobby({ roomGroup, bookings, orientation, refreshInterval, mediaLoopDuration }: Props) {
-    useEcho(`room-group.${roomGroup.id}`, 'booking.updated', () => {
-        router.reload({ only: ['bookings'] });
-    });
+export default function Lobby({
+    roomGroup,
+    bookings,
+    orientation,
+    refreshInterval,
+    mediaLoopDuration,
+}: Props) {
+    // 1. Ambil status koneksi WebSocket Reverb ("connected", "disconnected", "connecting", dll)
+    const connectionStatus = useConnectionStatus();
 
-    useEcho(`room-group.${roomGroup.id}`, 'media.updated', () => {
-        router.reload({ only: ['roomGroup'] });
-    });
+    // 2. Gunakan usePoll Inertia dengan opsi manual (autoStart: false)
+    const { start: startPolling, stop: stopPolling } = usePoll(
+        refreshInterval * 1000,
+        {
+            only: ['bookings', 'roomGroup'],
+        },
+        {
+            autoStart: false, // Mencegah polling berjalan saat pertama kali render
+        },
+    );
 
-    usePoll(refreshInterval * 1000, {
-        only: ['bookings'],
-    });
+    // 3. Listen Event menggunakan useEcho jika WebSocket aktif
+    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, 'BookingUpdated', () =>
+        router.reload({ only: ['bookings'] }),
+    );
+
+    useEchoPublic(
+        `Display.RoomGroup.${roomGroup.id}`,
+        'MediaUpdated',
+        (event) => {
+            router.reload({ only: ['roomGroup'] });
+            console.log(event);
+        },
+    );
+
+    // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
+    useEffect(() => {
+        if (connectionStatus === 'connected') {
+            stopPolling();
+        } else {
+            startPolling();
+        }
+
+        return () => stopPolling();
+    }, [connectionStatus, startPolling, stopPolling]);
 
     const isLandscape = orientation == 'landscape';
 
@@ -82,9 +115,10 @@ export default function Lobby({ roomGroup, bookings, orientation, refreshInterva
             <MediaPlayer
                 items={roomGroup.media ?? []}
                 className="max-h-full bg-black"
+                duration={mediaLoopDuration}
             />
         );
-    }, [roomGroup.media]);
+    }, [roomGroup.media, mediaLoopDuration]);
 
     return (
         <>

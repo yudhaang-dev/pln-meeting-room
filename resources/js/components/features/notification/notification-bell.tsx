@@ -16,22 +16,20 @@ import notifications from '@/routes/notifications';
 interface NotificationItem {
     id: string;
     data: {
-        type?: string;
-        booking_id?: number;
-        title?: string;
-        message?: string;
-        body?: string;
+        message: string;
+        resource: string;
+        payload: Record<string, unknown>;
     };
     created_at: string;
 }
 
 export function NotificationBell() {
     // Ambil data langsung dari Inertia global props alih-alih local state
-    const { auth } = usePage().props;
-    const { user, notifications: userNotifications } = auth;
+    const { auth, _token } = usePage().props;
+    const { user, unreadNotifications } = auth;
 
-    const unreadCount = userNotifications?.count ?? 0;
-    const items = userNotifications?.items ?? [];
+    const unreadCount = unreadNotifications?.length ?? 0;
+    const items = unreadNotifications ?? [];
 
     // Jika ada notifikasi real-time masuk via Echo, suruh Inertia memperbarui props
     useEchoNotification(`App.Models.User.${user?.id}`, () => {
@@ -56,24 +54,14 @@ export function NotificationBell() {
 
     // Tandai satu dibaca dan arahkan halaman
     const handleMarkAsRead = (notification: NotificationItem) => {
-        router.post(
-            notifications.markAsRead(notification.id),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Cek tipe dan lakukan pengalihan halaman setelah status sukses terekam di DB
-                    if (
-                        String(notification.data.type).startsWith('booking') &&
-                        notification.data.booking_id
-                    ) {
-                        router.visit(
-                            bookings.show(notification.data.booking_id),
-                        );
-                    }
-                },
+        fetch(notifications.markAsRead(notification.id).url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': _token,
             },
-        );
+        });
+        router.visit(bookings.show(notification.data.payload.id as number));
     };
 
     if (!user) {
@@ -123,13 +111,9 @@ export function NotificationBell() {
                                 className="flex cursor-pointer flex-col items-start gap-1 px-4 py-3"
                                 onClick={() => handleMarkAsRead(notification)}
                             >
-                                <span className="text-sm font-medium">
-                                    {notification?.data.title ??
-                                        notification?.data.message ??
+                                <span className="text-sm">
+                                    {notification?.data.message ??
                                         'Notification'}
-                                </span>
-                                <span className="text-muted-foreground text-xs">
-                                    {notification.data.body ?? ''}
                                 </span>
                             </DropdownMenuItem>
                         ))}

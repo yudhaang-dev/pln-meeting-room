@@ -9,22 +9,19 @@ export type User = {
     [key: string]: unknown;
 };
 
+interface NotificationItem {
+    id: string;
+    data: {
+        message: string;
+        resource: string;
+        payload: Record<string, unknown>;
+    };
+    created_at: string;
+}
+
 export type Auth = {
     user: User;
-    notifications: {
-        count: number;
-        items: {
-            id: string;
-            data: {
-                type?: string;
-                booking_id?: number;
-                title?: string;
-                message?: string;
-                body?: string;
-            };
-            created_at: string;
-        }[];
-    };
+    unreadNotifications: NotificationItem[];
 };
 
 /* @chisel-passkeys */

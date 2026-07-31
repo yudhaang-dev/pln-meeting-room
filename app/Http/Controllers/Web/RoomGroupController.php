@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Events\PublicBroadcast;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRoomGroupRequest;
 use App\Http\Requests\Admin\UpdateRoomGroupRequest;
@@ -45,10 +46,12 @@ class RoomGroupController extends Controller
         $roomIds = $validated['room_ids'] ?? [];
         unset($validated['room_ids']);
 
-        $grouping = RoomGroup::create($validated);
-        $grouping->rooms()->sync($roomIds);
+        $roomGroup = RoomGroup::create($validated);
+        $roomGroup->rooms()->sync($roomIds);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room grouping created.')]);
+        PublicBroadcast::dispatch('Display.Room.'.$roomGroup->id, 'RoomGroupCreated', $roomGroup);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group created.')]);
 
         return to_route('room-groups.index');
     }
@@ -64,7 +67,9 @@ class RoomGroupController extends Controller
         $roomGroup->update($validated);
         $roomGroup->rooms()->sync($roomIds);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room grouping updated.')]);
+        PublicBroadcast::dispatch('Display.RoomGroup.'.$roomGroup->id, 'RoomGroupUpdated', $roomGroup);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group updated.')]);
 
         return back();
     }

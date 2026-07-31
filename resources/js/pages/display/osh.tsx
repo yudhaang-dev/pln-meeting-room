@@ -1,6 +1,6 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, router, usePoll } from '@inertiajs/react';
-import { useEcho } from '@laravel/echo-react';
+import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useRef } from 'react';
 import { TableSchedule } from '@/components/features/display/table-schedule';
 import { TopBar } from '@/components/shared/general/top-bar';
@@ -91,13 +91,39 @@ export default function Osh({
         prevCountRef.current = todayBookings.length;
     }, [todayBookings.length]);
 
-    useEcho('bookings', 'booking.updated', () => {
-        router.reload({ only: ['todayBookings', 'tomorrowBookings'] });
-    });
+    // 1. Ambil status koneksi WebSocket Reverb ("connected", "disconnected", "connecting", dll)
+    const connectionStatus = useConnectionStatus();
 
-    usePoll(refreshInterval * 1000, {
-        only: ['todayBookings', 'tomorrowBookings'],
-    });
+    // 2. Gunakan usePoll Inertia dengan opsi manual (autoStart: false)
+    const { start: startPolling, stop: stopPolling } = usePoll(
+        refreshInterval * 1000,
+        {
+            only: ['todayBookings', 'tomorrowBookings'],
+        },
+        {
+            autoStart: false, // Mencegah polling berjalan saat pertama kali render
+        },
+    );
+
+    // 3. Listen Event menggunakan useEcho jika WebSocket aktif
+    useEchoPublic(`Display.Osh`, 'BookingUpdated', () =>
+        router.reload({ only: ['todayBookings', 'tomorrowBookings'] }),
+    );
+
+    // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
+    useEffect(() => {
+        if (connectionStatus === 'connected') {
+            stopPolling();
+        } else {
+            startPolling();
+        }
+
+        return () => stopPolling();
+    }, [connectionStatus, startPolling, stopPolling]);
+
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
     return (
         <>
@@ -113,12 +139,12 @@ export default function Osh({
                     <TableSchedule
                         data={todayBookings}
                         title="Jadwal Hari Ini"
-                        date={formatDayDate(new Date())}
+                        date={formatDayDate(today)}
                     />
                     <TableSchedule
                         data={tomorrowBookings}
                         title="Jadwal Besok"
-                        date={formatDayDate(new Date())}
+                        date={formatDayDate(tomorrow)}
                     />
                 </div>
             </div>
