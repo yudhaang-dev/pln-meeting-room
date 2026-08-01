@@ -46,7 +46,7 @@ export function BuildingForm({
         } else {
             reset();
         }
-    }, [building]);
+    }, [building, reset, setData]);
 
     const handleOpenChange = (value: boolean) => {
         if (!value) {

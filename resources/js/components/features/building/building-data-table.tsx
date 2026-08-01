@@ -125,16 +125,12 @@ export function BuildingDataTable({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() =>
-                                                    onEdit(building)
-                                                }
+                                                onClick={() => onEdit(building)}
                                             >
                                                 <Pencil className="size-4" />
                                             </Button>
                                             <Dialog
-                                                open={
-                                                    deleteId === building.id
-                                                }
+                                                open={deleteId === building.id}
                                                 onOpenChange={(open) =>
                                                     onDeleteRequest(
                                                         open
@@ -163,13 +159,10 @@ export function BuildingDataTable({
                                                             Are you sure you
                                                             want to delete{' '}
                                                             <strong>
-                                                                {
-                                                                    building.name
-                                                                }
+                                                                {building.name}
                                                             </strong>
-                                                            ? This action
-                                                            cannot be
-                                                            undone.
+                                                            ? This action cannot
+                                                            be undone.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>

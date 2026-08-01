@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { Switch } from '@/components/ui/switch';
 import general from '@/routes/settings/systems/general';
 
 type Settings = Record<string, unknown>;
@@ -21,7 +20,6 @@ export default function AdminSettings({ settings }: Props) {
         booking_advance_hours: 24,
         booking_max_days_ahead: 30,
         cancellation_hours: 2,
-        auto_approve_bookings: false,
         default_osh_level_id: null,
         display_refresh_interval: 30,
         media_loop_duration: 10,
@@ -31,7 +29,6 @@ export default function AdminSettings({ settings }: Props) {
         booking_advance_hours: get('booking_advance_hours') as number,
         booking_max_days_ahead: get('booking_max_days_ahead') as number,
         cancellation_hours: get('cancellation_hours') as number,
-        auto_approve_bookings: get('auto_approve_bookings') as boolean,
         default_osh_level_id: get('default_osh_level_id') as number | null,
         display_refresh_interval: get('display_refresh_interval') as number,
         media_loop_duration: get('media_loop_duration') as number,
@@ -119,22 +116,6 @@ export default function AdminSettings({ settings }: Props) {
                                     Minimum hours before event to allow
                                     cancellation
                                 </p>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <Switch
-                                    id="auto_approve_bookings"
-                                    checked={data.auto_approve_bookings}
-                                    onCheckedChange={(checked) =>
-                                        setData(
-                                            'auto_approve_bookings',
-                                            checked,
-                                        )
-                                    }
-                                />
-                                <Label htmlFor="auto_approve_bookings">
-                                    Auto-approve bookings
-                                </Label>
                             </div>
                         </CardContent>
                     </Card>

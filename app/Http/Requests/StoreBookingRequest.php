@@ -14,6 +14,9 @@ class StoreBookingRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         $settings = app(GeneralSettings::class);
@@ -31,6 +34,9 @@ class StoreBookingRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<int, \Closure>
+     */
     public function after(): array
     {
         return [

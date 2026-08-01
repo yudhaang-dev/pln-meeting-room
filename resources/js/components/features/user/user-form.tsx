@@ -63,7 +63,7 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                 reset();
             }
         }
-    }, [open, user]);
+    }, [open, user, reset, setData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

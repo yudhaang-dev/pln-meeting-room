@@ -28,9 +28,8 @@ export function useCrudIndex({
         initialQuery.sort_by ?? urlParams.get('sort_by') ?? defaultSortBy,
     );
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
-        ((initialQuery.sort_direction ??
-            urlParams.get('sort_direction')) as 'asc' | 'desc') ??
-            defaultSortDirection,
+        ((initialQuery.sort_direction ?? urlParams.get('sort_direction')) as
+            'asc' | 'desc') ?? defaultSortDirection,
     );
     const [perPage, setPerPage] = useState(
         initialQuery.per_page ?? urlParams.get('per_page') ?? defaultPerPage,
@@ -40,8 +39,7 @@ export function useCrudIndex({
     );
     const [status, setStatus] = useState<string | undefined>(
         (initialQuery.status ?? urlParams.get('status') ?? undefined) as
-            | string
-            | undefined,
+            string | undefined,
     );
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -50,24 +48,26 @@ export function useCrudIndex({
     const navigate = (
         overrides: Record<string, string | number | undefined> = {},
     ) => {
-        const nextSearch = overrides.search !== undefined
-            ? String(overrides.search)
-            : search;
-        const nextSortBy = overrides.sort_by !== undefined
-            ? String(overrides.sort_by)
-            : sortBy;
-        const nextSortDirection = overrides.sort_direction !== undefined
-            ? String(overrides.sort_direction)
-            : sortDirection;
-        const nextPerPage = overrides.per_page !== undefined
-            ? String(overrides.per_page)
-            : perPage;
-        const nextPage = overrides.page !== undefined
-            ? String(overrides.page)
-            : page;
-        const nextStatus = 'status' in overrides
-            ? (overrides.status as string | undefined)
-            : status;
+        const nextSearch =
+            overrides.search !== undefined ? String(overrides.search) : search;
+        const nextSortBy =
+            overrides.sort_by !== undefined
+                ? String(overrides.sort_by)
+                : sortBy;
+        const nextSortDirection =
+            overrides.sort_direction !== undefined
+                ? String(overrides.sort_direction)
+                : sortDirection;
+        const nextPerPage =
+            overrides.per_page !== undefined
+                ? String(overrides.per_page)
+                : perPage;
+        const nextPage =
+            overrides.page !== undefined ? String(overrides.page) : page;
+        const nextStatus =
+            'status' in overrides
+                ? (overrides.status as string | undefined)
+                : status;
 
         setSearch(nextSearch);
         setSortBy(nextSortBy);

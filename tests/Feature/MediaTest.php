@@ -16,17 +16,17 @@ beforeEach(function () {
 test('admin can view room media page', function () {
     $this->actingAs($this->admin);
 
-    $response = $this->get(route('admin.rooms.media', $this->room));
+    $response = $this->get(route('rooms.media', $this->room));
     $response->assertOk();
-    $response->assertInertia(fn ($page) => $page->component('admin/rooms/media'));
+    $response->assertInertia(fn ($page) => $page->component('rooms/media'));
 });
 
 test('admin can view room grouping media page', function () {
     $this->actingAs($this->admin);
 
-    $response = $this->get(route('admin.room-groups.media', $this->grouping));
+    $response = $this->get(route('room-groups.media', $this->grouping));
     $response->assertOk();
-    $response->assertInertia(fn ($page) => $page->component('admin/room-groups/media'));
+    $response->assertInertia(fn ($page) => $page->component('room-groups/media'));
 });
 
 test('admin can upload media to room', function () {
@@ -35,7 +35,7 @@ test('admin can upload media to room', function () {
 
     $file = UploadedFile::fake()->image('my photo.jpg', 800, 600);
 
-    $response = $this->post(route('admin.rooms.media.store', $this->room), [
+    $response = $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file],
     ]);
 
@@ -55,7 +55,7 @@ test('admin can upload multiple media to room', function () {
     $file1 = UploadedFile::fake()->image('photo1.jpg', 800, 600);
     $file2 = UploadedFile::fake()->image('photo2.png', 800, 600);
 
-    $response = $this->post(route('admin.rooms.media.store', $this->room), [
+    $response = $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file1, $file2],
     ]);
 
@@ -71,7 +71,7 @@ test('admin can upload media to room grouping', function () {
 
     $file = UploadedFile::fake()->image('banner.png', 800, 600);
 
-    $response = $this->post(route('admin.room-groups.media.store', $this->grouping), [
+    $response = $this->post(route('room-groups.media.store', $this->grouping), [
         'files' => [$file],
     ]);
 
@@ -93,7 +93,7 @@ test('admin can delete media', function () {
         'mediable_id' => $this->room->id,
     ]);
 
-    $response = $this->delete(route('admin.rooms.media.destroy', [$this->room, $media]));
+    $response = $this->delete(route('rooms.media.destroy', [$this->room, $media]));
 
     $response->assertRedirect();
     $this->assertDatabaseMissing('media', ['id' => $media->id]);
@@ -113,19 +113,19 @@ test('admin can reorder media', function () {
         'sort_order' => 1,
     ]);
 
-    $response = $this->post(route('admin.rooms.media.reorder', $this->room), [
+    $response = $this->post(route('rooms.media.reorder', $this->room), [
         'order' => [$media2->id, $media1->id],
     ]);
 
     $response->assertRedirect();
-    $this->assertDatabaseHas('media', ['id' => $media1->id, 'sort_order' => 1]);
-    $this->assertDatabaseHas('media', ['id' => $media2->id, 'sort_order' => 0]);
+    $this->assertDatabaseHas('media', ['id' => $media2->id, 'sort_order' => 1]);
+    $this->assertDatabaseHas('media', ['id' => $media1->id, 'sort_order' => 2]);
 });
 
 test('media validation requires files', function () {
     $this->actingAs($this->admin);
 
-    $response = $this->postJson(route('admin.rooms.media.store', $this->room), []);
+    $response = $this->postJson(route('rooms.media.store', $this->room), []);
 
     $response->assertUnprocessable();
 });
@@ -136,7 +136,7 @@ test('video upload is detected correctly', function () {
 
     $file = UploadedFile::fake()->create('video.mp4', 100, 'video/mp4');
 
-    $response = $this->post(route('admin.rooms.media.store', $this->room), [
+    $response = $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file],
     ]);
 
@@ -153,7 +153,7 @@ test('pdf upload is detected correctly', function () {
 
     $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
 
-    $response = $this->post(route('admin.rooms.media.store', $this->room), [
+    $response = $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file],
     ]);
 
@@ -175,7 +175,7 @@ test('media sort_order auto-increments', function () {
     ]);
 
     $file = UploadedFile::fake()->image('photo.jpg');
-    $this->post(route('admin.rooms.media.store', $this->room), [
+    $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file],
     ]);
 
@@ -192,7 +192,7 @@ test('regular user cannot upload media', function () {
 
     $file = UploadedFile::fake()->image('photo.jpg');
 
-    $response = $this->post(route('admin.rooms.media.store', $this->room), [
+    $response = $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file],
     ]);
 
@@ -205,7 +205,7 @@ test('name is derived from original filename', function () {
 
     $file = UploadedFile::fake()->image('My Awesome Photo (1).jpg', 800, 600);
 
-    $this->post(route('admin.rooms.media.store', $this->room), [
+    $this->post(route('rooms.media.store', $this->room), [
         'files' => [$file],
     ]);
 
@@ -223,7 +223,7 @@ test('admin can toggle media is_active', function () {
         'is_active' => true,
     ]);
 
-    $response = $this->put(route('admin.rooms.media.toggleActive', [$this->room, $media]));
+    $response = $this->put(route('rooms.media.toggleActive', [$this->room, $media]));
 
     $response->assertRedirect();
     $this->assertDatabaseHas('media', [
@@ -238,7 +238,7 @@ test('admin can upload chunk', function () {
     $uploadId = 'test-upload-123';
     $file = UploadedFile::fake()->create('chunk.bin', 100, 'application/octet-stream');
 
-    $response = $this->postJson(route('admin.media.chunk'), [
+    $response = $this->postJson(route('media.chunk'), [
         'upload_id' => $uploadId,
         'index' => 0,
         'total_chunks' => 2,
@@ -257,7 +257,7 @@ test('admin can upload chunk', function () {
 test('chunk upload validates required fields', function () {
     $this->actingAs($this->admin);
 
-    $response = $this->postJson(route('admin.media.chunk'), []);
+    $response = $this->postJson(route('media.chunk'), []);
 
     $response->assertUnprocessable();
     $response->assertJsonValidationErrors(['upload_id', 'index', 'total_chunks', 'file']);
@@ -277,7 +277,7 @@ test('admin can assemble chunks into media', function () {
     $disk->put($chunkDir.'/0', $chunk1);
     $disk->put($chunkDir.'/1', $chunk2);
 
-    $response = $this->postJson(route('admin.media.assemble'), [
+    $response = $this->postJson(route('media.assemble'), [
         'upload_id' => $uploadId,
         'mediable_type' => 'rooms',
         'mediable_id' => $this->room->id,
@@ -308,7 +308,7 @@ test('assemble validates missing chunk', function () {
     $disk->makeDirectory($chunkDir);
     $disk->put($chunkDir.'/0', 'data');
 
-    $response = $this->postJson(route('admin.media.assemble'), [
+    $response = $this->postJson(route('media.assemble'), [
         'upload_id' => $uploadId,
         'mediable_type' => 'rooms',
         'mediable_id' => $this->room->id,
@@ -323,7 +323,7 @@ test('assemble validates missing chunk', function () {
 test('assemble validates mediable_type', function () {
     $this->actingAs($this->admin);
 
-    $response = $this->postJson(route('admin.media.assemble'), [
+    $response = $this->postJson(route('media.assemble'), [
         'upload_id' => 'test',
         'mediable_type' => 'invalid',
         'mediable_id' => $this->room->id,
@@ -341,7 +341,7 @@ test('regular user cannot upload chunks', function () {
 
     $file = UploadedFile::fake()->create('chunk.bin', 100, 'application/octet-stream');
 
-    $response = $this->postJson(route('admin.media.chunk'), [
+    $response = $this->postJson(route('media.chunk'), [
         'upload_id' => 'test',
         'index' => 0,
         'total_chunks' => 1,
@@ -355,7 +355,7 @@ test('regular user cannot assemble chunks', function () {
     $user = User::factory()->create(['role' => 'user']);
     $this->actingAs($user);
 
-    $response = $this->postJson(route('admin.media.assemble'), [
+    $response = $this->postJson(route('media.assemble'), [
         'upload_id' => 'test',
         'mediable_type' => 'rooms',
         'mediable_id' => $this->room->id,

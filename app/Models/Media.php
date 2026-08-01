@@ -38,6 +38,9 @@ class Media extends Model
         ];
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function mediable(): MorphTo
     {
         return $this->morphTo();

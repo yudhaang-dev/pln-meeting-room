@@ -13,6 +13,9 @@ class UpdateUserRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         $userId = Route::current()?->parameter('user');

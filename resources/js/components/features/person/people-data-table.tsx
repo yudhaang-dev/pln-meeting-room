@@ -1,4 +1,5 @@
 import { Camera, Pencil, Trash2 } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { DataPagination } from '@/components/shared/data-table/data-pagination';
 import { SearchBar } from '@/components/shared/data-table/search-bar';
 import { SortableHeader } from '@/components/shared/data-table/sortable-header';
@@ -22,7 +23,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import type { PaginatedData } from '@/lib/utils';
-import { Users } from 'lucide-react';
 
 export type Person = {
     id: number;
@@ -63,8 +63,6 @@ export function PeopleDataTable({
     onDeleteRequest,
     onDeleteConfirm,
 }: Props) {
-    const deletePerson = data.data.find((p) => p.id === deleteId);
-
     return (
         <>
             <SearchBar
@@ -177,8 +175,8 @@ export function PeopleDataTable({
                                                             <strong>
                                                                 {person.name}
                                                             </strong>
-                                                            ? This action
-                                                            cannot be undone.
+                                                            ? This action cannot
+                                                            be undone.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>

@@ -26,11 +26,17 @@ class Building extends Model
         ];
     }
 
+    /**
+     * @return HasMany<RoomGroup, $this>
+     */
     public function roomGroups(): HasMany
     {
         return $this->hasMany(RoomGroup::class);
     }
 
+    /**
+     * @return HasMany<Room, $this>
+     */
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);

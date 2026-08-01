@@ -37,7 +37,12 @@ const emptyForm = {
     is_active: true,
 };
 
-export function PersonForm({ open, onOpenChange, person = null, onSuccess }: Props) {
+export function PersonForm({
+    open,
+    onOpenChange,
+    person = null,
+    onSuccess,
+}: Props) {
     const [preview, setPreview] = useState<string | null>(null);
 
     const { data, setData, post, put, processing, reset, errors } =
@@ -54,12 +59,13 @@ export function PersonForm({ open, onOpenChange, person = null, onSuccess }: Pro
                 photo: null,
                 is_active: person.is_active,
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setPreview(person.photo_url);
         } else {
             reset();
             setPreview(null);
         }
-    }, [open, person]);
+    }, [open, person, reset, setData]);
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -116,9 +122,7 @@ export function PersonForm({ open, onOpenChange, person = null, onSuccess }: Pro
                         <Input
                             id="name"
                             value={data.name}
-                            onChange={(e) =>
-                                setData('name', e.target.value)
-                            }
+                            onChange={(e) => setData('name', e.target.value)}
                         />
                         {errors.name && (
                             <p className="text-destructive text-sm">

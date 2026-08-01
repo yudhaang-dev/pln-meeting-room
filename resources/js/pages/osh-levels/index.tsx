@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Plus, Shield } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { OshLevelDataTable } from '@/components/features/osh-level/osh-level-data-table';
 import { OshLevelForm } from '@/components/features/osh-level/osh-level-form';
 import { PageContainer } from '@/components/shared/page-container';
@@ -24,10 +24,22 @@ type Props = {
 
 export default function OshLevelsIndex({ oshLevels }: Props) {
     const {
-        search, sortBy, sortDirection, perPage,
-        dialogOpen, editingId, deleteId, setDeleteId,
-        navigate, handleSort, handleSearch, handlePerPage,
-        openCreate, openEdit, closeDialog, handleDelete,
+        search,
+        sortBy,
+        sortDirection,
+        perPage,
+        dialogOpen,
+        editingId,
+        deleteId,
+        setDeleteId,
+        navigate,
+        handleSort,
+        handleSearch,
+        handlePerPage,
+        openCreate,
+        openEdit,
+        closeDialog,
+        handleDelete,
     } = useCrudIndex({
         indexRoute: oshLevelRoutes.index().url,
         defaultSortBy: 'sort_order',
@@ -63,15 +75,24 @@ export default function OshLevelsIndex({ oshLevels }: Props) {
                     onPageChange={(page) => navigate({ page })}
                     onEdit={handleOpenEdit}
                     onDeleteRequest={setDeleteId}
-                    onDeleteConfirm={() => handleDelete(oshLevelRoutes.destroy(deleteId!).url)}
+                    onDeleteConfirm={() =>
+                        handleDelete(oshLevelRoutes.destroy(deleteId!).url)
+                    }
                 />
 
                 <OshLevelForm
                     open={dialogOpen}
                     onOpenChange={(open) => {
-                        if (!open) closeDialog();
+                        if (!open) {
+                            closeDialog();
+                        }
                     }}
-                    level={editingId ? oshLevels.data.find((l) => l.id === editingId) ?? null : null}
+                    level={
+                        editingId
+                            ? (oshLevels.data.find((l) => l.id === editingId) ??
+                              null)
+                            : null
+                    }
                     onSuccess={closeDialog}
                 />
             </PageContainer>

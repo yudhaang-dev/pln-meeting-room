@@ -29,16 +29,25 @@ class RoomGroup extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Building, $this>
+     */
     public function building(): BelongsTo
     {
         return $this->belongsTo(Building::class);
     }
 
+    /**
+     * @return BelongsToMany<Room, $this>
+     */
     public function rooms(): BelongsToMany
     {
         return $this->belongsToMany(Room::class)->withTimestamps();
     }
 
+    /**
+     * @return HasMany<Media, $this>
+     */
     public function media(): HasMany
     {
         return $this->hasMany(Media::class, 'mediable_id')

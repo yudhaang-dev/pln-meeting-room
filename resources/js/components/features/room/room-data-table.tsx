@@ -123,10 +123,7 @@ export function RoomDataTable({
                     </TableHeader>
                     <TableBody>
                         {data.data.length === 0 ? (
-                            <TableEmpty
-                                colSpan={5}
-                                title="No rooms found."
-                            />
+                            <TableEmpty colSpan={5} title="No rooms found." />
                         ) : (
                             data.data.map((room) => (
                                 <TableRow key={room.id}>
@@ -137,16 +134,14 @@ export function RoomDataTable({
                                     <TableCell>
                                         {room.room_groups.length > 0 ? (
                                             <div className="flex flex-wrap gap-1">
-                                                {room.room_groups.map(
-                                                    (g) => (
-                                                        <span
-                                                            key={g.id}
-                                                            className="bg-secondary inline-flex items-center rounded-full px-2 py-0.5 text-xs"
-                                                        >
-                                                            {g.name}
-                                                        </span>
-                                                    ),
-                                                )}
+                                                {room.room_groups.map((g) => (
+                                                    <span
+                                                        key={g.id}
+                                                        className="bg-secondary inline-flex items-center rounded-full px-2 py-0.5 text-xs"
+                                                    >
+                                                        {g.name}
+                                                    </span>
+                                                ))}
                                             </div>
                                         ) : (
                                             <span className="text-muted-foreground">
@@ -186,21 +181,15 @@ export function RoomDataTable({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() =>
-                                                    onEdit(room)
-                                                }
+                                                onClick={() => onEdit(room)}
                                             >
                                                 <Pencil className="size-4" />
                                             </Button>
                                             <Dialog
-                                                open={
-                                                    deleteId === room.id
-                                                }
+                                                open={deleteId === room.id}
                                                 onOpenChange={(open) =>
                                                     onDeleteRequest(
-                                                        open
-                                                            ? room.id
-                                                            : null,
+                                                        open ? room.id : null,
                                                     )
                                                 }
                                             >
@@ -226,9 +215,8 @@ export function RoomDataTable({
                                                             <strong>
                                                                 {room.name}
                                                             </strong>
-                                                            ? This action
-                                                            cannot be
-                                                            undone.
+                                                            ? This action cannot
+                                                            be undone.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>

@@ -11,6 +11,8 @@ class BookingStatusNotification extends Notification
 
     /**
      * Create a new notification instance.
+     *
+     * @param  array<string, mixed>  $payload
      */
     public function __construct(
         protected string $resource,

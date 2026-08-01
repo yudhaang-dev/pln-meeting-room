@@ -37,12 +37,6 @@ export function FormSelection<TData, TValue extends PropertyKey>({
 
     const debouncedSearch = useDebounce(search, 300);
 
-    const defaultFilter = (item: TData, search: string) => {
-        const val = String(getItemValue(item)).toLowerCase();
-
-        return val.includes(search.toLowerCase());
-    };
-
     const matches = useMemo(() => {
         const q = debouncedSearch.trim().toLowerCase();
 
@@ -50,8 +44,13 @@ export function FormSelection<TData, TValue extends PropertyKey>({
             return items;
         }
 
-        return items.filter((item) => (filterFn ?? defaultFilter)(item, q));
-    }, [items, debouncedSearch, filterFn]);
+        const filter =
+            filterFn ??
+            ((item: TData) =>
+                String(getItemValue(item)).toLowerCase().includes(q));
+
+        return items.filter((item) => filter(item, q));
+    }, [items, debouncedSearch, filterFn, getItemValue]);
 
     const unselectedItems = useMemo(() => {
         return matches.filter((item) => {
@@ -123,20 +122,15 @@ export function FormSelection<TData, TValue extends PropertyKey>({
                     onClick={() => setOpen(true)}
                 />
                 {open && (
-                    <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-md border bg-popover shadow-md">
-                        <Command
-                            shouldFilter={false}
-                            className="p-0"
-                        >
+                    <div className="bg-popover absolute inset-x-0 top-full z-50 mt-1 rounded-md border shadow-md">
+                        <Command shouldFilter={false} className="p-0">
                             <CommandGroup>
                                 {unselectedItems.length > 0 ? (
                                     <CommandList className="max-h-60 p-2">
                                         {unselectedItems.map((item) => (
                                             <CommandItem
                                                 className="cursor-pointer"
-                                                key={String(
-                                                    getItemValue(item),
-                                                )}
+                                                key={String(getItemValue(item))}
                                                 value={String(
                                                     getItemValue(item),
                                                 )}

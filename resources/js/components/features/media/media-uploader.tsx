@@ -1,14 +1,14 @@
 import { router } from '@inertiajs/react';
-import { useCallback, useRef, useState } from 'react';
 import { FileText, Trash2Icon, UploadIcon, XIcon } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
-import roomsMedia from '@/routes/rooms/media';
 import roomGroupsMedia from '@/routes/room-groups/media';
+import roomsMedia from '@/routes/rooms/media';
 import type { MediaItem } from './media-manager';
-import type { Dispatch, SetStateAction } from 'react';
 
 type UploadFile = {
     id: string;
@@ -54,7 +54,9 @@ function isAcceptedFile(file: File): boolean {
     ) {
         return true;
     }
+
     const ext = file.name.split('.').pop()?.toLowerCase();
+
     return [
         'jpg',
         'jpeg',
@@ -71,17 +73,19 @@ function isAcceptedFile(file: File): boolean {
 }
 
 function formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) {
+        return '0 B';
+    }
+
     const units = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
     return `${(bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
 }
 
 export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
     const [uploads, setUploads] = useState<UploadFile[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
-    const uploadsRef = useRef(uploads);
-    uploadsRef.current = uploads;
 
     const isUploading = uploads.some((u) => u.status === 'uploading');
 
@@ -97,20 +101,6 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
     const removeUpload = useCallback((id: string) => {
         setUploads((prev) => prev.filter((u) => u.id !== id));
     }, []);
-
-    const uploadFile = useCallback(
-        async (upload: UploadFile) => {
-            const { id, file } = upload;
-
-            if (file.size > CHUNK_SIZE) {
-                await uploadViaChunk(id, file);
-            } else {
-                await uploadViaForm(id, file);
-            }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [mediableType, mediableId],
-    );
 
     async function uploadViaForm(id: string, file: File) {
         updateUpload(id, { status: 'uploading', progress: 0 });
@@ -143,6 +133,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                         const json = JSON.parse(xhr.responseText);
                         const flashMedia = json?.props?.media as
                             MediaItem[] | undefined;
+
                         if (flashMedia && Array.isArray(flashMedia)) {
                             setMedia((prev) => [...prev, ...flashMedia]);
                         }
@@ -156,6 +147,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                     updateUpload(id, { status: 'error', progress: 0 });
                     toast.error(`Failed to upload ${file.name}.`);
                 }
+
                 resolve();
             };
 
@@ -238,11 +230,27 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
         }
     }
 
+    const uploadFile = useCallback(
+        async (upload: UploadFile) => {
+            const { id, file } = upload;
+
+            if (file.size > CHUNK_SIZE) {
+                await uploadViaChunk(id, file);
+            } else {
+                await uploadViaForm(id, file);
+            }
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [mediableType, mediableId],
+    );
+
     const handleFiles = useCallback(
         (files: File[]) => {
             const accepted = files.filter(isAcceptedFile);
+
             if (accepted.length === 0) {
                 toast.error('No supported files selected.');
+
                 return;
             }
 
@@ -304,7 +312,8 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                             </button>
                         </p>
                         <p className="text-muted-foreground text-xs">
-                            Images, videos and PDFs (large files supported via chunk upload)
+                            Images, videos and PDFs (large files supported via
+                            chunk upload)
                         </p>
                     </>
                 )}
@@ -317,6 +326,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                     accept={ACCEPTED}
                     onChange={(e) => {
                         handleFiles(Array.from(e.target.files ?? []));
+
                         if (inputRef.current) {
                             inputRef.current.value = '';
                         }
@@ -328,15 +338,37 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <p className="text-muted-foreground text-xs">
-                            {uploads.length} file{uploads.length > 1 ? 's' : ''}:{' '}
-                            {uploads.filter((u) => u.status === 'done').length} done
-                            {uploads.some((u) => u.status === 'uploading' || u.status === 'pending') && (
+                            {uploads.length} file{uploads.length > 1 ? 's' : ''}
+                            :{' '}
+                            {uploads.filter((u) => u.status === 'done').length}{' '}
+                            done
+                            {uploads.some(
+                                (u) =>
+                                    u.status === 'uploading' ||
+                                    u.status === 'pending',
+                            ) && (
                                 <>
-                                    , {uploads.filter((u) => u.status === 'uploading' || u.status === 'pending').length} in progress
+                                    ,{' '}
+                                    {
+                                        uploads.filter(
+                                            (u) =>
+                                                u.status === 'uploading' ||
+                                                u.status === 'pending',
+                                        ).length
+                                    }{' '}
+                                    in progress
                                 </>
                             )}
                             {uploads.some((u) => u.status === 'error') && (
-                                <>, {uploads.filter((u) => u.status === 'error').length} failed</>
+                                <>
+                                    ,{' '}
+                                    {
+                                        uploads.filter(
+                                            (u) => u.status === 'error',
+                                        ).length
+                                    }{' '}
+                                    failed
+                                </>
                             )}
                         </p>
                         <Button
@@ -344,7 +376,11 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                             size="icon-sm"
                             onClick={() =>
                                 setUploads((prev) =>
-                                    prev.filter((u) => u.status === 'uploading' || u.status === 'pending'),
+                                    prev.filter(
+                                        (u) =>
+                                            u.status === 'uploading' ||
+                                            u.status === 'pending',
+                                    ),
                                 )
                             }
                         >

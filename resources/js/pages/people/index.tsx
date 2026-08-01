@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Plus, Users } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { PeopleDataTable } from '@/components/features/person/people-data-table';
 import { PersonForm } from '@/components/features/person/person-form';
 import { PageContainer } from '@/components/shared/page-container';
@@ -22,10 +22,22 @@ type Props = {
 
 export default function PeopleIndex({ people }: Props) {
     const {
-        search, sortBy, sortDirection, perPage,
-        dialogOpen, editingId, deleteId, setDeleteId,
-        navigate, handleSort, handleSearch, handlePerPage,
-        openCreate, openEdit, closeDialog, handleDelete,
+        search,
+        sortBy,
+        sortDirection,
+        perPage,
+        dialogOpen,
+        editingId,
+        deleteId,
+        setDeleteId,
+        navigate,
+        handleSort,
+        handleSearch,
+        handlePerPage,
+        openCreate,
+        openEdit,
+        closeDialog,
+        handleDelete,
     } = useCrudIndex({
         indexRoute: personRoutes.index().url,
         defaultSortBy: 'name',
@@ -61,15 +73,24 @@ export default function PeopleIndex({ people }: Props) {
                     onPageChange={(page) => navigate({ page })}
                     onEdit={handleOpenEdit}
                     onDeleteRequest={setDeleteId}
-                    onDeleteConfirm={() => handleDelete(personRoutes.destroy(deleteId!).url)}
+                    onDeleteConfirm={() =>
+                        handleDelete(personRoutes.destroy(deleteId!).url)
+                    }
                 />
 
                 <PersonForm
                     open={dialogOpen}
                     onOpenChange={(open) => {
-                        if (!open) closeDialog();
+                        if (!open) {
+                            closeDialog();
+                        }
                     }}
-                    person={editingId ? people.data.find((p) => p.id === editingId) ?? null : null}
+                    person={
+                        editingId
+                            ? (people.data.find((p) => p.id === editingId) ??
+                              null)
+                            : null
+                    }
                     onSuccess={closeDialog}
                 />
             </PageContainer>

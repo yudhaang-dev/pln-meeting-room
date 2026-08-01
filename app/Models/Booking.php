@@ -46,21 +46,33 @@ class Booking extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Room, $this>
+     */
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function requestedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_id');
     }
 
+    /**
+     * @return BelongsTo<Person, $this>
+     */
     public function chairperson(): BelongsTo
     {
         return $this->belongsTo(Person::class, 'chairperson_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_id');
@@ -71,26 +83,46 @@ class Booking extends Model
         return OshLevel::determineForParticipants($this->participants_count);
     }
 
+    /**
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
     public function scopeUpcoming(Builder $query): Builder
     {
         return $query->where('start_time', '>', now());
     }
 
+    /**
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
     public function scopePast(Builder $query): Builder
     {
         return $query->where('end_time', '<', now());
     }
 
+    /**
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
     public function scopePending(Builder $query): Builder
     {
         return $query->where('status', 'pending');
     }
 
+    /**
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('status', 'approved');
     }
 
+    /**
+     * @param  Builder<Booking>  $query
+     * @return Builder<Booking>
+     */
     public function scopeForDate(Builder $query, string $date): Builder
     {
         return $query->whereDate('start_time', $date);

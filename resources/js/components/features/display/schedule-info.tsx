@@ -7,8 +7,9 @@ import {
     isSameDay,
 } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { ClockIcon, MapPinIcon, User2Icon } from 'lucide-react';
+import { ClockIcon, User2Icon } from 'lucide-react';
 import { useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
 import {
     Item,
     ItemContent,
@@ -16,7 +17,6 @@ import {
     ItemMedia,
     ItemTitle,
 } from '@/components/ui/item';
-import { Badge } from '@/components/ui/badge';
 
 type Schedule = {
     id: number;

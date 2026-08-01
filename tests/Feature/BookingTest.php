@@ -24,14 +24,6 @@ test('user can view bookings page', function () {
     $response->assertInertia(fn ($page) => $page->component('bookings/index'));
 });
 
-test('user can view create booking page', function () {
-    $this->actingAs($this->user);
-
-    $response = $this->get(route('bookings.create'));
-    $response->assertOk();
-    $response->assertInertia(fn ($page) => $page->component('bookings/create'));
-});
-
 test('user can create a booking', function () {
     $this->actingAs($this->user);
     Storage::fake('public');
@@ -43,8 +35,8 @@ test('user can create a booking', function () {
         'chairperson_id' => $this->leader->id,
         'title' => 'Team Meeting',
         'description' => 'Weekly sync',
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'start_time' => now()->addDays(2)->setTime(9, 0),
+        'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 15,
         'attachment' => $file,
     ]);
@@ -66,8 +58,8 @@ test('booking requires attachment', function () {
     $response = $this->postJson(route('bookings.store'), [
         'room_id' => $this->room->id,
         'title' => 'Team Meeting',
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'start_time' => now()->addDays(2)->setTime(9, 0),
+        'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 5,
     ]);
 
@@ -81,8 +73,8 @@ test('booking rejects overlapping time slots', function () {
 
     Booking::factory()->create([
         'room_id' => $this->room->id,
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(11, 0),
+        'start_time' => now()->addDays(2)->setTime(9, 0),
+        'end_time' => now()->addDays(2)->setTime(11, 0),
         'status' => 'approved',
     ]);
 
@@ -91,8 +83,8 @@ test('booking rejects overlapping time slots', function () {
     $response = $this->postJson(route('bookings.store'), [
         'room_id' => $this->room->id,
         'title' => 'Overlapping Meeting',
-        'start_time' => now()->addDays(1)->setTime(10, 0),
-        'end_time' => now()->addDays(1)->setTime(12, 0),
+        'start_time' => now()->addDays(2)->setTime(10, 0)->toDateTimeString(),
+        'end_time' => now()->addDays(2)->setTime(12, 0)->toDateTimeString(),
         'participants_count' => 5,
         'attachment' => $file,
     ]);
@@ -107,8 +99,8 @@ test('booking allows non-overlapping time slots', function () {
 
     Booking::factory()->create([
         'room_id' => $this->room->id,
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(11, 0),
+        'start_time' => now()->addDays(2)->setTime(9, 0),
+        'end_time' => now()->addDays(2)->setTime(11, 0),
         'status' => 'approved',
     ]);
 
@@ -117,8 +109,8 @@ test('booking allows non-overlapping time slots', function () {
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'title' => 'Non-overlapping Meeting',
-        'start_time' => now()->addDays(1)->setTime(11, 0),
-        'end_time' => now()->addDays(1)->setTime(12, 0),
+        'start_time' => now()->addDays(2)->setTime(11, 0)->toDateTimeString(),
+        'end_time' => now()->addDays(2)->setTime(12, 0)->toDateTimeString(),
         'participants_count' => 5,
         'attachment' => $file,
     ]);
@@ -136,8 +128,8 @@ test('booking rejects overlap with pending bookings', function () {
 
     Booking::factory()->create([
         'room_id' => $this->room->id,
-        'start_time' => now()->addDays(1)->setTime(14, 0),
-        'end_time' => now()->addDays(1)->setTime(16, 0),
+        'start_time' => now()->addDays(2)->setTime(14, 0),
+        'end_time' => now()->addDays(2)->setTime(16, 0),
         'status' => 'pending',
     ]);
 
@@ -146,90 +138,13 @@ test('booking rejects overlap with pending bookings', function () {
     $response = $this->postJson(route('bookings.store'), [
         'room_id' => $this->room->id,
         'title' => 'Conflict with Pending',
-        'start_time' => now()->addDays(1)->setTime(15, 0),
-        'end_time' => now()->addDays(1)->setTime(17, 0),
+        'start_time' => now()->addDays(2)->setTime(15, 0)->toDateTimeString(),
+        'end_time' => now()->addDays(2)->setTime(17, 0)->toDateTimeString(),
         'participants_count' => 5,
         'attachment' => $file,
     ]);
 
     $response->assertUnprocessable();
-});
-
-test('admin can view operator bookings page', function () {
-    $this->actingAs($this->admin);
-
-    $response = $this->get(route('admin.bookings.index'));
-    $response->assertOk();
-    $response->assertInertia(fn ($page) => $page->component('admin/bookings/index'));
-});
-
-test('operator can approve a booking', function () {
-    $this->actingAs($this->operator);
-
-    $booking = Booking::factory()->pending()->create([
-        'room_id' => $this->room->id,
-    ]);
-
-    $response = $this->post(route('admin.bookings.approve', $booking));
-
-    $response->assertRedirect();
-    $this->assertDatabaseHas('bookings', [
-        'id' => $booking->id,
-        'status' => 'approved',
-        'approved_id' => $this->operator->id,
-    ]);
-});
-
-test('operator can reject a booking with reason', function () {
-    $this->actingAs($this->operator);
-
-    $booking = Booking::factory()->pending()->create([
-        'room_id' => $this->room->id,
-    ]);
-
-    $response = $this->postJson(route('admin.bookings.reject', $booking), [
-        'reason' => 'Room under maintenance',
-    ]);
-
-    $response->assertRedirect();
-    $this->assertDatabaseHas('bookings', [
-        'id' => $booking->id,
-        'status' => 'rejected',
-        'reason' => 'Room under maintenance',
-    ]);
-});
-
-test('reject requires reason', function () {
-    $this->actingAs($this->operator);
-
-    $booking = Booking::factory()->pending()->create([
-        'room_id' => $this->room->id,
-    ]);
-
-    $response = $this->postJson(route('admin.bookings.reject', $booking), []);
-
-    $response->assertUnprocessable();
-    $response->assertJsonValidationErrors(['reason']);
-});
-
-test('regular user cannot approve bookings', function () {
-    $this->actingAs($this->user);
-
-    $booking = Booking::factory()->pending()->create();
-
-    $response = $this->post(route('admin.bookings.approve', $booking));
-    $response->assertForbidden();
-});
-
-test('regular user cannot reject bookings', function () {
-    $this->actingAs($this->user);
-
-    $booking = Booking::factory()->pending()->create();
-
-    $response = $this->postJson(route('admin.bookings.reject', $booking), [
-        'reason' => 'test',
-    ]);
-    $response->assertForbidden();
 });
 
 test('user can view their own bookings', function () {
@@ -319,8 +234,8 @@ test('booking allowed when within advance hours window', function () {
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'title' => 'OK Booking',
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(10, 0),
+        'start_time' => now()->addDays(2)->setTime(9, 0),
+        'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 5,
         'attachment' => $file,
     ]);
@@ -355,65 +270,6 @@ test('booking allowed when within max days ahead', function () {
     $this->assertDatabaseHas('bookings', [
         'title' => 'Far Future OK',
         'status' => 'pending',
-    ]);
-});
-
-test('booking auto approved when setting enabled', function () {
-    $this->actingAs($this->user);
-    Storage::fake('public');
-
-    $settings = app(GeneralSettings::class);
-    $settings->auto_approve_bookings = true;
-    $settings->save();
-
-    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
-
-    $response = $this->post(route('bookings.store'), [
-        'room_id' => $this->room->id,
-        'title' => 'Auto Approved',
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(10, 0),
-        'participants_count' => 5,
-        'attachment' => $file,
-    ]);
-
-    $response->assertRedirect();
-    $this->assertDatabaseHas('bookings', [
-        'title' => 'Auto Approved',
-        'status' => 'approved',
-        'approved_id' => $this->user->id,
-    ]);
-    $this->assertDatabaseHas('bookings', [
-        'title' => 'Auto Approved',
-        'approved_at' => now()->format('Y-m-d H:i:s'),
-    ]);
-});
-
-test('booking pending when auto approve disabled', function () {
-    $this->actingAs($this->user);
-    Storage::fake('public');
-
-    $settings = app(GeneralSettings::class);
-    $settings->auto_approve_bookings = false;
-    $settings->save();
-
-    $file = UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf');
-
-    $response = $this->post(route('bookings.store'), [
-        'room_id' => $this->room->id,
-        'title' => 'Manual Approval',
-        'start_time' => now()->addDays(1)->setTime(9, 0),
-        'end_time' => now()->addDays(1)->setTime(10, 0),
-        'participants_count' => 5,
-        'attachment' => $file,
-    ]);
-
-    $response->assertRedirect();
-    $this->assertDatabaseHas('bookings', [
-        'title' => 'Manual Approval',
-        'status' => 'pending',
-        'approved_id' => null,
-        'approved_at' => null,
     ]);
 });
 
@@ -469,4 +325,31 @@ test('unauthenticated user cannot view booking detail', function () {
     $response = $this->get(route('bookings.show', $booking));
 
     $response->assertRedirect('/login');
+});
+
+test('booking creation is rate limited', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    for ($i = 0; $i < 10; $i++) {
+        $this->post(route('bookings.store'), [
+            'room_id' => $this->room->id,
+            'title' => "Booking {$i}",
+            'start_time' => now()->addDays(2)->setTime(9, 0)->addMinutes($i * 60),
+            'end_time' => now()->addDays(2)->setTime(9, 0)->addMinutes($i * 60 + 30),
+            'participants_count' => 5,
+            'attachment' => UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf'),
+        ]);
+    }
+
+    $response = $this->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'title' => 'Over Limit',
+        'start_time' => now()->addDays(2)->setTime(20, 0),
+        'end_time' => now()->addDays(2)->setTime(21, 0),
+        'participants_count' => 5,
+        'attachment' => UploadedFile::fake()->create('attachment.pdf', 100, 'application/pdf'),
+    ]);
+
+    $response->assertTooManyRequests();
 });

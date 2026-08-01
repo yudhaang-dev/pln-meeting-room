@@ -10,19 +10,24 @@ use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
 use App\Models\Person;
 use App\Models\Room;
-use App\Settings\GeneralSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BookingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('throttle:10,1')->only('store');
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $request->validate([
             'status' => ['nullable', Rule::in(['pending', 'approved', 'rejected'])],
@@ -91,9 +96,6 @@ class BookingController extends Controller
             $qrAttendancePath = $request->file('qr_attendance')->store('bookings/qr', 'public');
         }
 
-        $settings = app(GeneralSettings::class);
-        $shouldAutoApprove = $settings->auto_approve_bookings;
-
         $booking = Booking::create([
             'room_id' => $validated['room_id'],
             'requested_id' => Auth::user()->id,
@@ -105,9 +107,7 @@ class BookingController extends Controller
             'participants_count' => $validated['participants_count'],
             'attachment_path' => $attachmentPath,
             'qr_attendance_path' => $qrAttendancePath,
-            'status' => $shouldAutoApprove ? 'approved' : 'pending',
-            'approved_id' => $shouldAutoApprove ? Auth::user()->id : null,
-            'approved_at' => $shouldAutoApprove ? now() : null,
+            'status' => 'pending',
         ]);
 
         BookingCreated::dispatch($booking);
@@ -120,7 +120,7 @@ class BookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Booking $booking)
+    public function show(Booking $booking): Response
     {
         $this->authorize('view', $booking);
 

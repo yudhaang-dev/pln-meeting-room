@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Layers, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { RoomGroupDataTable } from '@/components/features/room-group/room-group-data-table';
 import { RoomGroupForm } from '@/components/features/room-group/room-group-form';
 import { PageContainer } from '@/components/shared/page-container';
@@ -39,10 +39,22 @@ export default function RoomGroupsIndex({
     rooms,
 }: Props) {
     const {
-        search, sortBy, sortDirection, perPage,
-        dialogOpen, editingId, deleteId, setDeleteId,
-        navigate, handleSort, handleSearch, handlePerPage,
-        openCreate, openEdit, closeDialog, handleDelete,
+        search,
+        sortBy,
+        sortDirection,
+        perPage,
+        dialogOpen,
+        editingId,
+        deleteId,
+        setDeleteId,
+        navigate,
+        handleSort,
+        handleSearch,
+        handlePerPage,
+        openCreate,
+        openEdit,
+        closeDialog,
+        handleDelete,
     } = useCrudIndex({
         indexRoute: roomGroupRoutes.index().url,
         defaultSortBy: 'name',
@@ -78,18 +90,29 @@ export default function RoomGroupsIndex({
                     onPageChange={(page) => navigate({ page })}
                     onEdit={handleOpenEdit}
                     onDeleteRequest={setDeleteId}
-                    onDeleteConfirm={() => handleDelete(roomGroupRoutes.destroy(deleteId!).url)}
+                    onDeleteConfirm={() =>
+                        handleDelete(roomGroupRoutes.destroy(deleteId!).url)
+                    }
                     onMedia={(groupId) => {
-                        window.location.href = roomGroupRoutes.media(groupId).url;
+                        window.location.href =
+                            roomGroupRoutes.media(groupId).url;
                     }}
                 />
 
                 <RoomGroupForm
                     open={dialogOpen}
                     onOpenChange={(open) => {
-                        if (!open) closeDialog();
+                        if (!open) {
+                            closeDialog();
+                        }
                     }}
-                    group={editingId ? roomGroups.data.find((g) => g.id === editingId) ?? null : null}
+                    group={
+                        editingId
+                            ? (roomGroups.data.find(
+                                  (g) => g.id === editingId,
+                              ) ?? null)
+                            : null
+                    }
                     buildings={buildings}
                     rooms={rooms}
                     onSuccess={closeDialog}

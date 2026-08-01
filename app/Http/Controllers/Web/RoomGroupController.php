@@ -49,7 +49,7 @@ class RoomGroupController extends Controller
         $roomGroup = RoomGroup::create($validated);
         $roomGroup->rooms()->sync($roomIds);
 
-        PublicBroadcast::dispatch('Display.Room.'.$roomGroup->id, 'RoomGroupCreated', $roomGroup);
+        PublicBroadcast::dispatch('Display.Room.'.$roomGroup->id, 'RoomGroupCreated', $roomGroup->toArray());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group created.')]);
 
@@ -67,7 +67,7 @@ class RoomGroupController extends Controller
         $roomGroup->update($validated);
         $roomGroup->rooms()->sync($roomIds);
 
-        PublicBroadcast::dispatch('Display.RoomGroup.'.$roomGroup->id, 'RoomGroupUpdated', $roomGroup);
+        PublicBroadcast::dispatch('Display.RoomGroup.'.$roomGroup->id, 'RoomGroupUpdated', $roomGroup->toArray());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group updated.')]);
 

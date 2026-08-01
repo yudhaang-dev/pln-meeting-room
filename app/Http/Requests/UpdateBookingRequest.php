@@ -14,6 +14,9 @@ class UpdateBookingRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
@@ -31,6 +34,9 @@ class UpdateBookingRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<int, \Closure>
+     */
     public function after(): array
     {
         return [
@@ -46,9 +52,15 @@ class UpdateBookingRequest extends FormRequest
                 $start = Carbon::parse($startTime);
                 $end = Carbon::parse($endTime);
 
+                $booking = $this->route('booking');
+
+                if (! $booking instanceof Booking) {
+                    return;
+                }
+
                 $hasOverlap = Booking::where('room_id', $roomId)
                     ->whereIn('status', ['pending', 'approved'])
-                    ->where('id', '!=', $this->route('booking')->id)
+                    ->where('id', '!=', $booking->id)
                     ->where('start_time', '<', $end)
                     ->where('end_time', '>', $start)
                     ->exists();

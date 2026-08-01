@@ -22,7 +22,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import type { PaginatedData } from '@/lib/utils';
-import roomGroupRoutes from '@/routes/room-groups';
 
 type RoomGroup = {
     id: number;
@@ -122,9 +121,7 @@ export function RoomGroupDataTable({
                                     <TableCell className="font-medium">
                                         {group.name}
                                     </TableCell>
-                                    <TableCell>
-                                        {group.building.name}
-                                    </TableCell>
+                                    <TableCell>{group.building.name}</TableCell>
                                     <TableCell>
                                         <span
                                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -143,15 +140,8 @@ export function RoomGroupDataTable({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                nativeButton={false}
-                                                render={
-                                                    <a
-                                                        href={
-                                                            roomGroupRoutes.media(
-                                                                group.id,
-                                                            ).url
-                                                        }
-                                                    />
+                                                onClick={() =>
+                                                    onMedia(group.id)
                                                 }
                                             >
                                                 <ImageIcon className="size-4" />
@@ -195,8 +185,8 @@ export function RoomGroupDataTable({
                                                             <strong>
                                                                 {group.name}
                                                             </strong>
-                                                            ? This action
-                                                            cannot be undone.
+                                                            ? This action cannot
+                                                            be undone.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
@@ -230,10 +220,7 @@ export function RoomGroupDataTable({
                 </Table>
             </div>
 
-            <DataPagination
-                data={data}
-                onPageChange={onPageChange}
-            />
+            <DataPagination data={data} onPageChange={onPageChange} />
         </>
     );
 }

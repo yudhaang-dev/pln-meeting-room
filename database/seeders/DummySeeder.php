@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Building;
-use App\Models\Media;
 use App\Models\OshLevel;
 use App\Models\Person;
 use App\Models\Room;
@@ -15,6 +14,7 @@ use Illuminate\Support\Str;
 
 class DummySeeder extends Seeder
 {
+    /** @var list<string> */
     private array $pdfs = [
         'bookings/QsP5PSNHnbWutgDDgZLZ8VCquUrQzva7MauqeACS.pdf',
         'bookings/WgdtqLY3Ms57DczM0lCZQf8fRfsMAhuOtkZxA787.pdf',
@@ -311,6 +311,9 @@ class DummySeeder extends Seeder
         DB::table('notifications')->insert($notifications);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function booking(
         int $roomId,
         int $requesterId,

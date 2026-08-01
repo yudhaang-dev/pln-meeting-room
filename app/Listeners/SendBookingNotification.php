@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\BookingCreated;
 use App\Events\BookingUpdated;
+use App\Models\Booking;
 use App\Models\User;
 use App\Notifications\BookingStatusNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,14 +29,16 @@ class SendBookingNotification implements ShouldQueue
 
         // Skenario 1: Booking Baru Dibuat
         if ($event instanceof BookingCreated) {
+            $requestedBy = $booking->requestedBy;
+
             $recipients = User::whereIn('role', ['admin', 'operator'])
-                ->where('id', '!=', $booking->requestedBy->id)
+                ->where('id', '!=', $requestedBy?->id)
                 ->get();
 
             Notification::send($recipients, new BookingStatusNotification(
                 'Booking',
-                "New Booking '{$booking->title}' by {$booking->requestedBy->name}",
-                $booking->toArray()
+                "New Booking '{$booking->title}' by {$requestedBy?->name}",
+                $this->payload($booking)
             ));
         }
 
@@ -43,26 +46,38 @@ class SendBookingNotification implements ShouldQueue
         if ($event instanceof BookingUpdated) {
 
             $status = ucfirst($booking->status);
+            $requestedBy = $booking->requestedBy;
+            $approvedBy = $booking->approvedBy;
 
             // 1. Kirim ke pembuat booking (requestedBy)
-            if ($booking->requestedBy->id != $booking->approvedBy->id) {
-                $booking->requestedBy->notify(new BookingStatusNotification(
+            if ($requestedBy && $approvedBy && $requestedBy->id !== $approvedBy->id) {
+                $requestedBy->notify(new BookingStatusNotification(
                     'Booking',
-                    "Your booking '{$booking->title}' has been {$status} by {$booking->approvedBy->name}",
-                    $booking->toArray()
+                    "Your booking '{$booking->title}' has been {$status} by {$approvedBy->name}",
+                    $this->payload($booking)
                 ));
             }
 
             // 2. Kirim ke seluruh Admin dan Operator lainnya
             $staff = User::whereIn('role', ['admin', 'operator'])
-                ->where('id', '!=', $booking->approvedBy->id) // kecuali yang menyetujui
+                ->where('id', '!=', $approvedBy?->id) // kecuali yang menyetujui
                 ->get();
 
             Notification::send($staff, new BookingStatusNotification(
                 'Booking',
-                "Booking '{$booking->title}' {$status} by {$booking->approvedBy->name}",
-                $booking->toArray()
+                "Booking '{$booking->title}' {$status} by {$approvedBy?->name}",
+                $this->payload($booking)
             ));
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function payload(Booking $booking): array
+    {
+        return array_merge($booking->toArray(), [
+            'room' => $booking->room?->name,
+        ]);
     }
 }

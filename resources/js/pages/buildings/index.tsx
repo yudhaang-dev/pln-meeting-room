@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Building2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { BuildingDataTable } from '@/components/features/building/building-data-table';
 import { BuildingForm } from '@/components/features/building/building-form';
 import { PageContainer } from '@/components/shared/page-container';
@@ -20,10 +20,22 @@ type Props = {
 
 export default function BuildingsIndex({ buildings }: Props) {
     const {
-        search, sortBy, sortDirection, perPage,
-        dialogOpen, editingId, deleteId, setDeleteId,
-        navigate, handleSort, handleSearch, handlePerPage,
-        openCreate, openEdit, closeDialog, handleDelete,
+        search,
+        sortBy,
+        sortDirection,
+        perPage,
+        dialogOpen,
+        editingId,
+        deleteId,
+        setDeleteId,
+        navigate,
+        handleSort,
+        handleSearch,
+        handlePerPage,
+        openCreate,
+        openEdit,
+        closeDialog,
+        handleDelete,
     } = useCrudIndex({
         indexRoute: buildingRoutes.index().url,
         defaultSortBy: 'name',
@@ -59,15 +71,24 @@ export default function BuildingsIndex({ buildings }: Props) {
                     onPageChange={(page) => navigate({ page })}
                     onEdit={handleOpenEdit}
                     onDeleteRequest={setDeleteId}
-                    onDeleteConfirm={() => handleDelete(buildingRoutes.destroy(deleteId!).url)}
+                    onDeleteConfirm={() =>
+                        handleDelete(buildingRoutes.destroy(deleteId!).url)
+                    }
                 />
 
                 <BuildingForm
                     open={dialogOpen}
                     onOpenChange={(open) => {
-                        if (!open) closeDialog();
+                        if (!open) {
+                            closeDialog();
+                        }
                     }}
-                    building={editingId ? buildings.data.find((b) => b.id === editingId) ?? null : null}
+                    building={
+                        editingId
+                            ? (buildings.data.find((b) => b.id === editingId) ??
+                              null)
+                            : null
+                    }
                     onSuccess={closeDialog}
                 />
             </PageContainer>

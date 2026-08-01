@@ -7,15 +7,15 @@ import { formatDate, formatTime } from '@/lib/utils';
 import notifications from '@/routes/notifications';
 
 type NotificationData = {
-    type: string;
-    booking_id: number;
     message: string;
-    booking?: {
+    resource: string;
+    payload: {
         id: number;
         title: string;
-        room: string;
+        room?: string | null;
         start_time: string;
         end_time: string;
+        status: string;
     };
 };
 
@@ -110,21 +110,21 @@ export default function NotificationsIndex({
                                         <p className="text-sm">
                                             {notification.data.message}
                                         </p>
-                                        {notification.data.booking && (
+                                        {notification.data.payload && (
                                             <p className="text-muted-foreground mt-1 text-xs">
-                                                {notification.data.booking.room}{' '}
+                                                {notification.data.payload.room}{' '}
                                                 &middot;{' '}
                                                 {formatDate(
-                                                    notification.data.booking
+                                                    notification.data.payload
                                                         .start_time,
                                                 )}{' '}
                                                 {formatTime(
-                                                    notification.data.booking
+                                                    notification.data.payload
                                                         .start_time,
                                                 )}{' '}
                                                 -{' '}
                                                 {formatTime(
-                                                    notification.data.booking
+                                                    notification.data.payload
                                                         .end_time,
                                                 )}
                                             </p>

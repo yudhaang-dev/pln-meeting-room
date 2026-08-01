@@ -41,7 +41,7 @@ class RoomController extends Controller
 
         $room = Room::create($request->validated());
 
-        PublicBroadcast::dispatch('Display.Room.'.$room->id, 'RoomCreated', $room);
+        PublicBroadcast::dispatch('Display.Room.'.$room->id, 'RoomCreated', $room->toArray());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Room created.')]);
 
@@ -54,7 +54,7 @@ class RoomController extends Controller
 
         $room->update($request->validated());
 
-        PublicBroadcast::dispatch('Display.Room.'.$room->id, 'RoomUpdated', $room);
+        PublicBroadcast::dispatch('Display.Room.'.$room->id, 'RoomUpdated', $room->toArray());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Room updated.')]);
 

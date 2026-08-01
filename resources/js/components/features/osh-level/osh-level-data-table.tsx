@@ -146,9 +146,7 @@ export function OshLevelDataTable({
                                         {level.min_participants} –{' '}
                                         {level.max_participants.toLocaleString()}
                                     </TableCell>
-                                    <TableCell>
-                                        {level.sort_order}
-                                    </TableCell>
+                                    <TableCell>{level.sort_order}</TableCell>
                                     <TableCell>
                                         <span
                                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -167,9 +165,7 @@ export function OshLevelDataTable({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() =>
-                                                    onEdit(level)
-                                                }
+                                                onClick={() => onEdit(level)}
                                             >
                                                 <Pencil className="size-4" />
                                             </Button>
@@ -205,9 +201,8 @@ export function OshLevelDataTable({
                                                             <strong>
                                                                 {level.name}
                                                             </strong>
-                                                            ? This action
-                                                            cannot be
-                                                            undone.
+                                                            ? This action cannot
+                                                            be undone.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>

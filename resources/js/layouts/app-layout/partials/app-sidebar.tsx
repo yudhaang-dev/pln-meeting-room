@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    ActivityIcon,
     Building2Icon,
     CalendarCheckIcon,
     LayersIcon,
@@ -56,6 +57,11 @@ const masterMenu = [
     },
     { title: 'People', href: '/people', icon: Users2Icon },
     { title: 'Users', href: '/users', icon: UserPlus2Icon },
+    {
+        title: 'Monitoring',
+        href: '/admin/monitoring',
+        icon: ActivityIcon,
+    },
     {
         title: 'System Settings',
         href: '/settings/systems/general',

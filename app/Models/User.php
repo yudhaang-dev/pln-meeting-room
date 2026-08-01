@@ -81,11 +81,17 @@ class User extends Authenticatable implements PasskeyUser
         return $this->role === 'user';
     }
 
+    /**
+     * @return HasMany<Booking, $this>
+     */
     public function requestedBookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'requested_id');
     }
 
+    /**
+     * @return HasMany<Booking, $this>
+     */
     public function approvedBookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'approved_id');

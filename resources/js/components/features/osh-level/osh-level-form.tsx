@@ -61,7 +61,7 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
         } else {
             reset();
         }
-    }, [level]);
+    }, [level, reset, setData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

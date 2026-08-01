@@ -13,13 +13,13 @@ class AudioTestSeeder extends Seeder
         $booking = Booking::with('room')->latest()->first();
 
         if (! $booking) {
-            $this->command?->error('No bookings found.');
+            $this->command->error('No bookings found.');
 
             return;
         }
 
         broadcast(new BookingUpdated($booking));
 
-        $this->command?->info("Broadcast BookingUpdated for booking #{$booking->id} ({$booking->title})");
+        $this->command->info("Broadcast BookingUpdated for booking #{$booking->id} ({$booking->title})");
     }
 }

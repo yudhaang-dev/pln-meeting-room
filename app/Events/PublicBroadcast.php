@@ -15,10 +15,13 @@ class PublicBroadcast implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     public function __construct(
         public string $channelName,
         public string $eventName,
-        public ?array $payload = []
+        public array $payload = []
     ) {}
 
     /**
@@ -38,6 +41,9 @@ class PublicBroadcast implements ShouldBroadcastNow
         return $this->eventName;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         return $this->payload;

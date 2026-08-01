@@ -18,9 +18,13 @@ export function TableEmpty({
             <TableCell colSpan={colSpan}>
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Icon className="text-muted-foreground mb-4 size-10" />
-                    <p className="text-muted-foreground text-sm font-medium">{title}</p>
+                    <p className="text-muted-foreground text-sm font-medium">
+                        {title}
+                    </p>
                     {description && (
-                        <p className="text-muted-foreground mt-1 text-xs">{description}</p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                            {description}
+                        </p>
                     )}
                 </div>
             </TableCell>

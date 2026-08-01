@@ -122,9 +122,7 @@ export function MediaManager({
 
             setMedia((prev) =>
                 prev.map((i) =>
-                    i.id === item.id
-                        ? { ...i, is_active: !i.is_active }
-                        : i,
+                    i.id === item.id ? { ...i, is_active: !i.is_active } : i,
                 ),
             );
 

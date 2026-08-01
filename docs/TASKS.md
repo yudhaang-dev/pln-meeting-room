@@ -186,7 +186,7 @@ Status: `todo` · `in_progress` · `done`
 
 ### Scenario: Admin Full Flow
 
-- [ ] Login as admin → dashboard shows real stats
+- [x] Login as admin → dashboard shows real stats
 - [x] CRUD buildings (create, edit, delete)
 - [x] CRUD room groups (create with room assignment, edit, delete)
 - [x] CRUD rooms (create with capacity, edit, delete)
@@ -248,13 +248,13 @@ Status: `todo` · `in_progress` · `done`
 
 - [ ] Fix any UI bugs discovered during UAT
 - [ ] Fix any data inconsistencies found during UAT
-- [ ] Add rate limiting to booking creation endpoint
-- [ ] Fix `.env.example` — add missing `REVERB_*` vars
-- [ ] Remove duplicate `BROADCAST_CONNECTION` in `.env`
-- [ ] Run `vendor/bin/pint --dirty --format agent`
-- [ ] Run `php artisan test --compact` — all tests pass
-- [ ] Run `npm run build` — frontend builds without errors
-- [ ] Final `composer run ci:check` — all lint, type, and test checks pass
+- [x] Add rate limiting to booking creation endpoint
+- [x] Fix `.env.example` — add missing `REVERB_*` vars
+- [x] Remove duplicate `BROADCAST_CONNECTION` in `.env`
+- [x] Run `vendor/bin/pint --dirty --format agent`
+- [x] Run `php artisan test --compact` — all tests pass
+- [x] Run `npm run build` — frontend builds without errors
+- [x] Final `composer run ci:check` — all lint, type, and test checks pass
 
 ---
 
@@ -262,8 +262,12 @@ Status: `todo` · `in_progress` · `done`
 
 > Monitoring page untuk service backend yang berjalan di production (queue worker + Reverb).
 
-- [ ] Create service monitoring page (admin only) — status queue worker & Reverb
-- [ ] Queue status: connected/active, job count, pending vs failed_jobs count, worker process alive check
-- [ ] Reverb status: server up/down, connected clients count, uptime
-- [ ] Show on dashboard or dedicated page with refresh interval (manual + auto)
-- [ ] Write feature test: only admin can access monitoring page
+- [x] Create service monitoring page (admin only) — status queue worker & Reverb
+- [x] Queue status: connected/active, job count, pending vs failed_jobs count, worker process alive check
+- [x] Reverb status: server up/down, connected clients count, uptime
+- [x] Show on dashboard or dedicated page with refresh interval (manual + auto)
+- [x] Write feature test: only admin can access monitoring page
+- [x] Queue actions (admin only): clear pending jobs, retry/flush failed jobs, start/stop queue worker
+- [x] Write feature test: only admin can run monitoring queue actions
+- [x] Reverb actions (admin only): start/stop Reverb server process (PID tracked)
+- [x] Write feature test: only admin can run monitoring Reverb actions

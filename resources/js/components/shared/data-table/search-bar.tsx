@@ -37,7 +37,10 @@ export function SearchBar({
                 />
             </div>
             {children}
-            <Select value={perPage} onValueChange={(value) => value !== null && onPerPage(value)}>
+            <Select
+                value={perPage}
+                onValueChange={(value) => value !== null && onPerPage(value)}
+            >
                 <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Per page" />
                 </SelectTrigger>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -80,7 +81,7 @@ class NotificationController extends Controller
      * PENTING: Dua method di bawah ini tetap mengembalikan JsonResponse
      * karena sifatnya asinkronus (untuk backend fetching/polling/Echo listener di React)
      */
-    public function recent(Request $request)
+    public function recent(Request $request): JsonResponse
     {
         $notifications = $request->user()
             ->unreadNotifications()
@@ -99,7 +100,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function unreadCount(Request $request)
+    public function unreadCount(Request $request): JsonResponse
     {
         return response()->json([
             'count' => $request->user()->unreadNotifications()->count(),

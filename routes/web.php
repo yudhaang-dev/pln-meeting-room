@@ -44,10 +44,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/mark-all-as-read', [Web\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     Route::patch('/notifications/clear', [Web\NotificationController::class, 'clearAll'])->name('notifications.clear');
     Route::post('/notifications/{notification}/read', [Web\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
-    Route::resource('notifications', Web\NotificationController::class)->only(['index', 'show', 'destroy']);
+    Route::resource('notifications', Web\NotificationController::class)->only(['index', 'destroy']);
 
     Route::middleware('role:admin')->group(function () {
         Route::resource('users', Web\UserController::class)->except(['create', 'show', 'edit']);
+        Route::get('admin/monitoring', Web\MonitoringController::class)->name('admin.monitoring');
+        Route::post('admin/monitoring/queue/clear', [Web\MonitoringController::class, 'clearQueue'])->name('admin.monitoring.queue.clear');
+        Route::post('admin/monitoring/failed/retry', [Web\MonitoringController::class, 'retryFailed'])->name('admin.monitoring.failed.retry');
+        Route::post('admin/monitoring/failed/clear', [Web\MonitoringController::class, 'flushFailed'])->name('admin.monitoring.failed.clear');
+        Route::post('admin/monitoring/worker/stop', [Web\MonitoringController::class, 'stopWorker'])->name('admin.monitoring.worker.stop');
+        Route::post('admin/monitoring/worker/start', [Web\MonitoringController::class, 'startWorker'])->name('admin.monitoring.worker.start');
+        Route::post('admin/monitoring/reverb/start', [Web\MonitoringController::class, 'startReverb'])->name('admin.monitoring.reverb.start');
+        Route::post('admin/monitoring/reverb/stop', [Web\MonitoringController::class, 'stopReverb'])->name('admin.monitoring.reverb.stop');
     });
 
     Route::get('/dashboard', Web\DashboardController::class)->name('dashboard');
@@ -66,7 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('appearance.edit');
     });
 
-    Route::prefix('settings/systems')->name('settings.systems.')->group(function () {
+    Route::prefix('settings/systems')->name('settings.systems.')->middleware('role:admin,operator')->group(function () {
         Route::get('/general', [Web\Settings\GeneralController::class, 'edit'])->name('general.edit');
         Route::put('/general', [Web\Settings\GeneralController::class, 'update'])->name('general.update');
     });

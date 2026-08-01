@@ -42,6 +42,11 @@ class MediaController extends Controller
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $name = Str::random(40).'.'.$file->getClientOriginalExtension();
             $stream = fopen($file->getPathname(), 'r');
+            if ($stream === false) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
+
+                return back();
+            }
             Storage::disk('public')->put('media/'.$name, $stream);
             fclose($stream);
 
@@ -70,6 +75,8 @@ class MediaController extends Controller
 
     public function chunk(): JsonResponse
     {
+        $this->authorize('create', Media::class);
+
         $validated = request()->validate([
             'upload_id' => ['required', 'string', 'max:64'],
             'index' => ['required', 'integer', 'min:0'],
@@ -86,6 +93,9 @@ class MediaController extends Controller
         }
 
         $stream = fopen(request()->file('file')->getPathname(), 'r');
+        if ($stream === false) {
+            return response()->json(['message' => 'Could not read the uploaded chunk.'], 500);
+        }
         $disk->put($chunkPath, $stream);
         fclose($stream);
 
@@ -97,6 +107,8 @@ class MediaController extends Controller
 
     public function assemble(): JsonResponse
     {
+        $this->authorize('create', Media::class);
+
         $validated = request()->validate([
             'upload_id' => ['required', 'string', 'max:64'],
             'mediable_type' => ['required', 'string', 'in:rooms,room-groups'],
@@ -113,10 +125,16 @@ class MediaController extends Controller
             ? Room::findOrFail($validated['mediable_id'])
             : RoomGroup::findOrFail($validated['mediable_id']);
 
+        if (! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
+            abort(422, 'Invalid mediable type.');
+        }
+
         $extension = pathinfo($validated['original_name'], PATHINFO_EXTENSION);
         $originalFilename = pathinfo($validated['original_name'], PATHINFO_FILENAME);
         $name = Str::random(40).'.'.$extension;
         $finalPath = 'media/'.$name;
+
+        Storage::disk('public')->makeDirectory(dirname($finalPath));
 
         $targetPath = Storage::disk('public')->path($finalPath);
         $target = fopen($targetPath, 'wb');
@@ -132,6 +150,11 @@ class MediaController extends Controller
                 return response()->json(['message' => "Chunk {$i} not found."], 422);
             }
             $chunk = fopen($localDisk->path($relativeChunkPath), 'rb');
+            if ($chunk === false) {
+                fclose($target);
+
+                return response()->json(['message' => "Chunk {$i} not found."], 422);
+            }
             stream_copy_to_stream($chunk, $target);
             fclose($chunk);
         }
@@ -152,7 +175,7 @@ class MediaController extends Controller
 
         $this->cleanupChunks($validated['upload_id']);
 
-        $this->handleMediableBroadcast($media->mediable);
+        $this->handleMediableBroadcast($this->resolveMediable($media));
 
         return response()->json([
             'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
@@ -170,8 +193,8 @@ class MediaController extends Controller
         if (count($order) > 0) {
             $media = Media::with('mediable')->find($order[0]);
 
-            if ($media) {
-                $this->handleMediableBroadcast($media->mediable);
+            if ($media instanceof Media) {
+                $this->handleMediableBroadcast($this->resolveMediable($media));
             }
         }
 
@@ -182,7 +205,7 @@ class MediaController extends Controller
     {
         $media->update(['is_active' => ! $media->is_active]);
 
-        $this->handleMediableBroadcast($media->mediable);
+        $this->handleMediableBroadcast($this->resolveMediable($media));
 
         return back();
     }
@@ -191,7 +214,7 @@ class MediaController extends Controller
     {
         $this->authorize('delete', $media);
         $media->load('mediable');
-        $mediable = $media->mediable;
+        $mediable = $this->resolveMediable($media);
         $media->deleteFile();
         $media->delete();
         $this->resequenceSortOrder($mediable);
@@ -229,7 +252,7 @@ class MediaController extends Controller
 
         $first = $mediaItems->first();
         if ($first !== null) {
-            $this->resequenceSortOrder($first->mediable);
+            $this->resequenceSortOrder($this->resolveMediable($first));
         }
 
         $this->handleMediableBroadcast($mediable);
@@ -268,7 +291,21 @@ class MediaController extends Controller
         $disk->deleteDirectory($chunkDir);
     }
 
-    private function handleMediableBroadcast(Room|RoomGroup $mediable)
+    private function resolveMediable(Media $media): Room|RoomGroup
+    {
+        $mediable = $media->mediable;
+
+        if (! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
+            abort(422, 'Invalid mediable type.');
+        }
+
+        /**
+         * @var Room|RoomGroup $mediable
+         * */
+        return $mediable;
+    }
+
+    private function handleMediableBroadcast(Room|RoomGroup $mediable): void
     {
         if ($mediable instanceof Room) {
             PublicBroadcast::dispatch('Display.Room.'.$mediable->id, 'MediaUpdated', $mediable->toarray());

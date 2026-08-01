@@ -31,22 +31,34 @@ class Room extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Building, $this>
+     */
     public function building(): BelongsTo
     {
         return $this->belongsTo(Building::class);
     }
 
+    /**
+     * @return BelongsToMany<RoomGroup, $this>
+     */
     public function roomGroups(): BelongsToMany
     {
         return $this->belongsToMany(RoomGroup::class)->withTimestamps();
     }
 
+    /**
+     * @return HasMany<Media, $this>
+     */
     public function media(): HasMany
     {
         return $this->hasMany(Media::class, 'mediable_id')
             ->where('mediable_type', self::class)->orderBy('sort_order');
     }
 
+    /**
+     * @return HasMany<Booking, $this>
+     */
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);

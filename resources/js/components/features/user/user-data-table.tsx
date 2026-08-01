@@ -18,7 +18,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatDate, type PaginatedData } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import type { PaginatedData } from '@/lib/utils';
 
 export type User = {
     id: number;
@@ -78,9 +79,14 @@ export function UserDataTable({
                                 </TableCell>
                                 <TableCell>{user.email}</TableCell>
                                 <TableCell>
-                                    <StatusBadge label={user.role} variant="role" />
+                                    <StatusBadge
+                                        label={user.role}
+                                        variant="role"
+                                    />
                                 </TableCell>
-                                <TableCell>{formatDate(user.created_at)}</TableCell>
+                                <TableCell>
+                                    {formatDate(user.created_at)}
+                                </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-1">
                                         <Button
@@ -115,23 +121,31 @@ export function UserDataTable({
                                                         Delete User
                                                     </DialogTitle>
                                                     <DialogDescription>
-                                                        Are you sure you want to delete{' '}
-                                                        <strong>{user.name}</strong>?
-                                                        This action cannot be undone.
+                                                        Are you sure you want to
+                                                        delete{' '}
+                                                        <strong>
+                                                            {user.name}
+                                                        </strong>
+                                                        ? This action cannot be
+                                                        undone.
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <DialogFooter>
                                                     <Button
                                                         variant="outline"
                                                         onClick={() =>
-                                                            onDeleteRequest(null)
+                                                            onDeleteRequest(
+                                                                null,
+                                                            )
                                                         }
                                                     >
                                                         Cancel
                                                     </Button>
                                                     <Button
                                                         variant="destructive"
-                                                        onClick={onDeleteConfirm}
+                                                        onClick={
+                                                            onDeleteConfirm
+                                                        }
                                                     >
                                                         Delete
                                                     </Button>

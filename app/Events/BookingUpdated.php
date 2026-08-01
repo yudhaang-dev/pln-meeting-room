@@ -28,12 +28,18 @@ class BookingUpdated implements ShouldBroadcastNow
         return $this->buildChannelNames();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         return $this->booking->toArray();
     }
 
-    private function buildChannelNames()
+    /**
+     * @return array<int, Channel>
+     */
+    private function buildChannelNames(): array
     {
         $channels = [];
 
@@ -44,9 +50,11 @@ class BookingUpdated implements ShouldBroadcastNow
             array_push($channels, new Channel('Display.Osh'));
         }
 
-        if ($isApproved && $isToday) {
-            array_push($channels, new Channel('Display.Room.'.$this->booking->room->id));
-            foreach ($this->booking->room->roomGroups as $group) {
+        $room = $this->booking->room;
+
+        if ($isApproved && $isToday && $room) {
+            array_push($channels, new Channel('Display.Room.'.$room->id));
+            foreach ($room->roomGroups as $group) {
                 array_push($channels, new Channel('Display.RoomGroup.'.$group->id));
             }
         }

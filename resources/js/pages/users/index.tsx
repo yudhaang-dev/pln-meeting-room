@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Plus, UsersRound } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { UserDataTable } from '@/components/features/user/user-data-table';
 import { UserForm } from '@/components/features/user/user-form';
 import { PageContainer } from '@/components/shared/page-container';
@@ -22,10 +22,22 @@ type Props = {
 
 export default function UsersIndex({ users }: Props) {
     const {
-        search, sortBy, sortDirection, perPage,
-        dialogOpen, editingId, deleteId, setDeleteId,
-        navigate, handleSort, handleSearch, handlePerPage,
-        openCreate, openEdit, closeDialog, handleDelete,
+        search,
+        sortBy,
+        sortDirection,
+        perPage,
+        dialogOpen,
+        editingId,
+        deleteId,
+        setDeleteId,
+        navigate,
+        handleSort,
+        handleSearch,
+        handlePerPage,
+        openCreate,
+        openEdit,
+        closeDialog,
+        handleDelete,
     } = useCrudIndex({
         indexRoute: userRoutes.index().url,
         defaultSortBy: 'created_at',
@@ -62,15 +74,24 @@ export default function UsersIndex({ users }: Props) {
                     onPageChange={(page) => navigate({ page })}
                     onEdit={handleOpenEdit}
                     onDeleteRequest={setDeleteId}
-                    onDeleteConfirm={() => handleDelete(userRoutes.destroy(deleteId!).url)}
+                    onDeleteConfirm={() =>
+                        handleDelete(userRoutes.destroy(deleteId!).url)
+                    }
                 />
 
                 <UserForm
                     open={dialogOpen}
                     onOpenChange={(open) => {
-                        if (!open) closeDialog();
+                        if (!open) {
+                            closeDialog();
+                        }
                     }}
-                    user={editingId ? users.data.find((u) => u.id === editingId) ?? null : null}
+                    user={
+                        editingId
+                            ? (users.data.find((u) => u.id === editingId) ??
+                              null)
+                            : null
+                    }
                     onSuccess={closeDialog}
                 />
             </PageContainer>

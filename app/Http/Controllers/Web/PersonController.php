@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StorePersonRequest;
 use App\Http\Requests\Admin\UpdatePersonRequest;
 use App\Models\Person;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,7 +43,12 @@ class PersonController extends Controller
             $file = $request->file('photo');
             $name = Str::random(40).'.'.$file->getClientOriginalExtension();
             $stream = fopen($file->getPathname(), 'r');
-            \Storage::disk('public')->put('people/'.$name, $stream);
+            if ($stream === false) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => __('Unable to read the uploaded photo.')]);
+
+                return back();
+            }
+            Storage::disk('public')->put('people/'.$name, $stream);
             fclose($stream);
             $validated['photo'] = 'people/'.$name;
         }
@@ -65,7 +71,12 @@ class PersonController extends Controller
             $file = $request->file('photo');
             $name = Str::random(40).'.'.$file->getClientOriginalExtension();
             $stream = fopen($file->getPathname(), 'r');
-            \Storage::disk('public')->put('people/'.$name, $stream);
+            if ($stream === false) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => __('Unable to read the uploaded photo.')]);
+
+                return back();
+            }
+            Storage::disk('public')->put('people/'.$name, $stream);
             fclose($stream);
             $validated['photo'] = 'people/'.$name;
         }

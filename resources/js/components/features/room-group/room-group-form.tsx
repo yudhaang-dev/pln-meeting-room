@@ -75,7 +75,7 @@ export function RoomGroupForm({
         } else {
             reset();
         }
-    }, [group]);
+    }, [group, reset, setData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,27 +122,24 @@ export function RoomGroupForm({
                             items={buildings}
                             value={
                                 buildings.find(
-                                    (b) =>
-                                        String(b.id) ===
-                                        data.building_id,
+                                    (b) => String(b.id) === data.building_id,
                                 ) ?? null
                             }
                             onValueChange={(building) =>
                                 setData(
                                     'building_id',
-                                    building
-                                        ? String(building.id)
-                                        : '',
+                                    building ? String(building.id) : '',
                                 )
                             }
                             itemToStringValue={(building) =>
                                 String(building.id)
                             }
-                            itemToStringLabel={(building) =>
-                                building.name
-                            }
+                            itemToStringLabel={(building) => building.name}
                         >
-                            <ComboboxInput placeholder="Select building" showClear />
+                            <ComboboxInput
+                                placeholder="Select building"
+                                showClear
+                            />
                             <ComboboxContent>
                                 <ComboboxEmpty>
                                     No buildings found.
@@ -197,9 +194,7 @@ export function RoomGroupForm({
                                     )
                                 }
                                 getItemValue={(room) => room.id}
-                                render={(room) => (
-                                    <span>{room.name}</span>
-                                )}
+                                render={(room) => <span>{room.name}</span>}
                                 placeholder="No selected rooms."
                                 emptyText="No rooms found."
                                 searchPlaceholder="Search rooms..."

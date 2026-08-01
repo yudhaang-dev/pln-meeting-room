@@ -1,6 +1,5 @@
-import { Head } from '@inertiajs/react';
-import AppearanceTabs from '@/components/shared/theme/appearance-tabs';
 import Heading from '@/components/shared/general/heading';
+import AppearanceTabs from '@/components/shared/theme/appearance-tabs';
 
 export default function AppearanceForm() {
     return (
