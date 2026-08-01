@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { SearchIcon } from 'lucide-react';
+import { ChevronRightIcon, SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LengthOptions } from '@/components/shared/data-table/length-options';
 import { NavPagination } from '@/components/shared/data-table/nav-pagination';
@@ -189,7 +189,7 @@ export function BookingDataTable({
                         >
                             Status
                         </SortableHeader>
-
+                        <TableHead></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -234,6 +234,17 @@ export function BookingDataTable({
                                 </TableCell>
                                 <TableCell>
                                     <StatusBadge label={row.status} />
+                                </TableCell>
+                                <TableCell className="flex justify-end">
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        render={
+                                            <Link href={bookings.show(row)} />
+                                        }
+                                    >
+                                        <ChevronRightIcon />
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))

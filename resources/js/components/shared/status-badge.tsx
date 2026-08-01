@@ -17,13 +17,18 @@ const roleColors: Record<string, string> = {
     operator: 'bg-purple-100 text-purple-700',
 };
 
-export function StatusBadge({ label, variant = 'status', value }: StatusBadgeProps) {
+export function StatusBadge({
+    label,
+    variant = 'status',
+    value,
+}: StatusBadgeProps) {
     let color: string;
 
     if (variant === 'active') {
-        color = value === 'true' || value === '1'
-            ? 'bg-green-100 text-green-700'
-            : 'bg-gray-100 text-gray-600';
+        color =
+            value === 'true' || value === '1'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600';
     } else if (variant === 'role') {
         color = roleColors[label] ?? 'bg-gray-100 text-gray-600';
     } else {
@@ -33,7 +38,7 @@ export function StatusBadge({ label, variant = 'status', value }: StatusBadgePro
     return (
         <span
             className={cn(
-                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium uppercase',
                 color,
             )}
         >

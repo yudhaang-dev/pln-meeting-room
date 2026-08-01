@@ -78,11 +78,11 @@ export default function Room({ room, currentBooking, refreshInterval }: Props) {
     );
 
     // 3. Listen Event menggunakan useEcho jika WebSocket aktif
-    useEchoPublic(`Display.Room.${room.id}`, 'BookingUpdated', () =>
+    useEchoPublic(`Display.Room.${room.id}`, '.BookingUpdated', () =>
         router.reload({ only: ['currentBooking'] }),
     );
 
-    useEchoPublic(`Display.Room.${room.id}`, 'MediaUpdated', () =>
+    useEchoPublic(`Display.Room.${room.id}`, '.MediaUpdated', () =>
         router.reload({ only: ['room'] }),
     );
 

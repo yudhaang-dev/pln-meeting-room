@@ -1,4 +1,4 @@
-import { router, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Check, Pencil, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { BookingForm } from '@/components/features/booking/booking-form';
@@ -32,17 +32,20 @@ type Booking = {
     attachment_url: string | null;
     qr_attendance_url: string | null;
     created_at: string;
-    room: { id: number; name: string; capacity: number };
+    room: {
+        id: number;
+        name: string;
+        capacity: number;
+        building: { name: string };
+    };
     requested_by: { id: number; name: string; email: string };
     chairperson: { id: number; name: string } | null;
     osh_level: {
         id: number;
         name: string;
         color: string;
-        min_participants: number;
-        max_participants: number;
-    } | null;
-    approved_by: { id: number; name: string } | null;
+    };
+    approved_by: { id: number; name: string; email: string } | null;
     approved_at: string | null;
 };
 
@@ -109,6 +112,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
 
     return (
         <>
+            <Head title={`Booking: ${booking.title}`} />
             <BookingShow booking={booking} backHref={bookings.index()}>
                 {isAllowAction && (
                     <div className="rounded-md border p-4">

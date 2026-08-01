@@ -53,15 +53,15 @@ export function NotificationBell() {
     };
 
     // Tandai satu dibaca dan arahkan halaman
-    const handleMarkAsRead = (notification: NotificationItem) => {
-        fetch(notifications.markAsRead(notification.id).url, {
+    const handleMarkAsRead = async (notification: NotificationItem) => {
+        router.visit(bookings.show(notification.data.payload.id as number));
+        await fetch(notifications.markAsRead(notification.id).url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': _token,
             },
         });
-        router.visit(bookings.show(notification.data.payload.id as number));
     };
 
     if (!user) {

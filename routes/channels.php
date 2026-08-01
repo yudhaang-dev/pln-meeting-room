@@ -6,9 +6,9 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-// Broadcast::channel('App.Models.Booking', function () {
-//     return true;
-// });
+Broadcast::channel('display.roomgroup.{id}', function () {
+    return true;
+});
 
 // Broadcast::channel('App.Models.Room.{id}', function () {
 //     return true;

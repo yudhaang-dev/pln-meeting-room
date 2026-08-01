@@ -83,18 +83,12 @@ export default function Lobby({
         },
     );
 
-    // 3. Listen Event menggunakan useEcho jika WebSocket aktif
-    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, 'BookingUpdated', () =>
+    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, '.BookingUpdated', () =>
         router.reload({ only: ['bookings'] }),
     );
 
-    useEchoPublic(
-        `Display.RoomGroup.${roomGroup.id}`,
-        'MediaUpdated',
-        (event) => {
-            router.reload({ only: ['roomGroup'] });
-            console.log(event);
-        },
+    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, '.MediaUpdated', () =>
+        router.reload({ only: ['roomGroup'] }),
     );
 
     // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
@@ -118,7 +112,7 @@ export default function Lobby({
                 duration={mediaLoopDuration}
             />
         );
-    }, [roomGroup.media, mediaLoopDuration]);
+    }, [roomGroup, mediaLoopDuration]);
 
     return (
         <>

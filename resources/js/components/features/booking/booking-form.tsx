@@ -20,7 +20,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
 import bookings from '@/routes/bookings';
 
 type Room = { id: number; name: string; capacity: number };
@@ -127,7 +126,7 @@ export function BookingForm({
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-h-[95vh] max-w-3xl overflow-y-auto md:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>
                         {isEditing ? 'Edit Booking' : 'Book Room'}
@@ -139,6 +138,56 @@ export function BookingForm({
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="title">Title *</Label>
+                        <Input
+                            id="title"
+                            value={data.title}
+                            onChange={(e) => setData('title', e.target.value)}
+                        />
+                        {errors.title && (
+                            <p className="text-destructive text-sm">
+                                {errors.title}
+                            </p>
+                        )}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="chairperson_id">Event Leader</Label>
+                        <Combobox
+                            items={people}
+                            value={
+                                people.find(
+                                    (p) => String(p.id) === data.chairperson_id,
+                                ) ?? null
+                            }
+                            onValueChange={(person) =>
+                                setData(
+                                    'chairperson_id',
+                                    person ? String(person.id) : '',
+                                )
+                            }
+                            itemToStringValue={(person) => String(person.id)}
+                            itemToStringLabel={(person) => person.name}
+                        >
+                            <ComboboxInput
+                                placeholder="Select leader"
+                                showClear
+                            />
+                            <ComboboxContent>
+                                <ComboboxEmpty>No people found.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(person) => (
+                                        <ComboboxItem
+                                            key={person.id}
+                                            value={person}
+                                        >
+                                            {person.name}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                    </div>
                     <div className="grid gap-2">
                         <Label htmlFor="room_id">Room *</Label>
                         <Combobox
@@ -180,37 +229,6 @@ export function BookingForm({
                         )}
                     </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="title">Title *</Label>
-                        <Input
-                            id="title"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
-                        />
-                        {errors.title && (
-                            <p className="text-destructive text-sm">
-                                {errors.title}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                            id="description"
-                            value={data.description}
-                            onChange={(e) =>
-                                setData('description', e.target.value)
-                            }
-                            rows={3}
-                        />
-                        {errors.description && (
-                            <p className="text-destructive text-sm">
-                                {errors.description}
-                            </p>
-                        )}
-                    </div>
-
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="start_time">Start Time *</Label>
@@ -246,72 +264,27 @@ export function BookingForm({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="participants_count">
-                                Participants *
-                            </Label>
-                            <Input
-                                id="participants_count"
-                                type="number"
-                                min={1}
-                                value={data.participants_count}
-                                onChange={(e) =>
-                                    setData(
-                                        'participants_count',
-                                        parseInt(e.target.value) || 1,
-                                    )
-                                }
-                            />
-                            {errors.participants_count && (
-                                <p className="text-destructive text-sm">
-                                    {errors.participants_count}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="chairperson_id">Event Leader</Label>
-                            <Combobox
-                                items={people}
-                                value={
-                                    people.find(
-                                        (p) =>
-                                            String(p.id) ===
-                                            data.chairperson_id,
-                                    ) ?? null
-                                }
-                                onValueChange={(person) =>
-                                    setData(
-                                        'chairperson_id',
-                                        person ? String(person.id) : '',
-                                    )
-                                }
-                                itemToStringValue={(person) =>
-                                    String(person.id)
-                                }
-                                itemToStringLabel={(person) => person.name}
-                            >
-                                <ComboboxInput
-                                    placeholder="Select leader"
-                                    showClear
-                                />
-                                <ComboboxContent>
-                                    <ComboboxEmpty>
-                                        No people found.
-                                    </ComboboxEmpty>
-                                    <ComboboxList>
-                                        {(person) => (
-                                            <ComboboxItem
-                                                key={person.id}
-                                                value={person}
-                                            >
-                                                {person.name}
-                                            </ComboboxItem>
-                                        )}
-                                    </ComboboxList>
-                                </ComboboxContent>
-                            </Combobox>
-                        </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="participants_count">
+                            Participants *
+                        </Label>
+                        <Input
+                            id="participants_count"
+                            type="number"
+                            min={1}
+                            value={data.participants_count}
+                            onChange={(e) =>
+                                setData(
+                                    'participants_count',
+                                    parseInt(e.target.value) || 1,
+                                )
+                            }
+                        />
+                        {errors.participants_count && (
+                            <p className="text-destructive text-sm">
+                                {errors.participants_count}
+                            </p>
+                        )}
                     </div>
 
                     <div className="grid gap-2">
