@@ -4,10 +4,8 @@ use App\Jobs\WorkerHeartbeat;
 use App\Models\User;
 use App\Services\Monitoring\MonitoringService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
@@ -88,13 +86,13 @@ test('monitoring service seeds the worker heartbeat when no chain exists', funct
     app(MonitoringService::class)->ensureWorkerHeartbeat();
 
     Queue::assertPushed(WorkerHeartbeat::class);
-    expect(Cache::has(MonitoringService::WORKER_HEARTBEAT_TOKEN_KEY))->toBeTrue();
+    expect(Cache::has(MonitoringService::WORKER_HEARTBEAT_SEED_KEY))->toBeTrue();
 });
 
 test('monitoring service does not reseed an existing worker heartbeat chain', function () {
     Queue::fake();
 
-    Cache::put(MonitoringService::WORKER_HEARTBEAT_TOKEN_KEY, 'existing', 300);
+    Cache::put(MonitoringService::WORKER_HEARTBEAT_SEED_KEY, true, 300);
 
     app(MonitoringService::class)->ensureWorkerHeartbeat();
 
@@ -104,153 +102,17 @@ test('monitoring service does not reseed an existing worker heartbeat chain', fu
 test('worker heartbeat job records a heartbeat and reschedules itself', function () {
     Queue::fake();
 
-    $token = (string) Str::uuid();
-
-    Cache::put(MonitoringService::WORKER_HEARTBEAT_TOKEN_KEY, $token, 300);
-
-    (new WorkerHeartbeat($token))->handle();
+    (new WorkerHeartbeat)->handle();
 
     expect(Cache::get(MonitoringService::WORKER_HEARTBEAT_KEY))->toBeInt();
     Queue::assertPushed(WorkerHeartbeat::class);
 });
 
-test('stale worker heartbeat jobs do not reschedule themselves', function () {
+test('worker heartbeat jobs do not reschedule duplicates within the scheduling window', function () {
     Queue::fake();
 
-    Cache::put(MonitoringService::WORKER_HEARTBEAT_TOKEN_KEY, 'current-token', 300);
+    (new WorkerHeartbeat)->handle();
+    (new WorkerHeartbeat)->handle();
 
-    (new WorkerHeartbeat('stale-token'))->handle();
-
-    expect(Cache::get(MonitoringService::WORKER_HEARTBEAT_KEY))->toBeInt();
-    Queue::assertNotPushed(WorkerHeartbeat::class);
-});
-
-test('admin can clear pending queue jobs', function () {
-    $this->actingAs($this->admin);
-
-    DB::table('jobs')->insert([
-        'queue' => 'default',
-        'payload' => '{}',
-        'attempts' => 0,
-        'available_at' => now()->getTimestamp(),
-        'created_at' => now()->getTimestamp(),
-    ]);
-
-    $this->post(route('admin.monitoring.queue.clear'))->assertRedirect();
-
-    expect(DB::table('jobs')->count())->toBe(0);
-});
-
-test('admin can retry all failed jobs', function () {
-    $this->actingAs($this->admin);
-
-    DB::table('failed_jobs')->insert([
-        'uuid' => (string) Str::uuid(),
-        'connection' => 'database',
-        'queue' => 'default',
-        'payload' => json_encode([
-            'displayName' => 'App\\Jobs\\WorkerHeartbeat',
-            'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',
-            'maxTries' => 1,
-            'timeout' => null,
-            'data' => [],
-        ]),
-        'exception' => 'Test exception',
-        'failed_at' => now(),
-    ]);
-
-    $this->post(route('admin.monitoring.failed.retry'))->assertRedirect();
-
-    expect(DB::table('failed_jobs')->count())->toBe(0);
-    expect(DB::table('jobs')->count())->toBe(1);
-});
-
-test('admin can flush all failed jobs', function () {
-    $this->actingAs($this->admin);
-
-    DB::table('failed_jobs')->insert([
-        'uuid' => (string) Str::uuid(),
-        'connection' => 'database',
-        'queue' => 'default',
-        'payload' => '{}',
-        'exception' => 'Test exception',
-        'failed_at' => now(),
-    ]);
-
-    $this->post(route('admin.monitoring.failed.clear'))->assertRedirect();
-
-    expect(DB::table('failed_jobs')->count())->toBe(0);
-});
-
-test('admin can send a stop signal to the queue worker', function () {
-    $this->actingAs($this->admin);
-
-    $before = Cache::get('illuminate:queue:restart');
-
-    $this->post(route('admin.monitoring.worker.stop'))->assertRedirect();
-
-    $after = Cache::get('illuminate:queue:restart');
-
-    expect($after)->not->toBe($before);
-});
-
-test('admin can start a detached queue worker when no worker is running', function () {
-    Queue::fake();
-
-    $service = Mockery::mock(MonitoringService::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
-    $service->shouldReceive('spawnWorkerProcess')->once();
-    $this->app->instance(MonitoringService::class, $service);
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.monitoring.worker.start'))
-        ->assertRedirect();
-
-    Queue::assertPushed(WorkerHeartbeat::class);
-});
-
-test('admin can start reverb when no reverb process is managed', function () {
-    $service = Mockery::mock(MonitoringService::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
-    $service->shouldReceive('reverbProcessIsRunning')->andReturn(false);
-    $service->shouldReceive('reverbIsUp')->andReturn(false);
-    $service->shouldReceive('spawnReverbProcess')->andReturn(54321);
-    $this->app->instance(MonitoringService::class, $service);
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.monitoring.reverb.start'))
-        ->assertRedirect();
-
-    expect(Cache::get(MonitoringService::REVERB_PID_KEY))->toBe(54321);
-});
-
-test('admin can stop a managed reverb process', function () {
-    Cache::forever(MonitoringService::REVERB_PID_KEY, 54321);
-
-    $service = Mockery::mock(MonitoringService::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
-    $service->shouldReceive('processIsAlive')->with(54321)->andReturn(true);
-    $service->shouldReceive('killProcess')->once()->with(54321);
-    $this->app->instance(MonitoringService::class, $service);
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.monitoring.reverb.stop'))
-        ->assertRedirect();
-
-    expect(Cache::has(MonitoringService::REVERB_PID_KEY))->toBeFalse();
-});
-
-test('monitoring actions are forbidden for non-admin users', function () {
-    $this->actingAs($this->operator);
-
-    $this->post(route('admin.monitoring.queue.clear'))->assertForbidden();
-    $this->post(route('admin.monitoring.failed.retry'))->assertForbidden();
-    $this->post(route('admin.monitoring.failed.clear'))->assertForbidden();
-    $this->post(route('admin.monitoring.worker.stop'))->assertForbidden();
-    $this->post(route('admin.monitoring.worker.start'))->assertForbidden();
-    $this->post(route('admin.monitoring.reverb.start'))->assertForbidden();
-    $this->post(route('admin.monitoring.reverb.stop'))->assertForbidden();
+    Queue::assertPushed(WorkerHeartbeat::class, 1);
 });

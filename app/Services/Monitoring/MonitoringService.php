@@ -4,27 +4,30 @@ namespace App\Services\Monitoring;
 
 use App\Jobs\WorkerHeartbeat;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Throwable;
 
 class MonitoringService
 {
     public const WORKER_HEARTBEAT_KEY = 'queue.worker.heartbeat';
 
-    public const WORKER_HEARTBEAT_TOKEN_KEY = 'queue.worker.heartbeat.token';
+    public const WORKER_HEARTBEAT_SCHEDULED_KEY = 'queue.worker.heartbeat.scheduled';
+
+    public const WORKER_HEARTBEAT_SEED_KEY = 'queue.worker.heartbeat.seed';
 
     public const REVERB_UP_SINCE_KEY = 'reverb.up_since';
-
-    public const REVERB_PID_KEY = 'reverb.process.pid';
 
     /**
      * The number of seconds after which a missing heartbeat marks the worker as down.
      */
-    protected const WORKER_HEARTBEAT_TOLERANCE = 120;
+    protected const WORKER_HEARTBEAT_TOLERANCE = 90;
+
+    /**
+     * The delay between heartbeat jobs while a worker is running.
+     */
+    public const WORKER_HEARTBEAT_INTERVAL = 60;
 
     /**
      * Gather the current status of the queue and Reverb services.
@@ -85,15 +88,9 @@ class MonitoringService
      */
     public function ensureWorkerHeartbeat(): void
     {
-        if (Cache::has(self::WORKER_HEARTBEAT_TOKEN_KEY)) {
-            return;
+        if (Cache::add(self::WORKER_HEARTBEAT_SEED_KEY, true, 300)) {
+            dispatch(new WorkerHeartbeat);
         }
-
-        $job = new WorkerHeartbeat((string) Str::uuid());
-
-        Cache::put(self::WORKER_HEARTBEAT_TOKEN_KEY, $job->token, 300);
-
-        dispatch($job);
     }
 
     /**
@@ -124,8 +121,6 @@ class MonitoringService
             'connected_clients' => $connections,
             'uptime_seconds' => $upSince > 0 ? now()->getTimestamp() - $upSince : null,
             'up_since' => $upSince > 0 ? Carbon::createFromTimestamp($upSince)->toIso8601String() : null,
-            'running' => $this->reverbProcessIsRunning(),
-            'pid' => (int) Cache::get(self::REVERB_PID_KEY, 0),
         ];
     }
 
@@ -207,200 +202,5 @@ class MonitoringService
             'key' => (string) ($app['key'] ?? ''),
             'secret' => (string) ($app['secret'] ?? ''),
         ];
-    }
-
-    /**
-     * Delete all pending jobs from the queue.
-     */
-    public function clearPendingJobs(): int
-    {
-        return (int) DB::table('jobs')->delete();
-    }
-
-    /**
-     * Requeue all failed jobs and return the number of jobs retried.
-     */
-    public function retryFailedJobs(): int
-    {
-        $count = (int) DB::table('failed_jobs')->count();
-
-        if ($count > 0) {
-            Artisan::call('queue:retry', ['id' => ['all']]);
-        }
-
-        return $count;
-    }
-
-    /**
-     * Delete all failed jobs.
-     */
-    public function flushFailedJobs(): int
-    {
-        return (int) DB::table('failed_jobs')->delete();
-    }
-
-    /**
-     * Signal all running queue workers to stop gracefully.
-     */
-    public function stopWorker(): void
-    {
-        Artisan::call('queue:restart');
-    }
-
-    /**
-     * Start a detached queue worker process.
-     */
-    public function startWorker(): bool
-    {
-        if ($this->workerIsAlive()) {
-            return false;
-        }
-
-        $this->spawnWorkerProcess();
-
-        $this->ensureWorkerHeartbeat();
-
-        return true;
-    }
-
-    /**
-     * Spawn a detached queue worker process.
-     */
-    protected function spawnWorkerProcess(): void
-    {
-        $command = escapeshellarg(PHP_BINARY).' artisan queue:work --tries=1 --timeout=0';
-
-        if (PHP_OS_FAMILY === 'Windows') {
-            $handle = popen(
-                'powershell -NoProfile -Command "Start-Process -FilePath '.escapeshellarg(PHP_BINARY).' -WorkingDirectory '.escapeshellarg(base_path()).' -ArgumentList \'artisan\',\'queue:work\',\'--tries=1\',\'--timeout=0\' -WindowStyle Hidden"',
-                'r'
-            );
-        } else {
-            exec('nohup '.$command.' > /dev/null 2>&1 &');
-        }
-
-        if (isset($handle) && is_resource($handle)) {
-            pclose($handle);
-        }
-    }
-
-    /**
-     * Determine whether the tracked Reverb process is still running.
-     */
-    public function reverbProcessIsRunning(): bool
-    {
-        $pid = (int) Cache::get(self::REVERB_PID_KEY, 0);
-
-        if ($pid <= 0) {
-            return false;
-        }
-
-        if (! $this->processIsAlive($pid)) {
-            Cache::forget(self::REVERB_PID_KEY);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Start a detached Reverb server process.
-     */
-    public function startReverb(): bool
-    {
-        if ($this->reverbProcessIsRunning()) {
-            return false;
-        }
-
-        if ($this->reverbIsUp($this->reverbBaseUrl())) {
-            return false;
-        }
-
-        $pid = $this->spawnReverbProcess();
-
-        if ($pid <= 0) {
-            return false;
-        }
-
-        Cache::forever(self::REVERB_PID_KEY, $pid);
-
-        return true;
-    }
-
-    /**
-     * Stop the tracked Reverb server process.
-     */
-    public function stopReverb(): bool
-    {
-        $pid = (int) Cache::get(self::REVERB_PID_KEY, 0);
-
-        if ($pid <= 0 || ! $this->processIsAlive($pid)) {
-            Cache::forget(self::REVERB_PID_KEY);
-
-            return false;
-        }
-
-        $this->killProcess($pid);
-
-        Cache::forget(self::REVERB_PID_KEY);
-        Cache::forget(self::REVERB_UP_SINCE_KEY);
-
-        return true;
-    }
-
-    /**
-     * Spawn a detached Reverb server process and return its PID.
-     */
-    protected function spawnReverbProcess(): int
-    {
-        if (PHP_OS_FAMILY === 'Windows') {
-            $handle = popen(
-                'powershell -NoProfile -Command "(Start-Process -FilePath '.escapeshellarg(PHP_BINARY).' -WorkingDirectory '.escapeshellarg(base_path()).' -ArgumentList \'artisan\',\'reverb:start\' -WindowStyle Hidden -PassThru).Id"',
-                'r'
-            );
-
-            $output = $handle !== false ? stream_get_contents($handle) : false;
-
-            if (is_resource($handle)) {
-                pclose($handle);
-            }
-
-            return (int) trim((string) $output);
-        }
-
-        exec('nohup '.escapeshellarg(PHP_BINARY).' artisan reverb:start > /dev/null 2>&1 & echo $!', $output);
-
-        return (int) ($output[0] ?? 0);
-    }
-
-    /**
-     * Determine whether a process is still alive by its PID.
-     */
-    protected function processIsAlive(int $pid): bool
-    {
-        if (PHP_OS_FAMILY === 'Windows') {
-            exec('tasklist /FI "PID eq '.$pid.'" /NH', $output);
-
-            return str_contains(implode(' ', $output), (string) $pid);
-        }
-
-        if (function_exists('posix_kill')) {
-            return @posix_kill($pid, 0);
-        }
-
-        return false;
-    }
-
-    /**
-     * Terminate a process by its PID.
-     */
-    protected function killProcess(int $pid): void
-    {
-        if (PHP_OS_FAMILY === 'Windows') {
-            exec('taskkill /F /PID '.$pid);
-        } elseif (function_exists('posix_kill')) {
-            @posix_kill($pid, SIGTERM);
-        }
     }
 }

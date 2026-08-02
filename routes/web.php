@@ -49,13 +49,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::resource('users', Web\UserController::class)->except(['create', 'show', 'edit']);
         Route::get('admin/monitoring', Web\MonitoringController::class)->name('admin.monitoring');
-        Route::post('admin/monitoring/queue/clear', [Web\MonitoringController::class, 'clearQueue'])->name('admin.monitoring.queue.clear');
-        Route::post('admin/monitoring/failed/retry', [Web\MonitoringController::class, 'retryFailed'])->name('admin.monitoring.failed.retry');
-        Route::post('admin/monitoring/failed/clear', [Web\MonitoringController::class, 'flushFailed'])->name('admin.monitoring.failed.clear');
-        Route::post('admin/monitoring/worker/stop', [Web\MonitoringController::class, 'stopWorker'])->name('admin.monitoring.worker.stop');
-        Route::post('admin/monitoring/worker/start', [Web\MonitoringController::class, 'startWorker'])->name('admin.monitoring.worker.start');
-        Route::post('admin/monitoring/reverb/start', [Web\MonitoringController::class, 'startReverb'])->name('admin.monitoring.reverb.start');
-        Route::post('admin/monitoring/reverb/stop', [Web\MonitoringController::class, 'stopReverb'])->name('admin.monitoring.reverb.stop');
     });
 
     Route::get('/dashboard', Web\DashboardController::class)->name('dashboard');

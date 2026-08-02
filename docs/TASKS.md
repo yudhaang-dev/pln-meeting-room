@@ -267,7 +267,6 @@ Status: `todo` · `in_progress` · `done`
 - [x] Reverb status: server up/down, connected clients count, uptime
 - [x] Show on dashboard or dedicated page with refresh interval (manual + auto)
 - [x] Write feature test: only admin can access monitoring page
-- [x] Queue actions (admin only): clear pending jobs, retry/flush failed jobs, start/stop queue worker
-- [x] Write feature test: only admin can run monitoring queue actions
-- [x] Reverb actions (admin only): start/stop Reverb server process (PID tracked)
-- [x] Write feature test: only admin can run monitoring Reverb actions
+- [x] Monitoring reads live status: worker alive via heartbeat, Reverb up via health probe
+- [x] Heartbeat self-sustaining (worker keeps its own chain alive, no page visit required; dedupe lock prevents double chains)
+- [x] No control actions — monitoring is read-only (passive, isolated to the admin page). Worker/reverb are managed externally (e.g. `composer run dev` / supervisor)
