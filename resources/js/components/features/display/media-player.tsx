@@ -1,6 +1,6 @@
 'use client';
 
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, VolumeX } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -26,6 +26,8 @@ type Props = {
     duration?: number;
 } & ComponentProps<'div'>;
 
+const AUDIO_UNLOCK_KEY = 'display-media-audio-unlocked';
+
 function EmptyItem() {
     return (
         <Empty>
@@ -50,6 +52,14 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFade, setIsFade] = useState(true);
+    const [showAudioUnlock, setShowAudioUnlock] = useState(false);
+    const [audioUnlocked, setAudioUnlocked] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        return window.localStorage.getItem(AUDIO_UNLOCK_KEY) === '1';
+    });
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const item = useMemo(() => {
@@ -63,6 +73,12 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
     // PERBAIKAN UTAMA: Menggunakan flag penjaga agar pergantian indeks lebih stabil
     const handleNextItem = useCallback(() => {
         if (items.length <= 1) {
+            // Item tunggal video: putar ulang dari awal agar tidak beku di akhir
+            if (item?.type.startsWith('video') && videoRef.current) {
+                videoRef.current.currentTime = 0;
+                videoRef.current.play().catch(() => {});
+            }
+
             return;
         }
 
@@ -74,7 +90,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         }, 350); // Diberi kelonggaran sedikit di atas durasi CSS transition (300ms)
 
         return () => clearTimeout(timer);
-    }, [items.length]);
+    }, [items.length, item]);
 
     // Memaksa video berputar otomatis dari awal dengan aman
     useEffect(() => {
@@ -83,28 +99,68 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         }
 
         const playVideo = async () => {
+            const video = videoRef.current;
+
+            if (!video) {
+                return;
+            }
+
             try {
-                if (videoRef.current) {
-                    videoRef.current.load();
-                    // Berikan jeda mikro agar elemen DOM video ter-render sempurna sebelum diputar
-                    await new Promise((resolve) => setTimeout(resolve, 50));
-                    await videoRef.current.play();
-                }
+                video.muted = false;
+                video.load();
+                // Berikan jeda mikro agar elemen DOM video ter-render sempurna sebelum diputar
+                await new Promise((resolve) => setTimeout(resolve, 50));
+                await video.play();
+                setShowAudioUnlock(false);
             } catch (error) {
                 console.warn(
-                    'Autoplay terblokir browser, mencoba putar paksa (silent):',
+                    'Autoplay bersuara terblokir browser, putar senyap:',
                     error,
                 );
 
-                if (videoRef.current) {
-                    videoRef.current.muted = true;
-                    videoRef.current.play().catch(() => {});
-                }
+                video.muted = true;
+                video.play().catch(() => {});
+                setShowAudioUnlock(true);
             }
         };
 
         playVideo();
     }, [currentIndex, item]);
+
+    // Aktifkan audio sekali: ikuti user gesture (klik/tap/tombol) untuk melewati kebijakan autoplay browser
+    const unlockAudio = useCallback(() => {
+        setAudioUnlocked(true);
+        window.localStorage.setItem(AUDIO_UNLOCK_KEY, '1');
+
+        const video = videoRef.current;
+
+        if (video && video.muted) {
+            video.muted = false;
+            video.play().catch(() => {
+                video.muted = true;
+            });
+        }
+
+        setShowAudioUnlock(false);
+    }, []);
+
+    useEffect(() => {
+        if (audioUnlocked) {
+            return;
+        }
+
+        const unlock = () => unlockAudio();
+
+        window.addEventListener('pointerdown', unlock, true);
+        window.addEventListener('touchstart', unlock, true);
+        window.addEventListener('keydown', unlock, true);
+
+        return () => {
+            window.removeEventListener('pointerdown', unlock, true);
+            window.removeEventListener('touchstart', unlock, true);
+            window.removeEventListener('keydown', unlock, true);
+        };
+    }, [audioUnlocked, unlockAudio]);
 
     // Timer otomatis khusus untuk tipe Gambar (Image)
     useEffect(() => {
@@ -129,7 +185,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
     return (
         <div
             className={cn(
-                'flex size-full items-center justify-center overflow-hidden',
+                'relative flex size-full items-center justify-center overflow-hidden',
                 className,
             )}
         >
@@ -145,9 +201,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
                         key={`video-${item.id}`} // Ditambahkan prefix unik pada key
                         src={item.file_url}
                         className="size-full object-contain"
-                        loop
                         autoPlay
-                        muted
                         playsInline
                         preload="auto"
                         onEnded={handleNextItem}
@@ -176,6 +230,19 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
                     />
                 )}
             </div>
+
+            {/* Indikator audio belum aktif — klik untuk mengaktifkan audio video */}
+            {showAudioUnlock && item.type.startsWith('video') && (
+                <button
+                    type="button"
+                    onClick={unlockAudio}
+                    className="absolute bottom-4 right-4 z-10 flex size-10 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur transition hover:bg-black/70"
+                    aria-label="Aktifkan audio"
+                    title="Klik untuk mengaktifkan audio"
+                >
+                    <VolumeX className="size-5" />
+                </button>
+            )}
         </div>
     );
 }

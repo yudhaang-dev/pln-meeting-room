@@ -192,8 +192,7 @@ type MediaItemListProps = {
     items: MediaItem[];
     onRemoveItem?: (item: MediaItem) => void;
     onToggleActive: (item: MediaItem) => void;
-    onMoveItem?: (dragIndex: number, hoverIndex: number) => void;
-    onMoveEnd?: () => void;
+    onReorder?: (items: MediaItem[]) => void;
     onBulkDelete?: (ids: number[]) => void;
 } & ComponentProps<'div'>;
 
@@ -201,8 +200,7 @@ export function MediaItemList({
     className,
     items,
     onToggleActive,
-    onMoveItem,
-    onMoveEnd,
+    onReorder,
     onRemoveItem,
     onBulkDelete,
 }: MediaItemListProps) {
@@ -225,12 +223,14 @@ export function MediaItemList({
             const dragIndex = items.findIndex((item) => item.id === active.id);
             const hoverIndex = items.findIndex((item) => item.id === over.id);
 
-            // Meneruskan indeks asal dan target ke fungsi parent onMoveItem
-            onMoveItem?.(dragIndex, hoverIndex);
-        }
+            if (dragIndex !== -1 && hoverIndex !== -1) {
+                const next = [...items];
+                const [removed] = next.splice(dragIndex, 1);
+                next.splice(hoverIndex, 0, removed);
 
-        // Memicu trigger event akhir (misal: hit API simpan urutan baru)
-        onMoveEnd?.();
+                onReorder?.(next);
+            }
+        }
     };
 
     const [selected, setSelected] = useState<number[]>([]);

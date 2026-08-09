@@ -1,7 +1,11 @@
 <?php
 
+use App\Events\PublicBroadcast;
 use App\Models\User;
 use App\Settings\GeneralSettings;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
@@ -37,8 +41,6 @@ test('admin can update general settings', function () {
     $response = $this->put(route('settings.systems.general.update'), [
         'booking_advance_hours' => 48,
         'booking_max_days_ahead' => 60,
-        'cancellation_hours' => 4,
-        'default_osh_level_id' => null,
         'display_refresh_interval' => 60,
         'media_loop_duration' => 15,
     ]);
@@ -48,9 +50,45 @@ test('admin can update general settings', function () {
     $settings = app(GeneralSettings::class);
     $this->assertEquals(48, $settings->booking_advance_hours);
     $this->assertEquals(60, $settings->booking_max_days_ahead);
-    $this->assertEquals(4, $settings->cancellation_hours);
     $this->assertEquals(60, $settings->display_refresh_interval);
     $this->assertEquals(15, $settings->media_loop_duration);
+});
+
+test('updating general settings broadcasts settings updated to displays', function () {
+    $this->actingAs($this->admin);
+    Event::fake();
+
+    $this->put(route('settings.systems.general.update'), [
+        'booking_advance_hours' => 48,
+        'booking_max_days_ahead' => 60,
+        'display_refresh_interval' => 60,
+        'media_loop_duration' => 15,
+    ]);
+
+    Event::assertDispatched(PublicBroadcast::class, function (PublicBroadcast $event) {
+        return $event->channelName === 'Display.Global'
+            && $event->eventName === 'SettingsUpdated';
+    });
+});
+
+test('admin can upload notification audio', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->admin);
+
+    $response = $this->put(route('settings.systems.general.update'), [
+        'booking_advance_hours' => 24,
+        'booking_max_days_ahead' => 30,
+        'display_refresh_interval' => 30,
+        'media_loop_duration' => 10,
+        'audio_notification' => UploadedFile::fake()->create('notif.mp3', 100, 'audio/mpeg'),
+    ]);
+
+    $response->assertRedirect();
+
+    $settings = app(GeneralSettings::class);
+    $this->assertNotNull($settings->audio_notification);
+    Storage::disk('public')->assertExists($settings->audio_notification);
 });
 
 test('general settings validation requires valid values', function () {
@@ -59,16 +97,16 @@ test('general settings validation requires valid values', function () {
     $response = $this->put(route('settings.systems.general.update'), [
         'booking_advance_hours' => -1,
         'booking_max_days_ahead' => 'not-a-number',
-        'cancellation_hours' => 999,
         'display_refresh_interval' => 1,
         'media_loop_duration' => 1,
+        'audio_notification' => UploadedFile::fake()->create('notif.exe', 100),
     ]);
 
     $response->assertSessionHasErrors([
         'booking_advance_hours',
         'booking_max_days_ahead',
-        'cancellation_hours',
         'display_refresh_interval',
         'media_loop_duration',
+        'audio_notification',
     ]);
 });

@@ -12,9 +12,19 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class MediaController extends Controller
 {
+    public function indexGlobal(): Response
+    {
+        $this->authorize('viewAny', Media::class);
+
+        return Inertia::render('infografis/index', [
+            'media' => Media::global()->orderBy('sort_order')->orderBy('id')->get(),
+        ]);
+    }
+
     public function store(Room $room): RedirectResponse
     {
         return $this->doStore($room);
@@ -23,6 +33,54 @@ class MediaController extends Controller
     public function storeFromGrouping(RoomGroup $roomGroup): RedirectResponse
     {
         return $this->doStore($roomGroup);
+    }
+
+    public function storeGlobal(): RedirectResponse
+    {
+        $this->authorize('create', Media::class);
+
+        request()->validate([
+            'files' => ['required', 'array'],
+            'files.*' => ['file', 'max:51200'],
+        ]);
+
+        $maxSort = Media::global()->max('sort_order') ?? 0;
+        $files = request()->file('files');
+        $created = [];
+
+        foreach ($files as $index => $file) {
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
+            $stream = fopen($file->getPathname(), 'r');
+            if ($stream === false) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
+
+                return back();
+            }
+            Storage::disk('public')->put('media/'.$name, $stream);
+            fclose($stream);
+
+            $created[] = Media::create([
+                'mediable_type' => null,
+                'mediable_id' => null,
+                'path' => 'media/'.$name,
+                'type' => $this->determineFileType($file->getClientOriginalExtension()),
+                'name' => $originalName,
+                'size' => $file->getSize(),
+                'mime' => $file->getClientMimeType(),
+                'sort_order' => $maxSort + $index + 1,
+                'is_active' => true,
+            ]);
+        }
+
+        if (count($created) > 0) {
+            $this->broadcastMediaUpdated($created[0]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
+        Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+
+        return back();
     }
 
     private function doStore(Room|RoomGroup $mediable): RedirectResponse
@@ -64,7 +122,7 @@ class MediaController extends Controller
         }
 
         if (count($created) > 0) {
-            $this->handleMediableBroadcast($mediable);
+            $this->broadcastMediaUpdated($created[0]);
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
@@ -111,8 +169,8 @@ class MediaController extends Controller
 
         $validated = request()->validate([
             'upload_id' => ['required', 'string', 'max:64'],
-            'mediable_type' => ['required', 'string', 'in:rooms,room-groups'],
-            'mediable_id' => ['required', 'integer'],
+            'mediable_type' => ['required', 'string', 'in:global,rooms,room-groups'],
+            'mediable_id' => ['sometimes', 'integer'],
             'original_name' => ['required', 'string', 'max:255'],
             'mime_type' => ['required', 'string', 'max:128'],
             'total_chunks' => ['required', 'integer', 'min:1'],
@@ -121,12 +179,14 @@ class MediaController extends Controller
         $chunkDir = 'uploads/chunks/'.$validated['upload_id'];
         $localDisk = Storage::disk('local');
 
-        $mediable = $validated['mediable_type'] === 'rooms'
-            ? Room::findOrFail($validated['mediable_id'])
-            : RoomGroup::findOrFail($validated['mediable_id']);
+        $mediable = match ($validated['mediable_type']) {
+            'rooms' => Room::findOrFail($validated['mediable_id']),
+            'room-groups' => RoomGroup::findOrFail($validated['mediable_id']),
+            default => null,
+        };
 
-        if (! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
-            abort(422, 'Invalid mediable type.');
+        if ($mediable !== null && ! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
+            abort(422);
         }
 
         $extension = pathinfo($validated['original_name'], PATHINFO_EXTENSION);
@@ -161,21 +221,23 @@ class MediaController extends Controller
 
         fclose($target);
 
-        $maxSort = $mediable->media()->max('sort_order') ?? 0;
+        $maxSort = $mediable instanceof Room || $mediable instanceof RoomGroup
+            ? $mediable->media()->max('sort_order')
+            : Media::global()->max('sort_order');
         $media = Media::create([
-            'mediable_type' => $mediable::class,
-            'mediable_id' => $mediable->id,
+            'mediable_type' => $mediable ? $mediable::class : null,
+            'mediable_id' => $mediable?->id,
             'path' => $finalPath,
             'type' => $this->determineFileType($extension),
             'name' => $originalFilename,
             'mime' => $validated['mime_type'],
-            'sort_order' => $maxSort + 1,
+            'sort_order' => ($maxSort ?? 0) + 1,
             'is_active' => true,
         ]);
 
         $this->cleanupChunks($validated['upload_id']);
 
-        $this->handleMediableBroadcast($this->resolveMediable($media));
+        $this->broadcastMediaUpdated($media);
 
         return response()->json([
             'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
@@ -194,7 +256,7 @@ class MediaController extends Controller
             $media = Media::with('mediable')->find($order[0]);
 
             if ($media instanceof Media) {
-                $this->handleMediableBroadcast($this->resolveMediable($media));
+                $this->broadcastMediaUpdated($media);
             }
         }
 
@@ -205,23 +267,33 @@ class MediaController extends Controller
     {
         $media->update(['is_active' => ! $media->is_active]);
 
-        $this->handleMediableBroadcast($this->resolveMediable($media));
+        $this->broadcastMediaUpdated($media);
 
         return back();
+    }
+
+    public function toggleActiveGlobal(Media $media): RedirectResponse
+    {
+        return $this->toggleActive(null, $media);
     }
 
     public function destroy(mixed $parent, Media $media): RedirectResponse
     {
         $this->authorize('delete', $media);
         $media->load('mediable');
-        $mediable = $this->resolveMediable($media);
         $media->deleteFile();
         $media->delete();
-        $this->resequenceSortOrder($mediable);
-        $this->handleMediableBroadcast($mediable);
+        $this->resequenceSortOrder($media);
+        $this->broadcastMediaUpdated($media);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Media deleted.']);
 
         return back();
+    }
+
+    public function destroyGlobal(Media $media): RedirectResponse
+    {
+        return $this->destroy(null, $media);
     }
 
     public function bulkDelete(Room $room): RedirectResponse
@@ -232,6 +304,31 @@ class MediaController extends Controller
     public function bulkDeleteFromGrouping(RoomGroup $roomGroup): RedirectResponse
     {
         return $this->doBulkDelete($roomGroup);
+    }
+
+    public function bulkDeleteGlobal(): RedirectResponse
+    {
+        $mediaIds = request()->input('media_ids', []);
+
+        $mediaItems = Media::global()
+            ->whereIn('id', $mediaIds)
+            ->with('mediable')
+            ->get();
+
+        foreach ($mediaItems as $media) {
+            $this->authorize('delete', $media);
+            $media->deleteFile();
+            $media->delete();
+        }
+
+        if ($mediaItems->isNotEmpty()) {
+            $this->resequenceSortOrder($mediaItems->first());
+            $this->broadcastMediaUpdated($mediaItems->first());
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
+
+        return back();
     }
 
     private function doBulkDelete(Room|RoomGroup $mediable): RedirectResponse
@@ -250,21 +347,29 @@ class MediaController extends Controller
             $media->delete();
         }
 
-        $first = $mediaItems->first();
-        if ($first !== null) {
-            $this->resequenceSortOrder($this->resolveMediable($first));
+        if ($mediaItems->isNotEmpty()) {
+            $this->resequenceSortOrder($mediaItems->first());
+            $this->broadcastMediaUpdated($mediaItems->first());
         }
-
-        $this->handleMediableBroadcast($mediable);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
 
         return back();
     }
 
-    private function resequenceSortOrder(Room|RoomGroup $mediable): void
+    private function resequenceSortOrder(Media $media): void
     {
-        $items = $mediable->media()->orderBy('sort_order')->get();
+        $mediable = $media->mediable;
+
+        $query = Media::query();
+
+        if ($mediable instanceof Room || $mediable instanceof RoomGroup) {
+            $query->where('mediable_type', $mediable::class)->where('mediable_id', $mediable->id);
+        } else {
+            $query->global();
+        }
+
+        $items = $query->orderBy('sort_order')->orderBy('id')->get();
         foreach ($items as $index => $item) {
             $item->updateQuietly(['sort_order' => $index + 1]);
         }
@@ -291,28 +396,20 @@ class MediaController extends Controller
         $disk->deleteDirectory($chunkDir);
     }
 
-    private function resolveMediable(Media $media): Room|RoomGroup
+    private function broadcastMediaUpdated(Media $media): void
     {
+        if (! $media->relationLoaded('mediable')) {
+            $media->load('mediable');
+        }
+
         $mediable = $media->mediable;
 
-        if (! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
-            abort(422, 'Invalid mediable type.');
-        }
-
-        /**
-         * @var Room|RoomGroup $mediable
-         * */
-        return $mediable;
-    }
-
-    private function handleMediableBroadcast(Room|RoomGroup $mediable): void
-    {
         if ($mediable instanceof Room) {
-            PublicBroadcast::dispatch('Display.Room.'.$mediable->id, 'MediaUpdated', $mediable->toarray());
-        }
-
-        if ($mediable instanceof RoomGroup) {
-            PublicBroadcast::dispatch('Display.RoomGroup.'.$mediable->id, 'MediaUpdated', $mediable->toarray());
+            PublicBroadcast::dispatch('Display.Room.'.$mediable->id, 'MediaUpdated', $mediable->toArray());
+        } elseif ($mediable instanceof RoomGroup) {
+            PublicBroadcast::dispatch('Display.RoomGroup.'.$mediable->id, 'MediaUpdated', $mediable->toArray());
+        } else {
+            PublicBroadcast::dispatch('Display.Global', 'MediaUpdated', []);
         }
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Events\PublicBroadcast;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRoomRequest;
 use App\Http\Requests\Admin\UpdateRoomRequest;
@@ -41,8 +40,6 @@ class RoomController extends Controller
 
         $room = Room::create($request->validated());
 
-        PublicBroadcast::dispatch('Display.Room.'.$room->id, 'RoomCreated', $room->toArray());
-
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Room created.')]);
 
         return to_route('rooms.index');
@@ -53,8 +50,6 @@ class RoomController extends Controller
         $this->authorize('update', $room);
 
         $room->update($request->validated());
-
-        PublicBroadcast::dispatch('Display.Room.'.$room->id, 'RoomUpdated', $room->toArray());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Room updated.')]);
 

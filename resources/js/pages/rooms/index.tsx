@@ -90,9 +90,6 @@ export default function RoomsIndex({ rooms, buildings }: Props) {
                     onDeleteConfirm={() =>
                         handleDelete(roomRoutes.destroy(deleteId!).url)
                     }
-                    onMedia={(roomId) => {
-                        window.location.href = roomRoutes.media(roomId).url;
-                    }}
                 />
 
                 <RoomForm

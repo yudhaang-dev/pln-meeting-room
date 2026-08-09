@@ -1,8 +1,10 @@
 import { ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { OshBadge } from '@/components/shared/osh-badge';
 import { PageContainer } from '@/components/shared/page-container';
 import { StatusBadge } from '@/components/shared/status-badge';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
@@ -47,9 +49,18 @@ type Props = {
 export default function BookingShow({ booking, children }: Props) {
     const [imagePreview, setImagePreview] = useState<string>('');
 
+    const safeUrl = imagePreview.replace('http://', 'https://');
+
+    const isPdf: boolean = useMemo(() => {
+        return safeUrl.split('?')[0].toLowerCase().endsWith('.pdf');
+    }, [safeUrl]);
+
     return (
         <>
             <PageContainer className="gap-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Detail Booking</h1>
+                </div>
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="flex w-full flex-col gap-6 lg:col-span-2">
                         <Card>
@@ -130,10 +141,8 @@ export default function BookingShow({ booking, children }: Props) {
                                         </dt>
                                         <dd className="mt-1 flex gap-6 font-medium sm:col-span-2 sm:mt-0">
                                             <div className="w-1/2">
-                                                <a
-                                                    // target="_blank"
-                                                    // rel="noopener noreferrer"
-                                                    href="#"
+                                                <Button
+                                                    variant="link"
                                                     onClick={() =>
                                                         setImagePreview(
                                                             String(
@@ -143,19 +152,14 @@ export default function BookingShow({ booking, children }: Props) {
                                                     }
                                                     className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
                                                 >
-                                                    Nota Dinas
+                                                    Dokumen Sumber Acara
                                                     <ExternalLink className="size-3" />
-                                                </a>
+                                                </Button>
                                             </div>
                                             <Separator orientation="vertical" />
                                             <div className="w-1/2">
-                                                <a
-                                                    // href={String(
-                                                    //     booking.qr_attendance_url,
-                                                    // )}
-                                                    // target="_blank"
-                                                    // rel="noopener noreferrer"
-                                                    href="#"
+                                                <Button
+                                                    variant="link"
                                                     onClick={() =>
                                                         setImagePreview(
                                                             String(
@@ -165,9 +169,9 @@ export default function BookingShow({ booking, children }: Props) {
                                                     }
                                                     className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
                                                 >
-                                                    QR Code
+                                                    QR Attendance
                                                     <ExternalLink className="size-3" />
-                                                </a>
+                                                </Button>
                                             </div>
                                         </dd>
                                     </div>
@@ -267,11 +271,24 @@ export default function BookingShow({ booking, children }: Props) {
                 onOpenChange={() => setImagePreview('')}
             >
                 <DialogContent className="max-h-full w-auto md:max-w-full">
-                    {imagePreview && (
-                        <img
-                            src={imagePreview}
-                            className="mx-auto max-h-screen max-w-full"
-                        />
+                    {safeUrl && (
+                        <AspectRatio
+                            ratio={1}
+                            className="min-w-sm w-full max-w-full md:max-w-sm"
+                        >
+                            {isPdf ? (
+                                <iframe
+                                    src={`${safeUrl}#toolbar=0`}
+                                    title="File Preview"
+                                    className="size-full object-contain"
+                                />
+                            ) : (
+                                <img
+                                    src={safeUrl}
+                                    className="size-full object-contain"
+                                />
+                            )}
+                        </AspectRatio>
                     )}
                 </DialogContent>
             </Dialog>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Media;
 use App\Models\Room;
 use App\Models\RoomGroup;
 use App\Settings\GeneralSettings;
@@ -15,11 +16,11 @@ class DisplayController extends Controller
 {
     public function index(): Response
     {
-        $roomGroups = RoomGroup::with('building', 'media')
+        $roomGroups = RoomGroup::with('building')
             ->where('is_active', true)
             ->get();
 
-        $rooms = Room::with('building', 'media')
+        $rooms = Room::with('building')
             ->where('is_active', true)
             ->get();
 
@@ -37,7 +38,6 @@ class DisplayController extends Controller
         $mediaLoopDuration = $settings->media_loop_duration;
 
         $roomGroup->load([
-            'media' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
             'rooms' => fn ($q) => $q->where('is_active', true),
         ]);
 
@@ -53,6 +53,7 @@ class DisplayController extends Controller
         return Inertia::render('display/lobby', [
             'roomGroup' => $roomGroup,
             'bookings' => $bookings,
+            'media' => Media::globalActive()->get(),
             'orientation' => $orientation,
             'refreshInterval' => $refreshInterval,
             'mediaLoopDuration' => $mediaLoopDuration,
@@ -62,12 +63,11 @@ class DisplayController extends Controller
     public function room(Request $request, Room $room): Response
     {
         $orientation = $request->query('orientation', $request->cookie('display_orientation', 'landscape'));
-        $refreshInterval = app(GeneralSettings::class)->display_refresh_interval;
+        $settings = app(GeneralSettings::class);
+        $refreshInterval = $settings->display_refresh_interval;
+        $mediaLoopDuration = $settings->media_loop_duration;
 
-        $room->load([
-            'building',
-            'media' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-        ]);
+        $room->load('building');
 
         $currentBooking = Booking::with(['chairperson', 'requestedBy'])
             ->where('room_id', $room->id)
@@ -87,8 +87,10 @@ class DisplayController extends Controller
             'room' => $room,
             'currentBooking' => $currentBooking,
             'nextBooking' => $nextBooking,
+            'media' => Media::globalActive()->get(),
             'orientation' => $orientation,
             'refreshInterval' => $refreshInterval,
+            'mediaLoopDuration' => $mediaLoopDuration,
         ]);
     }
 
@@ -114,6 +116,22 @@ class DisplayController extends Controller
             'tomorrowBookings' => $tomorrowBookings,
             'orientation' => $orientation,
             'refreshInterval' => $refreshInterval,
+        ]);
+    }
+
+    public function infografis(Request $request): Response
+    {
+        $orientation = $request->query('orientation', $request->cookie('display_orientation', 'landscape'));
+        $refreshInterval = app(GeneralSettings::class)->display_refresh_interval;
+        $mediaLoopDuration = app(GeneralSettings::class)->media_loop_duration;
+
+        $media = Media::globalActive()->get();
+
+        return Inertia::render('display/infografis', [
+            'orientation' => $orientation,
+            'refreshInterval' => $refreshInterval,
+            'mediaLoopDuration' => $mediaLoopDuration,
+            'media' => $media,
         ]);
     }
 }

@@ -49,11 +49,11 @@ export default function PeopleIndex({ people }: Props) {
 
     return (
         <>
-            <Head title="People" />
+            <Head title="Pimpinan Acara" />
 
             <PageContainer>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">People</h1>
+                    <h1 className="text-2xl font-bold">Pimpinan Acara</h1>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 size-4" />
                         Add Person
@@ -101,7 +101,7 @@ export default function PeopleIndex({ people }: Props) {
 PeopleIndex.layout = {
     breadcrumbs: [
         {
-            title: 'People',
+            title: 'Pimpinan Acara',
             href: personRoutes.index(),
         },
     ],

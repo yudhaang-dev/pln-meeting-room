@@ -1,4 +1,4 @@
-import { Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { DataPagination } from '@/components/shared/data-table/data-pagination';
 import { SearchBar } from '@/components/shared/data-table/search-bar';
 import { SortableHeader } from '@/components/shared/data-table/sortable-header';
@@ -58,7 +58,6 @@ type Props = {
     onEdit: (room: Room) => void;
     onDeleteRequest: (id: number | null) => void;
     onDeleteConfirm: () => void;
-    onMedia: (roomId: number) => void;
 };
 
 export function RoomDataTable({
@@ -75,7 +74,6 @@ export function RoomDataTable({
     onEdit,
     onDeleteRequest,
     onDeleteConfirm,
-    onMedia,
 }: Props) {
     return (
         <>
@@ -162,22 +160,6 @@ export function RoomDataTable({
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                nativeButton={false}
-                                                render={
-                                                    <a
-                                                        href="#"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            onMedia(room.id);
-                                                        }}
-                                                    />
-                                                }
-                                            >
-                                                <ImageIcon className="size-4" />
-                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

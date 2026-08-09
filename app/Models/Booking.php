@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon $start_time
  * @property Carbon $end_time
  * @property int $participants_count
+ * @property int|null $osh_level_id
  * @property string $status
  * @property string|null $attachment_path
  * @property string|null $qr_attendance_path
@@ -28,13 +29,15 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $approved_id
  * @property Carbon|null $approved_at
  */
-#[Fillable(['requested_id', 'room_id', 'chairperson_id', 'title', 'description', 'start_time', 'end_time', 'participants_count', 'attachment_path', 'qr_attendance_path', 'status', 'approved_id', 'approved_at', 'reason'])]
+#[Fillable(['requested_id', 'room_id', 'chairperson_id', 'title', 'description', 'start_time', 'end_time', 'participants_count', 'osh_level_id', 'attachment_path', 'qr_attendance_path', 'status', 'approved_id', 'approved_at', 'reason'])]
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
 
-    protected $appends = ['attachment_url', 'qr_attendance_url', 'osh_level'];
+    protected $appends = ['attachment_url', 'qr_attendance_url'];
+
+    protected $with = ['osh_level'];
 
     protected function casts(): array
     {
@@ -78,9 +81,9 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'approved_id');
     }
 
-    public function getOshLevelAttribute(): ?OshLevel
+    public function osh_level()
     {
-        return OshLevel::determineForParticipants($this->participants_count);
+        return $this->belongsTo(OshLevel::class, 'osh_level_id', 'id');
     }
 
     /**

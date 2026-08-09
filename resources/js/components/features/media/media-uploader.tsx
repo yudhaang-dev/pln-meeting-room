@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
+import infografis from '@/routes/infografis';
 import roomGroupsMedia from '@/routes/room-groups/media';
 import roomsMedia from '@/routes/rooms/media';
 import type { MediaItem } from './media-manager';
@@ -18,7 +19,7 @@ type UploadFile = {
 };
 
 type Props = {
-    mediableType: 'rooms' | 'room-groups';
+    mediableType: 'rooms' | 'room-groups' | 'global';
     mediableId: number;
     setMedia: Dispatch<SetStateAction<MediaItem[]>>;
 };
@@ -27,9 +28,13 @@ const CHUNK_SIZE = 5 * 1024 * 1024;
 const ACCEPTED = 'image/*,video/*,application/pdf';
 
 function getStoreUrl(
-    mediableType: 'rooms' | 'room-groups',
+    mediableType: 'rooms' | 'room-groups' | 'global',
     mediableId: number,
 ): string {
+    if (mediableType === 'global') {
+        return infografis.store.url();
+    }
+
     if (mediableType === 'rooms') {
         return roomsMedia.store.url(mediableId);
     }
@@ -139,7 +144,12 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                         }
                     } catch {
                         // Inertia HTML response — trigger partial reload for this page
-                        router.reload({ only: ['room', 'roomGroup'] });
+                        router.reload({
+                            only:
+                                mediableType === 'global'
+                                    ? ['media']
+                                    : ['room', 'roomGroup'],
+                        });
                     }
 
                     toast.success(`${file.name} uploaded.`);

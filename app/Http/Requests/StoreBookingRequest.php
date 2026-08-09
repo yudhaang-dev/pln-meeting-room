@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Booking;
+use App\Models\OshLevel;
 use App\Settings\GeneralSettings;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
@@ -14,23 +15,33 @@ class StoreBookingRequest extends FormRequest
         return true;
     }
 
+    public function prepareForValidation()
+    {
+        $osh_level = OshLevel::determineForParticipants($this->participants_count ?? 1);
+        if (empty($osh_level)) {
+            $osh_level = OshLevel::orderByDesc('max_participants')->first();
+        }
+        $this->merge([
+            'osh_level_id' => $osh_level->id,
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
-        $settings = app(GeneralSettings::class);
-
         return [
             'room_id' => ['required', 'integer', 'exists:rooms,id'],
-            'chairperson_id' => ['nullable', 'integer', 'exists:people,id'],
-            'title' => ['required', 'string', 'max:255'],
+            'chairperson_id' => ['required', 'integer', 'exists:people,id'],
+            'osh_level_id' => ['required', 'integer', 'exists:osh_levels,id'],
+            'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
             'start_time' => ['required', 'date', 'after:now'],
             'end_time' => ['required', 'date', 'after:start_time'],
             'participants_count' => ['required', 'integer', 'min:1'],
-            'attachment' => ['required', 'file', 'max:10240'],
-            'qr_attendance' => ['nullable', 'image', 'max:5120'],
+            'attachment' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'qr_attendance' => ['required', 'image', 'max:5120'],
         ];
     }
 

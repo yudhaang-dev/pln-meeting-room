@@ -1,10 +1,10 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head, router, usePoll } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
 import { useEffect, useMemo } from 'react';
 import { MediaPlayer } from '@/components/features/display/media-player';
 import { ScheduleItems } from '@/components/features/display/schedule-items';
-import { TopBar } from '@/components/shared/general/top-bar';
+import { useDisplayPolling } from '@/hooks/use-display-polling';
 import { cn } from '@/lib/utils';
 
 type Media = {
@@ -25,7 +25,6 @@ type Room = {
 type RoomGroup = {
     id: number;
     name: string;
-    media: Media[];
     rooms: Room[];
 };
 
@@ -57,6 +56,7 @@ type Booking = {
 type Props = PageProps & {
     roomGroup: RoomGroup;
     bookings: Booking[];
+    media: Media[];
     orientation: string;
     refreshInterval: number;
     mediaLoopDuration: number;
@@ -65,6 +65,7 @@ type Props = PageProps & {
 export default function Lobby({
     roomGroup,
     bookings,
+    media,
     orientation,
     refreshInterval,
     mediaLoopDuration,
@@ -72,11 +73,11 @@ export default function Lobby({
     // 1. Ambil status koneksi WebSocket Reverb ("connected", "disconnected", "connecting", dll)
     const connectionStatus = useConnectionStatus();
 
-    // 2. Gunakan usePoll Inertia dengan opsi manual (autoStart: false)
-    const { start: startPolling, stop: stopPolling } = usePoll(
+    // 2. Gunakan polling Inertia dengan opsi manual (autoStart: false)
+    const { start: startPolling, stop: stopPolling } = useDisplayPolling(
         refreshInterval * 1000,
         {
-            only: ['bookings', 'roomGroup'],
+            only: ['bookings', 'media', 'refreshInterval', 'mediaLoopDuration'],
         },
         {
             autoStart: false, // Mencegah polling berjalan saat pertama kali render
@@ -87,8 +88,14 @@ export default function Lobby({
         router.reload({ only: ['bookings'] }),
     );
 
-    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, '.MediaUpdated', () =>
-        router.reload({ only: ['roomGroup'] }),
+    useEchoPublic('Display.Global', '.MediaUpdated', () =>
+        router.reload({ only: ['media'] }),
+    );
+
+    useEchoPublic('Display.Global', '.SettingsUpdated', () =>
+        router.reload({
+            only: ['refreshInterval', 'mediaLoopDuration'],
+        }),
     );
 
     // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
@@ -107,12 +114,12 @@ export default function Lobby({
     const player = useMemo(() => {
         return (
             <MediaPlayer
-                items={roomGroup.media ?? []}
-                className="max-h-full bg-black"
+                items={media ?? []}
+                className="max-h-full"
                 duration={mediaLoopDuration}
             />
         );
-    }, [roomGroup, mediaLoopDuration]);
+    }, [media, mediaLoopDuration]);
 
     return (
         <>
@@ -120,16 +127,18 @@ export default function Lobby({
             {bookings.length > 0 ? (
                 <main
                     className={cn(
-                        'grid h-svh w-full',
+                        'bg-linear-to-b grid h-svh w-full',
                         isLandscape
-                            ? 'grid-cols-6 grid-rows-1'
+                            ? 'grid-rows-6 md:grid-cols-6 md:grid-rows-1'
                             : 'grid-cols-1 grid-rows-6',
                     )}
                 >
                     <div
                         className={cn(
-                            'flex size-full flex-1 flex-col gap-4 overflow-hidden',
-                            isLandscape ? 'col-span-4' : 'row-span-2',
+                            'flex size-full flex-1 flex-col overflow-hidden',
+                            isLandscape
+                                ? 'row-span-2 md:col-span-4'
+                                : 'row-span-2',
                         )}
                     >
                         {player}
@@ -137,12 +146,16 @@ export default function Lobby({
                     <div
                         className={cn(
                             'flex size-full min-h-0 flex-col overflow-hidden',
-                            isLandscape ? 'col-span-2' : 'row-span-4',
+                            isLandscape
+                                ? 'row-span-4 md:col-span-2'
+                                : 'row-span-4',
                         )}
                     >
-                        <TopBar className="h-auto p-6" logoClass="max-h-10" />
-                        <div className="size-full min-h-0 flex-1 overflow-y-auto p-6">
-                            <ScheduleItems items={bookings} />
+                        <div className="size-full min-h-0 flex-1 justify-items-center overflow-y-auto">
+                            <ScheduleItems
+                                className="bg-radial from-pln-blue/80 to-pln-yellow/20 h-full p-6"
+                                items={bookings}
+                            />
                         </div>
                     </div>
                 </main>

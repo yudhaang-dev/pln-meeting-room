@@ -79,7 +79,7 @@ export function BuildingForm({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {building ? 'Edit Building' : 'Create Building'}
+                        {building ? 'Edit Building' : 'Create Gedung'}
                     </DialogTitle>
                     <DialogDescription>
                         {building

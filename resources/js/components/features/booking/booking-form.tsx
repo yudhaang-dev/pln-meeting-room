@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Combobox,
@@ -17,13 +17,20 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
+    FieldSeparator,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import bookings from '@/routes/bookings';
 
 type Room = { id: number; name: string; capacity: number };
 type Person = { id: number; name: string };
+type OshLevel = { id: number; name: string };
 
 type BookingData = {
     id: number;
@@ -35,6 +42,7 @@ type BookingData = {
     participants_count: number;
     room_id: number;
     chairperson_id: number | null;
+    osh_level_id: number | null;
     attachment_url: string | null;
     qr_attendance_url: string | null;
 };
@@ -44,6 +52,7 @@ type Props = {
     onOpenChange: (open: boolean) => void;
     rooms: Room[];
     people: Person[];
+    osh_levels: OshLevel[];
     booking?: BookingData;
     onSuccess?: () => void;
 };
@@ -65,14 +74,13 @@ export function BookingForm({
     onOpenChange,
     rooms,
     people,
+    osh_levels,
     booking,
     onSuccess,
 }: Props) {
     const isEditing = !!booking;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const qrInputRef = useRef<HTMLInputElement>(null);
-    const [fileName, setFileName] = useState<string | null>(null);
-    const [qrFileName, setQrFileName] = useState<string | null>(null);
 
     const { data, setData, post, put, processing, reset, errors } = useForm({
         ...emptyForm,
@@ -81,6 +89,9 @@ export function BookingForm({
                   room_id: String(booking.room_id),
                   chairperson_id: booking.chairperson_id
                       ? String(booking.chairperson_id)
+                      : '',
+                  osh_level_id: booking.osh_level_id
+                      ? String(booking.osh_level_id)
                       : '',
                   title: booking.title,
                   description: booking.description ?? '',
@@ -96,8 +107,6 @@ export function BookingForm({
 
         const onSuccessCallback = () => {
             reset();
-            setFileName(null);
-            setQrFileName(null);
             onOpenChange(false);
             onSuccess?.();
         };
@@ -119,8 +128,6 @@ export function BookingForm({
 
     const handleClose = () => {
         reset();
-        setFileName(null);
-        setQrFileName(null);
         onOpenChange(false);
     };
 
@@ -137,101 +144,117 @@ export function BookingForm({
                             : 'Fill in the details to create a new booking.'}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="title">Title *</Label>
-                        <Input
-                            id="title"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
-                        />
-                        {errors.title && (
-                            <p className="text-destructive text-sm">
-                                {errors.title}
-                            </p>
-                        )}
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="chairperson_id">Event Leader</Label>
-                        <Combobox
-                            items={people}
-                            value={
-                                people.find(
-                                    (p) => String(p.id) === data.chairperson_id,
-                                ) ?? null
-                            }
-                            onValueChange={(person) =>
-                                setData(
-                                    'chairperson_id',
-                                    person ? String(person.id) : '',
-                                )
-                            }
-                            itemToStringValue={(person) => String(person.id)}
-                            itemToStringLabel={(person) => person.name}
-                        >
-                            <ComboboxInput
-                                placeholder="Select leader"
-                                showClear
+                <form onSubmit={handleSubmit}>
+                    <FieldGroup className="grid md:grid-cols-2">
+                        <Field className="md:col-span-2">
+                            <FieldLabel htmlFor="title">Judul Acara</FieldLabel>
+                            <Input
+                                id="title"
+                                value={data.title}
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
                             />
-                            <ComboboxContent>
-                                <ComboboxEmpty>No people found.</ComboboxEmpty>
-                                <ComboboxList>
-                                    {(person) => (
-                                        <ComboboxItem
-                                            key={person.id}
-                                            value={person}
-                                        >
-                                            {person.name}
-                                        </ComboboxItem>
-                                    )}
-                                </ComboboxList>
-                            </ComboboxContent>
-                        </Combobox>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="room_id">Room *</Label>
-                        <Combobox
-                            items={rooms}
-                            value={
-                                rooms.find(
-                                    (r) => String(r.id) === data.room_id,
-                                ) ?? null
-                            }
-                            onValueChange={(room) =>
-                                setData('room_id', room ? String(room.id) : '')
-                            }
-                            itemToStringValue={(room) => String(room.id)}
-                            itemToStringLabel={(room) => room.name}
-                        >
-                            <ComboboxInput
-                                placeholder="Select room"
-                                showClear
-                            />
-                            <ComboboxContent>
-                                <ComboboxEmpty>No rooms found.</ComboboxEmpty>
-                                <ComboboxList>
-                                    {(room) => (
-                                        <ComboboxItem
-                                            key={room.id}
-                                            value={room}
-                                        >
-                                            {room.name} (capacity:{' '}
-                                            {room.capacity})
-                                        </ComboboxItem>
-                                    )}
-                                </ComboboxList>
-                            </ComboboxContent>
-                        </Combobox>
-                        {errors.room_id && (
-                            <p className="text-destructive text-sm">
-                                {errors.room_id}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="start_time">Start Time *</Label>
+                            {errors.title && (
+                                <FieldError>{errors.title}</FieldError>
+                            )}
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="chairperson_id">
+                                Pimpinan Acara
+                            </FieldLabel>
+                            <Combobox
+                                id="chairperson_id"
+                                items={people}
+                                value={
+                                    people.find(
+                                        (p) =>
+                                            String(p.id) ===
+                                            data.chairperson_id,
+                                    ) ?? null
+                                }
+                                onValueChange={(person) =>
+                                    setData(
+                                        'chairperson_id',
+                                        person ? String(person.id) : '',
+                                    )
+                                }
+                                itemToStringValue={(person) =>
+                                    String(person.id)
+                                }
+                                itemToStringLabel={(person) => person.name}
+                            >
+                                <ComboboxInput
+                                    placeholder="Select leader"
+                                    showClear
+                                />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>
+                                        No people found.
+                                    </ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(person) => (
+                                            <ComboboxItem
+                                                key={person.id}
+                                                value={person}
+                                            >
+                                                {person.name}
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+                            {errors.chairperson_id && (
+                                <FieldError>{errors.chairperson_id}</FieldError>
+                            )}
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="room_id">Ruangan</FieldLabel>
+                            <Combobox
+                                items={rooms}
+                                value={
+                                    rooms.find(
+                                        (r) => String(r.id) === data.room_id,
+                                    ) ?? null
+                                }
+                                onValueChange={(room) =>
+                                    setData(
+                                        'room_id',
+                                        room ? String(room.id) : '',
+                                    )
+                                }
+                                itemToStringValue={(room) => String(room.id)}
+                                itemToStringLabel={(room) => room.name}
+                            >
+                                <ComboboxInput
+                                    placeholder="Select room"
+                                    showClear
+                                />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>
+                                        No rooms found.
+                                    </ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(room) => (
+                                            <ComboboxItem
+                                                key={room.id}
+                                                value={room}
+                                            >
+                                                {room.name} (capacity:{' '}
+                                                {room.capacity})
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+                            {errors.room_id && (
+                                <FieldError>{errors.room_id}</FieldError>
+                            )}
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="start_time">
+                                Waktu Mulai
+                            </FieldLabel>
                             <Input
                                 id="start_time"
                                 type="datetime-local"
@@ -241,13 +264,13 @@ export function BookingForm({
                                 }
                             />
                             {errors.start_time && (
-                                <p className="text-destructive text-sm">
-                                    {errors.start_time}
-                                </p>
+                                <FieldError>{errors.start_time}</FieldError>
                             )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="end_time">End Time *</Label>
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="end_time">
+                                Waktu Selesai
+                            </FieldLabel>
                             <Input
                                 id="end_time"
                                 type="datetime-local"
@@ -257,130 +280,148 @@ export function BookingForm({
                                 }
                             />
                             {errors.end_time && (
-                                <p className="text-destructive text-sm">
-                                    {errors.end_time}
-                                </p>
+                                <FieldError>{errors.end_time}</FieldError>
                             )}
-                        </div>
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="participants_count">
-                            Participants *
-                        </Label>
-                        <Input
-                            id="participants_count"
-                            type="number"
-                            min={1}
-                            value={data.participants_count}
-                            onChange={(e) =>
-                                setData(
-                                    'participants_count',
-                                    parseInt(e.target.value) || 1,
-                                )
-                            }
-                        />
-                        {errors.participants_count && (
-                            <p className="text-destructive text-sm">
-                                {errors.participants_count}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="attachment">
-                            Attachment{isEditing ? '' : ' *'}
-                        </Label>
-                        {isEditing && booking.attachment_url && (
-                            <div className="mb-2">
-                                <a
-                                    href={booking.attachment_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm text-blue-600 hover:underline"
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="participants_count">
+                                Jumlah Peserta
+                            </FieldLabel>
+                            <Input
+                                id="participants_count"
+                                type="number"
+                                min={1}
+                                value={data.participants_count}
+                                onChange={(e) =>
+                                    setData(
+                                        'participants_count',
+                                        parseInt(e.target.value) || 1,
+                                    )
+                                }
+                            />
+                            {errors.participants_count && (
+                                <FieldError>
+                                    {errors.participants_count}
+                                </FieldError>
+                            )}
+                        </Field>
+                        {isEditing && (
+                            <Field className="relative">
+                                <FieldLabel htmlFor="osh_level_id">
+                                    Level Keamanan
+                                </FieldLabel>
+                                <Combobox
+                                    id="osh_level_id"
+                                    items={osh_levels}
+                                    value={
+                                        osh_levels.find(
+                                            (r) =>
+                                                String(r.id) ===
+                                                data.osh_level_id,
+                                        ) ?? null
+                                    }
+                                    onValueChange={(osh_level) =>
+                                        setData(
+                                            'osh_level_id',
+                                            osh_level
+                                                ? String(osh_level.id)
+                                                : '',
+                                        )
+                                    }
+                                    itemToStringValue={(osh_level) =>
+                                        String(osh_level.id)
+                                    }
+                                    itemToStringLabel={(osh_level) =>
+                                        osh_level.name
+                                    }
                                 >
-                                    Current attachment
-                                </a>
-                            </div>
+                                    <ComboboxInput
+                                        placeholder="Select level"
+                                        showClear
+                                    />
+                                    <ComboboxContent>
+                                        <ComboboxEmpty>
+                                            No osh_levels found.
+                                        </ComboboxEmpty>
+                                        <ComboboxList>
+                                            {(osh_level) => (
+                                                <ComboboxItem
+                                                    key={osh_level.id}
+                                                    value={osh_level}
+                                                >
+                                                    {osh_level.name}
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                                {errors.osh_level_id && (
+                                    <FieldError>
+                                        {errors.osh_level_id}
+                                    </FieldError>
+                                )}
+                            </Field>
                         )}
-                        <Input
-                            id="attachment"
-                            type="file"
-                            accept=".pdf,image/*"
-                            ref={fileInputRef}
-                            onChange={(e) => {
-                                const file = e.target.files?.[0];
 
-                                if (file) {
-                                    setData('attachment', file);
-                                    setFileName(file.name);
-                                }
-                            }}
-                        />
-                        {fileName && (
-                            <p className="text-muted-foreground text-xs">
-                                Selected: {fileName}
-                            </p>
-                        )}
-                        {errors.attachment && (
-                            <p className="text-destructive text-sm">
-                                {errors.attachment}
-                            </p>
-                        )}
-                    </div>
+                        <FieldSeparator className="md:col-span-2" />
+                        <Field>
+                            <FieldLabel htmlFor="attachment">
+                                Lampiran Dokumen Sumber
+                            </FieldLabel>
+                            <Input
+                                id="attachment"
+                                type="file"
+                                accept=".pdf,image/*"
+                                ref={fileInputRef}
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="qr_attendance">
-                            QR Attendance{!isEditing ? '' : ''}
-                        </Label>
-                        {isEditing && booking.qr_attendance_url && (
-                            <div className="mb-2">
-                                <img
-                                    src={booking.qr_attendance_url}
-                                    alt="QR Attendance"
-                                    className="h-32 w-32 rounded border object-contain"
-                                />
-                            </div>
-                        )}
-                        <Input
-                            id="qr_attendance"
-                            type="file"
-                            accept="image/*"
-                            ref={qrInputRef}
-                            onChange={(e) => {
-                                const file = e.target.files?.[0];
+                                    if (file) {
+                                        setData('attachment', file);
+                                    }
+                                }}
+                            />
+                            {errors.attachment && (
+                                <FieldError>{errors.attachment}</FieldError>
+                            )}
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="qr_attendance">
+                                Lampiran QR Attendance
+                            </FieldLabel>
+                            <Input
+                                id="qr_attendance"
+                                type="file"
+                                accept="image/*"
+                                ref={qrInputRef}
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
 
-                                if (file) {
-                                    setData('qr_attendance', file);
-                                    setQrFileName(file.name);
-                                }
-                            }}
-                        />
-                        {qrFileName && (
-                            <p className="text-muted-foreground text-xs">
-                                Selected: {qrFileName}
-                            </p>
-                        )}
-                        {errors.qr_attendance && (
-                            <p className="text-destructive text-sm">
-                                {errors.qr_attendance}
-                            </p>
-                        )}
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing && <Spinner />}
-                            {isEditing ? 'Update' : 'Create'}
-                        </Button>
-                    </DialogFooter>
+                                    if (file) {
+                                        setData('qr_attendance', file);
+                                    }
+                                }}
+                            />
+                            {errors.qr_attendance && (
+                                <FieldError>{errors.qr_attendance}</FieldError>
+                            )}
+                        </Field>
+                        <Field className="md:col-span-2">
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={processing}>
+                                    {processing && <Spinner />}
+                                    {isEditing ? 'Update' : 'Create'}
+                                </Button>
+                            </DialogFooter>
+                        </Field>
+                    </FieldGroup>
                 </form>
             </DialogContent>
         </Dialog>

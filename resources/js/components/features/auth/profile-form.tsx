@@ -1,5 +1,4 @@
 import { Form, usePage } from '@inertiajs/react';
-import DeleteUser from '@/components/features/profile/delete-user';
 import Heading from '@/components/shared/general/heading';
 import InputError from '@/components/shared/general/input-error';
 import { Button } from '@/components/ui/button';
@@ -86,8 +85,6 @@ export default function ProfileForm() {
                     )}
                 </Form>
             </div>
-
-            <DeleteUser />
         </>
     );
 }

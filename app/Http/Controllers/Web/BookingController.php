@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
+use App\Models\OshLevel;
 use App\Models\Person;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
@@ -37,7 +38,7 @@ class BookingController extends Controller
             'search' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $query = Booking::with(['room', 'requestedBy', 'chairperson']);
+        $query = Booking::with(['room.building', 'requestedBy', 'approvedBy', 'chairperson']);
 
         if ($request->user()->role == 'user') {
             $query->where('requested_id', $request->user()->id);
@@ -70,11 +71,13 @@ class BookingController extends Controller
 
         $rooms = Room::where('is_active', true)->orderBy('name')->get();
         $people = Person::where('is_active', true)->orderBy('name')->get();
+        $osh_levels = OshLevel::where('is_active', true)->orderBy('sort_order')->get();
 
         return inertia('bookings/index', [
             'bookings' => $bookings,
             'rooms' => $rooms,
             'people' => $people,
+            'osh_levels' => $osh_levels,
         ]);
     }
 
@@ -99,7 +102,8 @@ class BookingController extends Controller
         $booking = Booking::create([
             'room_id' => $validated['room_id'],
             'requested_id' => Auth::user()->id,
-            'chairperson_id' => $validated['chairperson_id'] ?? null,
+            'chairperson_id' => $validated['chairperson_id'],
+            'osh_level_id' => $validated['osh_level_id'],
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'start_time' => $validated['start_time'],
@@ -124,15 +128,17 @@ class BookingController extends Controller
     {
         $this->authorize('view', $booking);
 
-        $booking->load(['room', 'requestedBy', 'chairperson', 'approvedBy']);
+        $booking->load(['room.building', 'requestedBy', 'chairperson', 'approvedBy']);
 
         $rooms = Room::where('is_active', true)->orderBy('name')->get();
         $people = Person::where('is_active', true)->orderBy('name')->get();
+        $osh_levels = OshLevel::where('is_active', true)->orderBy('sort_order')->get();
 
         return inertia('bookings/show', [
             'booking' => $booking,
             'rooms' => $rooms,
             'people' => $people,
+            'osh_levels' => $osh_levels,
         ]);
     }
 

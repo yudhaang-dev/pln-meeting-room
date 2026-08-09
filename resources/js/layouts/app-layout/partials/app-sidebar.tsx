@@ -1,11 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    ActivityIcon,
     Building2Icon,
     CalendarCheckIcon,
     LayersIcon,
     LayoutGridIcon,
     ListChecksIcon,
+    MonitorPlayIcon,
     SettingsIcon,
     ShieldCheckIcon,
     UserPlus2Icon,
@@ -40,30 +40,30 @@ const platformMenu = [
 
 const masterMenu = [
     {
-        title: 'Buildings',
+        title: 'Gedung',
         href: '/buildings',
         icon: Building2Icon,
     },
-    { title: 'Rooms', href: '/rooms', icon: CalendarCheckIcon },
+    { title: 'Ruangan', href: '/rooms', icon: CalendarCheckIcon },
     {
-        title: 'Room Groups',
+        title: 'Kelompok Ruangan',
         href: '/room-groups',
         icon: LayersIcon,
     },
     {
-        title: 'OSH Levels',
+        title: 'Level Keamanan',
         href: '/osh-levels',
         icon: ShieldCheckIcon,
     },
-    { title: 'People', href: '/people', icon: Users2Icon },
-    { title: 'Users', href: '/users', icon: UserPlus2Icon },
+    { title: 'Pimpinan Acara', href: '/people', icon: Users2Icon },
+    { title: 'Pengguna', href: '/users', icon: UserPlus2Icon },
     {
-        title: 'Monitoring',
-        href: '/admin/monitoring',
-        icon: ActivityIcon,
+        title: 'Infografis',
+        href: '/infografis',
+        icon: MonitorPlayIcon,
     },
     {
-        title: 'System Settings',
+        title: 'Pengaturan Sistem',
         href: '/settings/systems/general',
         icon: SettingsIcon,
     },
@@ -76,11 +76,11 @@ export function AppSidebar() {
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
-                    <SidebarMenuItem className="p-0">
+                    <SidebarMenuItem>
                         <SidebarMenuButton
                             render={
                                 <Link href={home()} prefetch>
-                                    <AppLogo className="h-auto w-full rounded-lg transition-all duration-300 ease-in-out" />
+                                    <AppLogo className="h-auto w-full transition-all duration-300 ease-in-out" />
                                     <div className="transition-all duration-300 ease-in-out">
                                         <p className="font-bold uppercase">
                                             Home

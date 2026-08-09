@@ -53,9 +53,19 @@ type Props = {
     booking: Booking;
     rooms: Room[];
     people: Person[];
+    osh_levels: {
+        id: number;
+        name: string;
+        color: string;
+    }[];
 };
 
-export default function BookingsShow({ booking, rooms, people }: Props) {
+export default function BookingsShow({
+    booking,
+    rooms,
+    people,
+    osh_levels,
+}: Props) {
     const { auth } = usePage().props;
     const isOperator = auth.user.role == 'operator';
     const isAdmin = auth.user.role == 'admin';
@@ -114,7 +124,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
         <>
             <Head title={`Booking: ${booking.title}`} />
             <BookingShow booking={booking} backHref={bookings.index()}>
-                {isAllowAction && (
+                {isAllowAction && (booking.status === 'pending' || isAdmin) && (
                     <div className="rounded-md border p-4">
                         <h2 className="text-muted-foreground mb-3 text-sm font-medium">
                             Actions
@@ -154,24 +164,28 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
                                     </Button>
                                 </>
                             )}
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full justify-start gap-2"
-                                onClick={() => setEditOpen(true)}
-                            >
-                                <Pencil className="size-4" />
-                                Edit
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-destructive hover:text-destructive w-full justify-start gap-2"
-                                onClick={() => setDeleteOpen(true)}
-                            >
-                                <Trash2 className="size-4" />
-                                Delete
-                            </Button>
+                            {isAdmin && (
+                                <>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full justify-start gap-2"
+                                        onClick={() => setEditOpen(true)}
+                                    >
+                                        <Pencil className="size-4" />
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-destructive hover:text-destructive w-full justify-start gap-2"
+                                        onClick={() => setDeleteOpen(true)}
+                                    >
+                                        <Trash2 className="size-4" />
+                                        Delete
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}
@@ -284,6 +298,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
                 onOpenChange={setEditOpen}
                 rooms={rooms}
                 people={people}
+                osh_levels={osh_levels}
                 booking={{
                     id: booking.id,
                     title: booking.title,
@@ -294,6 +309,7 @@ export default function BookingsShow({ booking, rooms, people }: Props) {
                     participants_count: booking.participants_count,
                     room_id: booking.room.id,
                     chairperson_id: booking.chairperson?.id ?? null,
+                    osh_level_id: booking.osh_level?.id ?? null,
                     attachment_url: booking.attachment_url,
                     qr_attendance_url: booking.qr_attendance_url,
                 }}

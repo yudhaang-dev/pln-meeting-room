@@ -117,19 +117,17 @@ export function NotificationBell() {
                                 </span>
                             </DropdownMenuItem>
                         ))}
-                        <DropdownMenuItem
-                            className="flex cursor-pointer justify-center border-t px-4 py-2"
-                            onClick={() =>
-                                router.visit(notifications.index.url())
-                            }
-                        >
-                            <span className="text-muted-foreground text-xs">
-                                View all {unreadCount} notification
-                                {unreadCount !== 1 ? 's' : ''}
-                            </span>
-                        </DropdownMenuItem>
                     </div>
                 )}
+                <DropdownMenuItem
+                    className="flex cursor-pointer justify-center border-t px-4 py-2"
+                    onClick={() => router.visit(notifications.index.url())}
+                >
+                    <span className="text-muted-foreground text-xs">
+                        View all {unreadCount} notification
+                        {unreadCount !== 1 ? 's' : ''}
+                    </span>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

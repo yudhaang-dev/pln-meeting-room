@@ -9,7 +9,7 @@ import {
     formatDuration,
 } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { ClockIcon, MapPinIcon, User2Icon } from 'lucide-react';
+import { ClockIcon, MapPinIcon, User2Icon, UserIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -62,66 +62,73 @@ type Props = {
     items?: ItemType[];
 } & ComponentProps<'div'>;
 
-// Komponen Card Satuan (Menerima parameter 'now' yang up-to-date dari parent)
-function ScheduleItem({
+function SimpleCardItem({
     item,
-    now,
+    computedSchedule,
     className,
-}: { item: ItemType; now: Date } & ComponentProps<'div'>) {
-    // Gunakan useMemo untuk membungkus seluruh perhitungan tanggal demi performa yang stabil
-    const computedSchedule = useMemo(() => {
-        const start = new Date(item.start_time);
-        const end = new Date(item.end_time);
-
-        // 1. Logika Penentuan Status Jadwal
-        let statusText = 'Akan datang';
-        let badgeVariant: BadgeVariant = 'outline';
-
-        if (isAfter(now, end)) {
-            statusText = 'Sudah selesai';
-            badgeVariant = 'secondary';
-        } else if (isAfter(now, start) && isBefore(now, end)) {
-            statusText = 'Sedang berlangsung';
-            badgeVariant = 'default';
-        }
-
-        // 2. Logika format waktu (Cross Day handling)
-        const isSameDate = isSameDay(start, end);
-        const startTimeStr = format(start, 'HH:mm');
-        const endTimeStr = isSameDate
-            ? format(end, 'HH:mm')
-            : format(end, 'HH:mm (d MMM)', { locale: id });
-
-        // 3. Hitung Durasi Pertemuan
-        const durationStr = formatDuration(
-            intervalToDuration({
-                start: start,
-                end: end,
-            }),
-            {
-                format: ['hours', 'minutes'],
-                locale: id,
-            },
-        );
-
-        return {
-            statusText,
-            badgeVariant,
-            startTimeStr,
-            endTimeStr,
-            durationStr,
-        };
-    }, [now, item.start_time, item.end_time]);
-
+}: {
+    item: ItemType;
+    computedSchedule: {
+        statusText: string;
+        badgeVariant: 'outline' | 'default' | 'secondary';
+        startTimeStr: string;
+        endTimeStr: string;
+        durationStr: string;
+    };
+} & ComponentProps<'div'>) {
     return (
-        <Card
-            className={cn(
-                'shadow-sm transition-all duration-500',
-                computedSchedule.statusText === 'Sudah selesai' ? '' : '',
-                computedSchedule.statusText === 'Sedang berlangsung' ? '' : '',
-                className,
-            )}
-        >
+        <Card className={cn('relative w-full', className)}>
+            <CardContent>
+                <div className="flex flex-col gap-2">
+                    <div className="flex w-full flex-row justify-between">
+                        <div className="text-foreground flex flex-row items-center gap-2 text-sm font-medium">
+                            <ClockIcon className="text-muted-foreground size-4" />
+                            <span>
+                                {computedSchedule.startTimeStr}
+                                {' - '}
+                                {computedSchedule.endTimeStr}
+                            </span>
+                        </div>
+                        <Badge variant={computedSchedule.badgeVariant}>
+                            {computedSchedule.statusText}
+                        </Badge>
+                    </div>
+                    <CardTitle className="text-2xl font-bold">
+                        {item.title}
+                    </CardTitle>
+                    <div className="text-foreground flex flex-row items-center gap-2 text-sm font-medium">
+                        <UserIcon className="text-muted-foreground size-4" />
+                        <span>{item.chairperson.name}</span>
+                    </div>
+
+                    <div className="text-foreground flex flex-row items-center gap-2 text-sm font-medium">
+                        <MapPinIcon className="text-muted-foreground size-4" />
+                        <div className="flex gap-4">
+                            {item.room.name}, {item.room.building.name}
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function RichCardItem({
+    item,
+    computedSchedule,
+    className,
+}: {
+    item: ItemType;
+    computedSchedule: {
+        statusText: string;
+        badgeVariant: 'outline' | 'default' | 'secondary';
+        startTimeStr: string;
+        endTimeStr: string;
+        durationStr: string;
+    };
+} & ComponentProps<'div'>) {
+    return (
+        <Card className={cn('w-full', className)}>
             <CardHeader>
                 <CardAction>
                     <Badge variant={computedSchedule.badgeVariant}>
@@ -214,6 +221,73 @@ function ScheduleItem({
     );
 }
 
+// Komponen Card Satuan (Menerima parameter 'now' yang up-to-date dari parent)
+function ScheduleItem({
+    item,
+    now,
+    className,
+    isSimple = true,
+}: { item: ItemType; now: Date; isSimple?: boolean } & ComponentProps<'div'>) {
+    // Gunakan useMemo untuk membungkus seluruh perhitungan tanggal demi performa yang stabil
+    const computedSchedule = useMemo(() => {
+        const start = new Date(item.start_time);
+        const end = new Date(item.end_time);
+
+        // 1. Logika Penentuan Status Jadwal
+        let statusText = 'Akan datang';
+        let badgeVariant: BadgeVariant = 'outline';
+
+        if (isAfter(now, end)) {
+            statusText = 'Sudah selesai';
+            badgeVariant = 'secondary';
+        } else if (isAfter(now, start) && isBefore(now, end)) {
+            statusText = 'Sedang berlangsung';
+            badgeVariant = 'default';
+        }
+
+        // 2. Logika format waktu (Cross Day handling)
+        const isSameDate = isSameDay(start, end);
+        const startTimeStr = format(start, 'HH:mm');
+        const endTimeStr = isSameDate
+            ? format(end, 'HH:mm')
+            : format(end, 'HH:mm (d MMM)', { locale: id });
+
+        // 3. Hitung Durasi Pertemuan
+        const durationStr = formatDuration(
+            intervalToDuration({
+                start: start,
+                end: end,
+            }),
+            {
+                format: ['hours', 'minutes'],
+                locale: id,
+            },
+        );
+
+        return {
+            statusText,
+            badgeVariant,
+            startTimeStr,
+            endTimeStr,
+            durationStr,
+        };
+    }, [now, item.start_time, item.end_time]);
+
+    return isSimple ? (
+        <SimpleCardItem
+            className={className}
+            item={item}
+            computedSchedule={computedSchedule}
+        />
+    ) : (
+        <RichCardItem
+            className={className}
+            item={item}
+            computedSchedule={computedSchedule}
+        />
+    );
+}
+
 // Komponen Utama List Jadwal (Parent yang memegang detak timer utama)
 export function ScheduleItems({ items = [], className }: Props) {
     const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -230,7 +304,7 @@ export function ScheduleItems({ items = [], className }: Props) {
     return (
         <div
             className={cn(
-                'flex w-full flex-1 flex-col items-center justify-center gap-4 overflow-y-auto',
+                'flex max-h-full w-full flex-1 flex-col items-center justify-center gap-4 overflow-y-auto',
                 className,
             )}
         >
@@ -239,7 +313,8 @@ export function ScheduleItems({ items = [], className }: Props) {
                     className="w-full"
                     key={`booking-${item.id}-${index}`}
                     item={item}
-                    now={currentTime} // Salurkan data jam yang sama ke seluruh anak
+                    now={currentTime}
+                    isSimple={true}
                 />
             ))}
         </div>

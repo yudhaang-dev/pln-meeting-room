@@ -3,13 +3,15 @@
 use App\Http\Controllers\Web;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', Web\HomeController::class)->name('home');
 Route::get('/display', [Web\DisplayController::class, 'index'])->name('display.index');
 Route::get('/display/lobby/{roomGroup}', [Web\DisplayController::class, 'lobby'])->name('display.lobby');
 Route::get('/display/room/{room}', [Web\DisplayController::class, 'room'])->name('display.room');
 Route::get('/display/osh', [Web\DisplayController::class, 'osh'])->name('display.osh');
+Route::get('/display/infografis', [Web\DisplayController::class, 'infografis'])->name('display.infografis');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', Web\DashboardController::class)->name('home');
+
     Route::resource('osh-levels', Web\OshLevelController::class)->except(['create', 'show', 'edit']);
     Route::post('osh-levels/reorder', [Web\OshLevelController::class, 'reorder'])->name('osh-levels.reorder');
 
@@ -34,6 +36,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('media/chunk', [Web\MediaController::class, 'chunk'])->name('media.chunk');
     Route::post('media/assemble', [Web\MediaController::class, 'assemble'])->name('media.assemble');
+
+    Route::get('infografis', [Web\MediaController::class, 'indexGlobal'])->name('infografis.index');
+    Route::post('infografis', [Web\MediaController::class, 'storeGlobal'])->name('infografis.store');
+    Route::post('infografis/reorder', [Web\MediaController::class, 'reorder'])->name('infografis.reorder');
+    Route::post('infografis/bulk-delete', [Web\MediaController::class, 'bulkDeleteGlobal'])->name('infografis.bulkDelete');
+    Route::put('infografis/{media}/toggle-active', [Web\MediaController::class, 'toggleActiveGlobal'])->name('infografis.toggleActive');
+    Route::delete('infografis/{media}', [Web\MediaController::class, 'destroyGlobal'])->name('infografis.destroy');
 
     Route::resource('bookings', Web\BookingController::class)->except(['create', 'edit']);
     Route::post('/bookings/{booking}/status/reject', [Web\BookingController::class, 'reject'])->name('bookings.reject');
@@ -65,6 +74,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/appearance', [Web\Settings\AppearanceController::class, 'edit'])
             ->name('appearance.edit');
+
+        Route::get('/notification', [Web\Settings\NotificationPreferenceController::class, 'edit'])
+            ->name('notification.edit');
+        Route::put('/notification', [Web\Settings\NotificationPreferenceController::class, 'update'])
+            ->name('notification.update');
     });
 
     Route::prefix('settings/systems')->name('settings.systems.')->middleware('role:admin,operator')->group(function () {

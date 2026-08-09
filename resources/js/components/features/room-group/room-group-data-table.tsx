@@ -1,4 +1,4 @@
-import { Image as ImageIcon, Layers, Pencil, Trash2 } from 'lucide-react';
+import { Layers, Pencil, Trash2 } from 'lucide-react';
 import { DataPagination } from '@/components/shared/data-table/data-pagination';
 import { SearchBar } from '@/components/shared/data-table/search-bar';
 import { SortableHeader } from '@/components/shared/data-table/sortable-header';
@@ -46,7 +46,6 @@ type Props = {
     onEdit: (group: RoomGroup) => void;
     onDeleteRequest: (id: number | null) => void;
     onDeleteConfirm: () => void;
-    onMedia: (groupId: number) => void;
 };
 
 export function RoomGroupDataTable({
@@ -63,7 +62,6 @@ export function RoomGroupDataTable({
     onEdit,
     onDeleteRequest,
     onDeleteConfirm,
-    onMedia,
 }: Props) {
     return (
         <>
@@ -137,15 +135,6 @@ export function RoomGroupDataTable({
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    onMedia(group.id)
-                                                }
-                                            >
-                                                <ImageIcon className="size-4" />
-                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

@@ -1,9 +1,10 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head, router, usePoll } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
 import { useEffect } from 'react';
 import { TableSchedule } from '@/components/features/display/table-schedule';
 import { TopBar } from '@/components/shared/general/top-bar';
+import { useDisplayPolling } from '@/hooks/use-display-polling';
 import { playBeep } from '@/lib/notification-audio';
 import { cn, formatDayDate } from '@/lib/utils';
 
@@ -46,11 +47,11 @@ export default function Osh({
     // 1. Ambil status koneksi WebSocket Reverb ("connected", "disconnected", "connecting", dll)
     const connectionStatus = useConnectionStatus();
 
-    // 2. Gunakan usePoll Inertia dengan opsi manual (autoStart: false)
-    const { start: startPolling, stop: stopPolling } = usePoll(
+    // 2. Gunakan polling Inertia dengan opsi manual (autoStart: false)
+    const { start: startPolling, stop: stopPolling } = useDisplayPolling(
         refreshInterval * 1000,
         {
-            only: ['todayBookings', 'tomorrowBookings'],
+            only: ['todayBookings', 'tomorrowBookings', 'refreshInterval'],
         },
         {
             autoStart: false, // Mencegah polling berjalan saat pertama kali render
@@ -58,11 +59,14 @@ export default function Osh({
     );
 
     // 3. Listen Event menggunakan useEcho jika WebSocket aktif
-    useEchoPublic(`Display.Osh`, 'BookingUpdated', (e) => {
-        console.log(e);
+    useEchoPublic(`Display.Osh`, 'BookingUpdated', () => {
         playBeep();
         router.reload({ only: ['todayBookings', 'tomorrowBookings'] });
     });
+
+    useEchoPublic('Display.Global', '.SettingsUpdated', () =>
+        router.reload({ only: ['refreshInterval'] }),
+    );
 
     // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
     useEffect(() => {
@@ -82,12 +86,15 @@ export default function Osh({
     return (
         <>
             <Head title="OSH Display" />
-            <div className="flex min-h-svh w-full flex-col">
-                <TopBar className="w-full gap-6 p-6" logoClass="max-h-12" />
+            <div className="bg-linear-to-b flex min-h-svh w-full flex-col from-white/70 to-transparent">
+                <TopBar
+                    className="w-full gap-6 p-6 md:p-10"
+                    logoClass="max-h-12"
+                />
                 <div
                     className={cn(
-                        'grid w-full gap-8 p-6',
-                        orientation == 'portrait' ? '' : 'grid-cols-2',
+                        'grid w-full gap-6 p-6 md:p-10',
+                        orientation == 'portrait' ? '' : 'md:grid-cols-2',
                     )}
                 >
                     <TableSchedule

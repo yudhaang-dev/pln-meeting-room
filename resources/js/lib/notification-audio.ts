@@ -1,14 +1,28 @@
 import beepSound from '@/../assets/audio/beep.wav';
 
+let soundUrl: string | null = null;
 let audioElement: HTMLAudioElement | null = null;
 let audioUnlocked = false;
+
+function resolveSoundUrl() {
+    return soundUrl ?? beepSound;
+}
+
+export function configureNotificationSound(url: string | null) {
+    soundUrl = url;
+
+    if (audioElement) {
+        audioElement.src = resolveSoundUrl();
+        audioElement.load();
+    }
+}
 
 function unlockAudio() {
     if (audioUnlocked) {
         return;
     }
 
-    audioElement = new Audio(beepSound);
+    audioElement = new Audio(resolveSoundUrl());
     audioElement.volume = 0;
     audioElement.muted = true;
     void audioElement.play().catch(() => {});
@@ -34,11 +48,11 @@ export function setupAudioUnlock() {
 
 export function playBeep() {
     if (!audioUnlocked) {
-        return;
+        unlockAudio();
     }
 
     if (!audioElement) {
-        audioElement = new Audio(beepSound);
+        audioElement = new Audio(resolveSoundUrl());
     }
 
     audioElement.volume = 1;

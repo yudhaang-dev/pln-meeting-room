@@ -11,17 +11,10 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 
-type Media = {
-    id: number;
-    type: string;
-    file_url: string;
-};
-
 type RoomGroup = {
     id: number;
     name: string;
     building: { id: number; name: string };
-    media: Media[];
     rooms: { id: number; name: string }[];
 };
 
@@ -29,7 +22,6 @@ type Room = {
     id: number;
     name: string;
     building: { id: number; name: string };
-    media: Media[];
 };
 
 type Props = PageProps & {
@@ -76,7 +68,7 @@ export default function DisplayIndex({ roomGroups, rooms }: Props) {
     return (
         <>
             <Head title="Display Launcher" />
-            <div className="bg-kaluk-paku flex min-h-svh w-full flex-col bg-slate-200 bg-auto">
+            <div className="bg-linear-to-b flex min-h-svh w-full flex-col from-white/70 to-transparent">
                 <TopBar className="w-full gap-6 p-6" logoClass="max-h-12" />
                 <main className="flex h-full w-full flex-1 flex-col items-center justify-center p-6">
                     <div className="mx-auto w-full max-w-7xl px-6 py-6">
@@ -120,13 +112,18 @@ export default function DisplayIndex({ roomGroups, rooms }: Props) {
                             </div>
                             <div className="space-y-3">
                                 <h2 className="text-xl font-semibold">
-                                    OSH Display
+                                    Other Displays
                                 </h2>
-                                <div className="grid grid-cols-1">
+                                <div className="grid grid-cols-1 gap-4">
                                     <CardItem
                                         title="OSH Display"
-                                        description="Support display"
+                                        description="Security Support display"
                                         href={`/display/osh`}
+                                    />
+                                    <CardItem
+                                        title="Infografis Display"
+                                        description="Infografis media player"
+                                        href={`/display/infografis`}
                                     />
                                 </div>
                             </div>

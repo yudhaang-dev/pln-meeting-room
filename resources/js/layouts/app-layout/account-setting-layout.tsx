@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import appearance from '@/routes/settings/account/appearance';
+import notification from '@/routes/settings/account/notification';
 import profile from '@/routes/settings/account/profile';
 import security from '@/routes/settings/account/security';
 import type { NavItem } from '@/types';
@@ -24,6 +25,11 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Appearance',
         href: appearance.edit(),
+        icon: null,
+    },
+    {
+        title: 'Notification',
+        href: notification.edit(),
         icon: null,
     },
 ];

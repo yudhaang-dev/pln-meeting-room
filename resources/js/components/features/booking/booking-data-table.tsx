@@ -27,9 +27,10 @@ type Booking = {
     end_time: string;
     status: string;
     participants_count: number;
-    room: { id: number; name: string };
+    room: { id: number; name: string; building: { id: number; name: string } };
     requested_by: { id: number; name: string };
-    chairperson: { name: string } | null;
+    approved_by: { id: number; name: string };
+    chairperson: { name: string };
     osh_level: { name: string; color: string } | null;
 };
 
@@ -175,12 +176,11 @@ export function BookingDataTable({
                             sortDirection={sortDirection}
                             onSort={onSort}
                         >
-                            Date & Time
+                            Waktu Pelaksanaan
                         </SortableHeader>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Room</TableHead>
-                        <TableHead>Requested By</TableHead>
-                        <TableHead>OSH</TableHead>
+                        <TableHead>Agenda</TableHead>
+                        <TableHead>Lokasi</TableHead>
+                        <TableHead>Level Keamanan</TableHead>
                         <SortableHeader
                             column="status"
                             sortBy={sortBy}
@@ -218,11 +218,22 @@ export function BookingDataTable({
                                         href={bookings.show(row.id).url}
                                         className="hover:underline"
                                     >
-                                        {row.title}
+                                        <div className="text-sm">
+                                            {row.title}
+                                        </div>
+                                        <div className="text-muted-foreground text-xs">
+                                            {row?.chairperson.name ?? '-'}
+                                        </div>
                                     </Link>
                                 </TableCell>
-                                <TableCell>{row.room.name}</TableCell>
-                                <TableCell>{row.requested_by.name}</TableCell>
+                                <TableCell>
+                                    <div className="text-sm">
+                                        {row.room.name}
+                                    </div>
+                                    <div className="text-muted-foreground text-xs">
+                                        {row.room?.building.name ?? '-'}
+                                    </div>
+                                </TableCell>
                                 <TableCell>
                                     {row.osh_level ? (
                                         <OshBadge level={row.osh_level} />
@@ -239,6 +250,7 @@ export function BookingDataTable({
                                     <Button
                                         size="icon"
                                         variant="outline"
+                                        nativeButton={false}
                                         render={
                                             <Link href={bookings.show(row)} />
                                         }

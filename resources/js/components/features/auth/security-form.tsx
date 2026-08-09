@@ -2,7 +2,6 @@ import type { Method, UrlMethodPair } from '@inertiajs/core';
 import { Form } from '@inertiajs/react';
 import { useRef } from 'react';
 import type { Props as ManagePasskeysProps } from '@/components/features/auth/manage-passkeys';
-import ManagePasskeys from '@/components/features/auth/manage-passkeys';
 import Heading from '@/components/shared/general/heading';
 import InputError from '@/components/shared/general/input-error';
 import PasswordInput from '@/components/shared/general/password-input';
@@ -19,7 +18,6 @@ export default function SecurityForm({
     action,
     method = 'post',
     passwordRules,
-    ...passkeyProps
 }: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
@@ -124,11 +122,6 @@ export default function SecurityForm({
                     )}
                 </Form>
             </div>
-
-            <ManagePasskeys
-                canManagePasskeys={passkeyProps.canManagePasskeys}
-                passkeys={passkeyProps.passkeys}
-            />
         </>
     );
 }

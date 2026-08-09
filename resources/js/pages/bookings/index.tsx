@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { CalendarPlus } from 'lucide-react';
 import { BookingDataTable } from '@/components/features/booking/booking-data-table';
 import { BookingForm } from '@/components/features/booking/booking-form';
@@ -18,9 +18,10 @@ type Booking = {
     end_time: string;
     status: string;
     participants_count: number;
-    room: { id: number; name: string };
+    room: { id: number; name: string; building: { id: number; name: string } };
     requested_by: { id: number; name: string };
-    chairperson: { name: string } | null;
+    approved_by: { id: number; name: string };
+    chairperson: { name: string };
     osh_level: { name: string; color: string } | null;
 };
 
@@ -28,13 +29,17 @@ type Props = {
     bookings: PaginatedData<Booking>;
     rooms: Room[];
     people: Person[];
+    osh_levels: { id: number; name: string; color: string }[];
 };
 
 export default function BookingsIndex({
     bookings: paginatedData,
     rooms,
     people,
+    osh_levels,
 }: Props) {
+    const allowCreate = usePage().props.auth.user.role == 'user';
+
     const {
         search,
         sortBy,
@@ -60,10 +65,12 @@ export default function BookingsIndex({
             <PageContainer>
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Bookings</h1>
-                    <Button onClick={openCreate}>
-                        <CalendarPlus className="mr-2 size-4" />
-                        Book Room
-                    </Button>
+                    {allowCreate && (
+                        <Button onClick={openCreate}>
+                            <CalendarPlus className="mr-2 size-4" />
+                            Book Room
+                        </Button>
+                    )}
                 </div>
 
                 <BookingDataTable
@@ -86,6 +93,7 @@ export default function BookingsIndex({
                     }}
                     rooms={rooms}
                     people={people}
+                    osh_levels={osh_levels}
                 />
             </PageContainer>
         </>

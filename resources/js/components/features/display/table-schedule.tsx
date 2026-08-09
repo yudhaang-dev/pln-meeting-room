@@ -49,34 +49,40 @@ export function TableSchedule({ data = [], title = '', date = '' }: Props) {
             <Table className="w-full">
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="font-semibold">K3</TableHead>
                         <TableHead className="font-semibold">Jadwal</TableHead>
                         <TableHead className="font-semibold">Agenda</TableHead>
+                        <TableHead className="font-semibold">Lokasi</TableHead>
                         <TableHead className="font-semibold">
-                            Pimpinan Acara
+                            Level Keamanan
                         </TableHead>
-                        <TableHead className="font-semibold">Ruangan</TableHead>
-                        <TableHead className="font-semibold">Gedung</TableHead>
-                        <TableHead className="font-semibold">Peserta</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y">
                     {data.map((item) => (
                         <TableRow key={item.id}>
                             <TableCell>
-                                <OshBadge level={item.osh_level} />
-                            </TableCell>
-                            <TableCell>
                                 {formatTime(item.start_time)} —{' '}
                                 {formatTime(item.end_time)}
                             </TableCell>
-                            <TableCell> {item.title} </TableCell>
                             <TableCell>
-                                {item.chairperson?.name ?? '—'}
+                                <span className="font-bold">{item.title}</span>
+                                <br />
+                                <span>{item.chairperson?.name ?? '—'}</span>
                             </TableCell>
-                            <TableCell>{item.room.name}</TableCell>
-                            <TableCell>{item.room.building.name}</TableCell>
-                            <TableCell>{item.participants_count}</TableCell>
+                            <TableCell>
+                                <span className="font-bold">
+                                    {item.room.name}
+                                </span>
+                                <br />
+                                <span>{item.room.building.name}</span>
+                            </TableCell>
+                            <TableCell>
+                                <OshBadge level={item.osh_level} />
+                                <span className="text-muted-foreground px-2">
+                                    |
+                                </span>
+                                <span>{item.participants_count} Orang</span>
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

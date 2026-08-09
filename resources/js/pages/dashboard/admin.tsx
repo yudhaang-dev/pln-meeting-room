@@ -1,299 +1,143 @@
-import { router, Link } from '@inertiajs/react';
-import {
-    Building,
-    CheckCircle,
-    Clock,
-    DoorOpen,
-    Users,
-    XCircle,
-} from 'lucide-react';
-import { useState } from 'react';
+import { AnnualMonthlyBarChart } from '@/components/features/dashboard/annual-monthly-bar-chart';
+import { OverallPieChart } from '@/components/features/dashboard/overall-pie-chart';
 import { PageContainer } from '@/components/shared/page-container';
-import { StatusBadge } from '@/components/shared/status-badge';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { formatDate, formatTime } from '@/lib/utils';
-import bookings from '@/routes/bookings';
+import { STATUS_COLORS, statusLabel } from '@/lib/chart';
+import { CHART_PALETTE } from '@/lib/chart';
+import type { ChartSeries } from '@/lib/chart';
+import { dashboard } from '@/routes';
 
-type Booking = {
-    id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    status: string;
-    room: { id: number; name: string };
-    requested_by: { id: number; name: string };
-    chairperson: { name: string } | null;
+type MonthlyChartRow = { label: string } & Record<string, number>;
+
+type RankingChartRow = { name: string; value: number };
+
+type Statistics = {
+    eventsMonthly: MonthlyChartRow[];
+    participantsMonthly: MonthlyChartRow[];
+    eventsByStatus: RankingChartRow[];
+    participantsByRoom: RankingChartRow[];
+    usersMonthly: MonthlyChartRow[];
+    usersShare: RankingChartRow[];
+    roomsMonthly: MonthlyChartRow[];
+    roomsShare: RankingChartRow[];
 };
 
 type Props = {
-    totalBuildings: number;
-    totalRooms: number;
-    pendingBookingsCount: number;
-    totalUsers: number;
-    pendingBookings: Booking[];
-    recentBookings: Booking[];
+    statistics: Statistics;
 };
 
-const stats = [
-    { key: 'totalBuildings', label: 'Buildings', icon: Building },
-    { key: 'totalRooms', label: 'Rooms', icon: DoorOpen },
-    { key: 'pendingBookingsCount', label: 'Pending', icon: Clock },
-    { key: 'totalUsers', label: 'Users', icon: Users },
-] as const;
+function seriesFromRows(rows: MonthlyChartRow[]): ChartSeries[] {
+    const keys = Object.keys(rows[0] ?? {}).filter((key) => key !== 'label');
 
-export default function DashboardAdmin({
-    totalBuildings,
-    totalRooms,
-    pendingBookingsCount,
-    totalUsers,
-    pendingBookings,
-    recentBookings,
-}: Props) {
-    const [rejectId, setRejectId] = useState<number | null>(null);
-    const [rejectReason, setRejectReason] = useState('');
-    const [processing, setProcessing] = useState(false);
+    return keys.map((key, index) => ({
+        key,
+        label: key,
+        color: CHART_PALETTE[index % CHART_PALETTE.length],
+    }));
+}
 
-    const counts: Record<string, number> = {
-        totalBuildings,
-        totalRooms,
-        pendingBookingsCount,
-        totalUsers,
-    };
-
-    const handleApprove = (id: number) => {
-        setProcessing(true);
-        router.post(
-            bookings.approve(id).url,
-            {},
-            {
-                onFinish: () => setProcessing(false),
-                preserveState: true,
-            },
-        );
-    };
-
-    const handleReject = () => {
-        if (!rejectId || !rejectReason.trim()) {
-            return;
-        }
-
-        setProcessing(true);
-        router.post(
-            bookings.reject(rejectId).url,
-            { reason: rejectReason },
-            {
-                onFinish: () => {
-                    setProcessing(false);
-                    setRejectId(null);
-                    setRejectReason('');
-                },
-                preserveState: true,
-            },
-        );
-    };
+export default function DashboardAdmin({ statistics }: Props) {
+    const eventsByStatus = statistics.eventsByStatus.map((item) => ({
+        name: statusLabel(item.name),
+        value: item.value,
+        color: STATUS_COLORS[item.name],
+    }));
 
     return (
         <PageContainer>
             <h1 className="text-2xl font-bold">Dashboard</h1>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map(({ key, label, icon: Icon }) => (
-                    <Card key={key}>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardDescription>{label}</CardDescription>
-                            <Icon className="text-muted-foreground size-4" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {counts[key]}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                            <span>Pending Approvals</span>
-                            {pendingBookingsCount > 5 && (
-                                <Link
-                                    href={
-                                        bookings.index({
-                                            query: { status: 'pending' },
-                                        }).url
-                                    }
-                                    className="text-muted-foreground text-sm font-normal hover:underline"
-                                >
-                                    View all ({pendingBookingsCount})
-                                </Link>
-                            )}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {pendingBookings.length === 0 ? (
-                            <p className="text-muted-foreground py-8 text-center text-sm">
-                                No pending bookings.
-                            </p>
-                        ) : (
-                            <div className="space-y-3">
-                                {pendingBookings.map((booking) => (
-                                    <div
-                                        key={booking.id}
-                                        className="flex items-center justify-between gap-2 rounded-md border p-3"
-                                    >
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium">
-                                                {booking.title}
-                                            </p>
-                                            <p className="text-muted-foreground text-xs">
-                                                {booking.room.name} &middot;{' '}
-                                                {formatDate(booking.start_time)}{' '}
-                                                {formatTime(booking.start_time)}
-                                            </p>
-                                        </div>
-                                        <div className="flex shrink-0 gap-1">
-                                            <Button
-                                                size="icon-xs"
-                                                variant="outline"
-                                                disabled={processing}
-                                                onClick={() =>
-                                                    handleApprove(booking.id)
-                                                }
-                                            >
-                                                <CheckCircle className="size-3.5 text-green-600" />
-                                            </Button>
-                                            <Button
-                                                size="icon-xs"
-                                                variant="outline"
-                                                disabled={processing}
-                                                onClick={() =>
-                                                    setRejectId(booking.id)
-                                                }
-                                            >
-                                                <XCircle className="size-3.5 text-red-600" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {recentBookings.length === 0 ? (
-                            <p className="text-muted-foreground py-8 text-center text-sm">
-                                No recent bookings.
-                            </p>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Room</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Status</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {recentBookings.map((booking) => (
-                                        <TableRow key={booking.id}>
-                                            <TableCell className="max-w-[120px] truncate font-medium">
-                                                {booking.title}
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground max-w-[80px] truncate">
-                                                {booking.room.name}
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground whitespace-nowrap">
-                                                {formatDate(booking.start_time)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <StatusBadge
-                                                    label={booking.status}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Dialog
-                open={rejectId !== null}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setRejectId(null);
-                        setRejectReason('');
-                    }
-                }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Reject Booking</DialogTitle>
-                        <DialogDescription>
-                            Please provide a reason for rejecting this booking.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Input
-                        placeholder="Rejection reason"
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
+            <section aria-label="Statistik" className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                    <AnnualMonthlyBarChart
+                        title="Acara per Bulan"
+                        description="12 bulan terakhir"
+                        data={statistics.eventsMonthly}
+                        className="lg:col-span-4"
+                        series={[
+                            { key: 'total', label: 'Total' },
+                            {
+                                key: 'approved',
+                                label: 'Disetujui',
+                                color: STATUS_COLORS.approved,
+                            },
+                            {
+                                key: 'rejected',
+                                label: 'Ditolak',
+                                color: STATUS_COLORS.rejected,
+                            },
+                        ]}
                     />
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setRejectId(null);
-                                setRejectReason('');
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            disabled={processing || !rejectReason.trim()}
-                            onClick={handleReject}
-                        >
-                            {processing && <Spinner />}
-                            Reject
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                    <OverallPieChart
+                        title="Acara per Status"
+                        description="Semua waktu"
+                        data={eventsByStatus}
+                        className="lg:col-span-1"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                    <AnnualMonthlyBarChart
+                        title="Peserta per Bulan"
+                        description="12 bulan terakhir, acara disetujui"
+                        data={statistics.participantsMonthly}
+                        className="lg:col-span-4"
+                        series={[
+                            {
+                                key: 'participants',
+                                label: 'Peserta',
+                                color: STATUS_COLORS.approved,
+                            },
+                        ]}
+                    />
+                    <OverallPieChart
+                        title="Peserta per Ruangan"
+                        description="Semua waktu"
+                        data={statistics.participantsByRoom}
+                        className="lg:col-span-1"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                    <AnnualMonthlyBarChart
+                        title="User Paling Aktif"
+                        description="Top 3 pengajuan acara disetujui per bulan"
+                        data={statistics.usersMonthly}
+                        className="lg:col-span-4"
+                        series={seriesFromRows(statistics.usersMonthly)}
+                    />
+                    <OverallPieChart
+                        title="Pangsa Pengajuan User"
+                        description="Semua waktu"
+                        data={statistics.usersShare}
+                        className="lg:col-span-1"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                    <AnnualMonthlyBarChart
+                        title="Ruangan Paling Dipakai"
+                        description="Top 3 ruangan berdasarkan acara per bulan"
+                        data={statistics.roomsMonthly}
+                        className="lg:col-span-4"
+                        series={seriesFromRows(statistics.roomsMonthly)}
+                    />
+                    <OverallPieChart
+                        title="Pangsa Pemakaian Ruangan"
+                        description="Semua waktu"
+                        data={statistics.roomsShare}
+                        className="lg:col-span-1"
+                    />
+                </div>
+            </section>
         </PageContainer>
     );
 }
+
+DashboardAdmin.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+        },
+    ],
+};

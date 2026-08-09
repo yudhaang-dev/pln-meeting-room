@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -56,5 +57,23 @@ class Media extends Model
         if ($this->path && Storage::disk('public')->exists($this->path)) {
             Storage::disk('public')->delete($this->path);
         }
+    }
+
+    /**
+     * @param  Builder<Media>  $query
+     * @return Builder<Media>
+     */
+    public function scopeGlobal(Builder $query): Builder
+    {
+        return $query->whereNull('mediable_type')->whereNull('mediable_id');
+    }
+
+    /**
+     * @param  Builder<Media>  $query
+     * @return Builder<Media>
+     */
+    public function scopeGlobalActive(Builder $query): Builder
+    {
+        return $query->global()->where('is_active', true)->orderBy('sort_order')->orderBy('id');
     }
 }

@@ -1,11 +1,14 @@
 import '../assets/css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { configureEcho } from '@laravel/echo-react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
-import { setupAudioUnlock } from '@/lib/notification-audio';
+import {
+    configureNotificationSound,
+    setupAudioUnlock,
+} from '@/lib/notification-audio';
 import AccountSettingLayout from './layouts/app-layout/account-setting-layout';
 import AppLayout from './layouts/app-layout/app-layout';
 import AuthLayout from './layouts/auth-layout/auth-layout';
@@ -21,6 +24,12 @@ configureEcho({
 });
 
 setupAudioUnlock();
+
+router.on('success', (event) => {
+    const notificationSound = event.detail.page.props.notificationSound;
+
+    configureNotificationSound((notificationSound as string | null) ?? null);
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -41,7 +50,11 @@ createInertiaApp({
         }
     },
     strictMode: true,
-    withApp(app) {
+    withApp(app, { page }) {
+        configureNotificationSound(
+            (page.props.notificationSound as string | null) ?? null,
+        );
+
         return (
             <TooltipProvider delay={0}>
                 {app}

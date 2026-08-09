@@ -23,6 +23,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $avatar
+ * @property string|null $notification_audio
  * @property bool $is_active
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
@@ -31,14 +32,14 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'role', 'avatar', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'avatar', 'notification_audio', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable;
 
-    protected $appends = ['avatar_url'];
+    protected $appends = ['avatar_url', 'notification_audio_url'];
 
     /**
      * Get the attributes that should be cast.
@@ -64,6 +65,20 @@ class User extends Authenticatable implements PasskeyUser
         if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
             Storage::disk('public')->delete($this->avatar);
         }
+    }
+
+    public function getNotificationAudioUrlAttribute(): ?string
+    {
+        return $this->notification_audio ? Storage::disk('public')->url($this->notification_audio) : null;
+    }
+
+    public function deleteNotificationAudio(): void
+    {
+        if ($this->notification_audio && Storage::disk('public')->exists($this->notification_audio)) {
+            Storage::disk('public')->delete($this->notification_audio);
+        }
+
+        $this->notification_audio = null;
     }
 
     public function isAdmin(): bool

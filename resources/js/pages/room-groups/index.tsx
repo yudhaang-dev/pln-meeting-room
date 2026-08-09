@@ -93,10 +93,6 @@ export default function RoomGroupsIndex({
                     onDeleteConfirm={() =>
                         handleDelete(roomGroupRoutes.destroy(deleteId!).url)
                     }
-                    onMedia={(groupId) => {
-                        window.location.href =
-                            roomGroupRoutes.media(groupId).url;
-                    }}
                 />
 
                 <RoomGroupForm

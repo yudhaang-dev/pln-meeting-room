@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
+import infografis from '@/routes/infografis';
 import roomGroupsMedia from '@/routes/room-groups/media';
 import roomsMedia from '@/routes/rooms/media';
 import { MediaItemList } from './media-item-list';
@@ -28,12 +29,25 @@ export type MediaItem = {
 };
 
 type Props = {
-    mediableType: 'rooms' | 'room-groups';
+    mediableType: 'rooms' | 'room-groups' | 'global';
     mediableId: number;
     media: MediaItem[];
 };
 
-function getRoutes(mediableType: 'rooms' | 'room-groups', mediableId: number) {
+function getRoutes(
+    mediableType: 'rooms' | 'room-groups' | 'global',
+    mediableId: number,
+) {
+    if (mediableType === 'global') {
+        return {
+            store: () => infografis.store(),
+            reorder: () => infografis.reorder(),
+            bulkDelete: () => infografis.bulkDelete(),
+            toggleActive: (mediaId: number) => infografis.toggleActive(mediaId),
+            destroy: (mediaId: number) => infografis.destroy(mediaId),
+        };
+    }
+
     if (mediableType === 'rooms') {
         return {
             store: () => roomsMedia.store(mediableId),
@@ -66,13 +80,8 @@ export function MediaManager({
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [bulkDeleteIds, setBulkDeleteIds] = useState<number[] | null>(null);
     const [processing, setProcessing] = useState(false);
-    const mediaRef = useRef(media);
 
     const routes = getRoutes(mediableType, mediableId);
-
-    useEffect(() => {
-        mediaRef.current = media;
-    }, [media]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -147,29 +156,28 @@ export function MediaManager({
         [routes],
     );
 
-    const moveRow = useCallback((dragIndex: number, hoverIndex: number) => {
-        setMedia((prev) => {
-            const next = [...prev];
-            const [removed] = next.splice(dragIndex, 1);
-            next.splice(hoverIndex, 0, removed);
+    const handleReorder = useCallback(
+        (next: MediaItem[]) => {
+            const ordered = next.map((item, index) => ({
+                ...item,
+                sort_order: index + 1,
+            }));
 
-            return next;
-        });
-    }, []);
+            setMedia(ordered);
 
-    const saveOrder = useCallback(() => {
-        const currentMedia = mediaRef.current;
-        router.post(
-            routes.reorder(),
-            {
-                order: currentMedia.map((m) => m.id),
-            } as unknown as Record<string, string>,
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
-    }, [routes]);
+            router.post(
+                routes.reorder(),
+                {
+                    order: ordered.map((m) => m.id),
+                } as unknown as Record<string, string>,
+                {
+                    preserveState: true,
+                    replace: true,
+                },
+            );
+        },
+        [routes],
+    );
 
     const handleBulkDelete = (idValues: number[]) => {
         setBulkDeleteIds(idValues);
@@ -190,8 +198,7 @@ export function MediaManager({
                         items={media}
                         onToggleActive={handleToggleActive}
                         onRemoveItem={(item) => setDeleteId(item.id)}
-                        onMoveItem={moveRow}
-                        onMoveEnd={saveOrder}
+                        onReorder={handleReorder}
                         onBulkDelete={handleBulkDelete}
                     />
                 </div>

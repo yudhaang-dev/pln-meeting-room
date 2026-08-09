@@ -21,16 +21,17 @@ class UpdateBookingRequest extends FormRequest
     {
         return [
             'room_id' => ['sometimes', 'required', 'integer', 'exists:rooms,id'],
-            'chairperson_id' => ['nullable', 'integer', 'exists:people,id'],
+            'chairperson_id' => ['sometimes', 'required', 'integer', 'exists:people,id'],
+            'osh_level_id' => ['sometimes', 'required', 'integer', 'exists:osh_levels,id'],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'start_time' => ['sometimes', 'required', 'date'],
             'end_time' => ['sometimes', 'required', 'date', 'after:start_time'],
             'participants_count' => ['sometimes', 'required', 'integer', 'min:1'],
-            'attachment' => ['nullable', 'file', 'max:10240'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'qr_attendance' => ['nullable', 'image', 'max:5120'],
             'status' => ['sometimes', 'required', Rule::in(['pending', 'approved', 'rejected'])],
             'reason' => ['nullable', 'string', 'max:1000'],
-            'qr_attendance' => ['nullable', 'image', 'max:5120'],
         ];
     }
 

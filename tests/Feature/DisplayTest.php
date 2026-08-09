@@ -209,8 +209,8 @@ test('room display passes refresh interval from settings', function () {
 
 test('room display loads media relations', function () {
     Media::factory()->create([
-        'mediable_type' => Room::class,
-        'mediable_id' => $this->room->id,
+        'mediable_type' => null,
+        'mediable_id' => null,
         'is_active' => true,
     ]);
 
@@ -219,14 +219,14 @@ test('room display loads media relations', function () {
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('display/room')
-        ->has('room.media', 1)
+        ->has('media', 1)
     );
 });
 
 test('lobby display loads media and rooms for grouping', function () {
     Media::factory()->create([
-        'mediable_type' => RoomGroup::class,
-        'mediable_id' => $this->roomGroup->id,
+        'mediable_type' => null,
+        'mediable_id' => null,
         'is_active' => true,
     ]);
 
@@ -234,7 +234,49 @@ test('lobby display loads media and rooms for grouping', function () {
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->has('roomGroup.media', 1)
+        ->has('media', 1)
         ->has('roomGroup.rooms', 1)
+    );
+});
+
+test('infografis display is accessible without auth', function () {
+    $response = $this->get(route('display.infografis'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->component('display/infografis'));
+});
+
+test('infografis display loads global active media', function () {
+    Media::factory()->create([
+        'mediable_type' => null,
+        'mediable_id' => null,
+        'is_active' => true,
+    ]);
+
+    Media::factory()->create([
+        'mediable_type' => null,
+        'mediable_id' => null,
+        'is_active' => false,
+    ]);
+
+    $response = $this->get(route('display.infografis'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('display/infografis')
+        ->has('media', 1)
+    );
+});
+
+test('infografis display passes media loop duration from settings', function () {
+    $settings = app(GeneralSettings::class);
+    $settings->media_loop_duration = 15;
+    $settings->save();
+
+    $response = $this->get(route('display.infografis'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->where('mediaLoopDuration', 15)
     );
 });
