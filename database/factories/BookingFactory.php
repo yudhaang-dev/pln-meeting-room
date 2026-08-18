@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Booking;
+use App\Models\OshLevel;
 use App\Models\Person;
 use App\Models\Room;
 use App\Models\User;
@@ -23,6 +24,7 @@ class BookingFactory extends Factory
             'room_id' => Room::factory(),
             'requested_id' => User::factory(),
             'chairperson_id' => Person::factory(),
+            'osh_level_id' => OshLevel::factory(),
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->optional()->sentence(),
             'start_time' => $start,

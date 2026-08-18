@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('room_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('requested_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('chairperson_id')->nullable()->constrained('people')->nullOnDelete();
-            $table->string('title');
+            $table->foreignId('room_id')->constrained()->restrictOnDelete();
+            $table->foreignId('requested_id')->constrained('users')->restrictOnDelete();
+            $table->foreignId('chairperson_id')->constrained('people')->restrictOnDelete();
+            $table->foreignId('osh_level_id')->constrained('osh_levels')->restrictOnDelete();
+            $table->string('title', 255);
             $table->string('description')->nullable();
             $table->timestamp('start_time');
             $table->timestamp('end_time');

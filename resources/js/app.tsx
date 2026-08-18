@@ -9,9 +9,11 @@ import {
     configureNotificationSound,
     setupAudioUnlock,
 } from '@/lib/notification-audio';
+import { setupTitleFlash } from '@/lib/title-flash';
 import AccountSettingLayout from './layouts/app-layout/account-setting-layout';
 import AppLayout from './layouts/app-layout/app-layout';
 import AuthLayout from './layouts/auth-layout/auth-layout';
+import DisplayLayout from './layouts/display-layout/display-layout';
 
 import.meta.glob([
     '../assets/fonts/**/*',
@@ -24,6 +26,7 @@ configureEcho({
 });
 
 setupAudioUnlock();
+setupTitleFlash();
 
 router.on('success', (event) => {
     const notificationSound = event.detail.page.props.notificationSound;
@@ -40,7 +43,7 @@ createInertiaApp({
             case name === 'home':
                 return null;
             case name.startsWith('display/'):
-                return null;
+                return DisplayLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/account/'):

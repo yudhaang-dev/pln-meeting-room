@@ -61,10 +61,12 @@ export default function InfografisPage({
     }, [connectionStatus, startPolling, stopPolling]);
 
     return (
-        <MediaPlayer
-            items={media ?? []}
-            className="h-svh w-full"
-            duration={mediaLoopDuration}
-        />
+        <div className="flex h-svh w-full flex-col items-center justify-center">
+            <MediaPlayer
+                items={media ?? []}
+                className="size-full"
+                duration={mediaLoopDuration}
+            />
+        </div>
     );
 }

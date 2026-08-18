@@ -10,6 +10,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { playBeep } from '@/lib/notification-audio';
+import { flashTitle } from '@/lib/title-flash';
 import bookings from '@/routes/bookings';
 import notifications from '@/routes/notifications';
 
@@ -33,6 +34,7 @@ export function NotificationBell() {
 
     // Jika ada notifikasi real-time masuk via Echo, suruh Inertia memperbarui props
     useEchoNotification(`App.Models.User.${user?.id}`, () => {
+        flashTitle('Notifikasi Baru');
         router.reload({
             only: ['auth'], // Hanya perbarui data auth (hemat bandwidth)
             onSuccess: () => playBeep(),

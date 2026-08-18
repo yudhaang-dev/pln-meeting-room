@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Booking;
+use App\Models\OshLevel;
 use App\Models\Person;
 use App\Models\Room;
 use App\Models\User;
@@ -14,6 +15,7 @@ beforeEach(function () {
     $this->operator = User::factory()->create(['role' => 'operator']);
     $this->room = Room::factory()->create();
     $this->leader = Person::factory()->create();
+    $this->oshLevel = OshLevel::factory()->create();
 });
 
 test('user can view bookings page', function () {
@@ -39,6 +41,7 @@ test('user can create a booking', function () {
         'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 15,
         'attachment' => $file,
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
     ]);
 
     $response->assertRedirect(route('bookings.index'));
@@ -108,11 +111,13 @@ test('booking allows non-overlapping time slots', function () {
 
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
         'title' => 'Non-overlapping Meeting',
         'start_time' => now()->addDays(2)->setTime(11, 0)->toDateTimeString(),
         'end_time' => now()->addDays(2)->setTime(12, 0)->toDateTimeString(),
         'participants_count' => 5,
         'attachment' => $file,
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
     ]);
 
     $response->assertRedirect();
@@ -233,11 +238,13 @@ test('booking allowed when within advance hours window', function () {
 
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
         'title' => 'OK Booking',
         'start_time' => now()->addDays(2)->setTime(9, 0),
         'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 5,
         'attachment' => $file,
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
     ]);
 
     $response->assertRedirect();
@@ -259,11 +266,13 @@ test('booking allowed when within max days ahead', function () {
 
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
         'title' => 'Far Future OK',
         'start_time' => now()->addDays(30)->setTime(9, 0),
         'end_time' => now()->addDays(30)->setTime(10, 0),
         'participants_count' => 5,
         'attachment' => $file,
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
     ]);
 
     $response->assertRedirect();

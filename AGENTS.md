@@ -31,7 +31,7 @@ Meeting room booking app built with Laravel 13 + Inertia v3 + React 19. Currentl
 - **React Compiler** active via `babel-plugin-react-compiler` — React 19 auto-memoization.
 - **Models use PHP 8 attributes**: `#[Fillable]`, `#[Hidden]` (not `$fillable` array).
 - **Password rules are env-dependent**: production = 12 chars + complexity + breach check; development = `Password::default()`.
-- **DB is SQLite**: `database/database.sqlite` for app, in-memory `:memory:` for tests.
+- **DB is MySQL**: meeting_rooms @ 127.0.0.1:3306 for app, in-memory `:memory:` for tests.
 
 ## Testing Conventions
 

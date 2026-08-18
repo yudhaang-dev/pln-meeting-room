@@ -34,47 +34,55 @@ class OshLevelController extends Controller
 
     public function store(StoreOshLevelRequest $request): RedirectResponse
     {
-        $this->authorize('create', OshLevel::class);
+        return $this->catchErrors(function () use ($request) {
+            $this->authorize('create', OshLevel::class);
 
-        OshLevel::create($request->validated());
+            OshLevel::create($request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level created.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level created.')]);
 
-        return to_route('osh-levels.index');
+            return to_route('osh-levels.index');
+        }, __('Failed to create OSH level.'));
     }
 
     public function update(UpdateOshLevelRequest $request, OshLevel $oshLevel): RedirectResponse
     {
-        $this->authorize('update', $oshLevel);
+        return $this->catchErrors(function () use ($request, $oshLevel) {
+            $this->authorize('update', $oshLevel);
 
-        $oshLevel->update($request->validated());
+            $oshLevel->update($request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level updated.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level updated.')]);
 
-        return back();
+            return back();
+        }, __('Failed to update OSH level.'));
     }
 
     public function destroy(OshLevel $oshLevel): RedirectResponse
     {
-        $this->authorize('delete', $oshLevel);
+        return $this->catchErrors(function () use ($oshLevel) {
+            $this->authorize('delete', $oshLevel);
 
-        $oshLevel->delete();
+            $oshLevel->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level deleted.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH level deleted.')]);
 
-        return back();
+            return back();
+        }, __('Failed to delete OSH level.'));
     }
 
     public function reorder(): RedirectResponse
     {
-        $order = request()->input('order', []);
+        return $this->catchErrors(function () {
+            $order = request()->input('order', []);
 
-        foreach ($order as $position => $id) {
-            OshLevel::where('id', $id)->update(['sort_order' => $position + 1]);
-        }
+            foreach ($order as $position => $id) {
+                OshLevel::where('id', $id)->update(['sort_order' => $position + 1]);
+            }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH levels reordered.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('OSH levels reordered.')]);
 
-        return back();
+            return back();
+        }, __('Failed to reorder OSH levels.'));
     }
 }

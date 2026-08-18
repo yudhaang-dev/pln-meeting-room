@@ -33,34 +33,40 @@ class BuildingController extends Controller
 
     public function store(StoreBuildingRequest $request): RedirectResponse
     {
-        $this->authorize('create', Building::class);
+        return $this->catchErrors(function () use ($request) {
+            $this->authorize('create', Building::class);
 
-        Building::create($request->validated());
+            Building::create($request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Building created.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Building created.')]);
 
-        return to_route('buildings.index');
+            return to_route('buildings.index');
+        }, __('Failed to create building.'));
     }
 
     public function update(UpdateBuildingRequest $request, Building $building): RedirectResponse
     {
-        $this->authorize('update', $building);
+        return $this->catchErrors(function () use ($request, $building) {
+            $this->authorize('update', $building);
 
-        $building->update($request->validated());
+            $building->update($request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Building updated.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Building updated.')]);
 
-        return back();
+            return back();
+        }, __('Failed to update building.'));
     }
 
     public function destroy(Building $building): RedirectResponse
     {
-        $this->authorize('delete', $building);
+        return $this->catchErrors(function () use ($building) {
+            $this->authorize('delete', $building);
 
-        $building->delete();
+            $building->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Building deleted.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Building deleted.')]);
 
-        return back();
+            return back();
+        }, __('Failed to delete building.'));
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Booking;
+use App\Models\OshLevel;
+use App\Models\Person;
 use App\Models\Room;
 use App\Models\User;
 use App\Notifications\BookingStatusNotification;
@@ -13,6 +15,8 @@ beforeEach(function () {
     $this->admin = User::factory()->create(['role' => 'admin']);
     $this->operator = User::factory()->create(['role' => 'operator']);
     $this->room = Room::factory()->create();
+    $this->leader = Person::factory()->create();
+    $this->oshLevel = OshLevel::factory()->create();
 });
 
 test('booking creation notifies operators and admins', function () {
@@ -25,11 +29,13 @@ test('booking creation notifies operators and admins', function () {
 
     $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
         'title' => 'Team Meeting',
         'start_time' => now()->addDays(2)->setTime(9, 0),
         'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 5,
         'attachment' => $file,
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
     ]);
 
     Notification::assertSentTo($this->admin, BookingStatusNotification::class);

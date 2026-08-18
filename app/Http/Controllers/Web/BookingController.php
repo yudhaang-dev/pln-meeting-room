@@ -86,39 +86,41 @@ class BookingController extends Controller
      */
     public function store(StoreBookingRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
+        return $this->catchErrors(function () use ($request) {
+            $validated = $request->validated();
 
-        $attachmentPath = null;
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $attachmentPath = $file->store('bookings', 'public');
-        }
+            $attachmentPath = null;
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $attachmentPath = $file->store('bookings', 'public');
+            }
 
-        $qrAttendancePath = null;
-        if ($request->hasFile('qr_attendance')) {
-            $qrAttendancePath = $request->file('qr_attendance')->store('bookings/qr', 'public');
-        }
+            $qrAttendancePath = null;
+            if ($request->hasFile('qr_attendance')) {
+                $qrAttendancePath = $request->file('qr_attendance')->store('bookings/qr', 'public');
+            }
 
-        $booking = Booking::create([
-            'room_id' => $validated['room_id'],
-            'requested_id' => Auth::user()->id,
-            'chairperson_id' => $validated['chairperson_id'],
-            'osh_level_id' => $validated['osh_level_id'],
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
-            'participants_count' => $validated['participants_count'],
-            'attachment_path' => $attachmentPath,
-            'qr_attendance_path' => $qrAttendancePath,
-            'status' => 'pending',
-        ]);
+            $booking = Booking::create([
+                'room_id' => $validated['room_id'],
+                'requested_id' => Auth::user()->id,
+                'chairperson_id' => $validated['chairperson_id'],
+                'osh_level_id' => $validated['osh_level_id'],
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'participants_count' => $validated['participants_count'],
+                'attachment_path' => $attachmentPath,
+                'qr_attendance_path' => $qrAttendancePath,
+                'status' => 'pending',
+            ]);
 
-        BookingCreated::dispatch($booking);
+            BookingCreated::dispatch($booking);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking created successfully.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking created successfully.']);
 
-        return to_route('bookings.index');
+            return to_route('bookings.index');
+        }, __('Failed to create booking.'));
     }
 
     /**
@@ -147,91 +149,90 @@ class BookingController extends Controller
      */
     public function update(UpdateBookingRequest $request, Booking $booking): RedirectResponse
     {
-        $this->authorize('update', $booking);
+        return $this->catchErrors(function () use ($request, $booking) {
+            $this->authorize('update', $booking);
 
-        $validated = $request->validated();
+            $validated = $request->validated();
 
-        if ($request->hasFile('attachment')) {
-            $booking->deleteAttachment();
-            $validated['attachment_path'] = $request->file('attachment')->store('bookings', 'public');
-            unset($validated['attachment']);
-        }
+            if ($request->hasFile('attachment')) {
+                $booking->deleteAttachment();
+                $validated['attachment_path'] = $request->file('attachment')->store('bookings', 'public');
+                unset($validated['attachment']);
+            }
 
-        if ($request->hasFile('qr_attendance')) {
-            $booking->deleteQrAttendance();
-            $validated['qr_attendance_path'] = $request->file('qr_attendance')->store('bookings/qr', 'public');
-            unset($validated['qr_attendance']);
-        }
+            if ($request->hasFile('qr_attendance')) {
+                $booking->deleteQrAttendance();
+                $validated['qr_attendance_path'] = $request->file('qr_attendance')->store('bookings/qr', 'public');
+                unset($validated['qr_attendance']);
+            }
 
-        $booking->update($validated);
+            $booking->update($validated);
 
-        BookingUpdated::dispatch($booking);
+            BookingUpdated::dispatch($booking);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking updated.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking updated.']);
 
-        return back();
+            return back();
+        }, __('Failed to update booking.'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Booking $booking): RedirectResponse
     {
-        $this->authorize('delete', $booking);
+        return $this->catchErrors(function () use ($booking) {
+            $this->authorize('delete', $booking);
 
-        $booking->deleteAttachment();
+            $booking->deleteAttachment();
 
-        BookingUpdated::dispatch($booking);
+            BookingUpdated::dispatch($booking);
 
-        $booking->delete();
+            $booking->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking deleted.']);
 
-        return to_route('bookings.index');
+            return to_route('bookings.index');
+        }, __('Failed to delete booking.'));
     }
 
-    /**
-     * Approve the specified booking.
-     */
     public function approve(Booking $booking): RedirectResponse
     {
-        $this->authorize('approve', $booking);
+        return $this->catchErrors(function () use ($booking) {
+            $this->authorize('approve', $booking);
 
-        $booking->update([
-            'status' => 'approved',
-            'approved_id' => Auth::user()->id,
-            'approved_at' => now(),
-        ]);
+            $booking->update([
+                'status' => 'approved',
+                'approved_id' => Auth::user()->id,
+                'approved_at' => now(),
+            ]);
 
-        BookingUpdated::dispatch($booking);
+            BookingUpdated::dispatch($booking);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking approved.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking approved.']);
 
-        return back();
+            return back();
+        }, __('Failed to approve booking.'));
     }
 
-    /**
-     * Reject the specified booking.
-     */
     public function reject(Request $request, Booking $booking): RedirectResponse
     {
-        $this->authorize('reject', $booking);
+        return $this->catchErrors(function () use ($request, $booking) {
+            $this->authorize('reject', $booking);
 
-        $request->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-        ]);
+            $request->validate([
+                'reason' => ['required', 'string', 'max:1000'],
+            ]);
 
-        $booking->update([
-            'status' => 'rejected',
-            'reason' => $request->input('reason'),
-            'approved_id' => Auth::user()->id,
-            'approved_at' => now(),
-        ]);
+            $booking->update([
+                'status' => 'rejected',
+                'reason' => $request->input('reason'),
+                'approved_id' => Auth::user()->id,
+                'approved_at' => now(),
+            ]);
 
-        BookingUpdated::dispatch($booking);
+            BookingUpdated::dispatch($booking);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking rejected.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking rejected.']);
 
-        return back();
+            return back();
+        }, __('Failed to reject booking.'));
     }
 }

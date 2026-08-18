@@ -39,45 +39,51 @@ class RoomGroupController extends Controller
 
     public function store(StoreRoomGroupRequest $request): RedirectResponse
     {
-        $this->authorize('create', RoomGroup::class);
+        return $this->catchErrors(function () use ($request) {
+            $this->authorize('create', RoomGroup::class);
 
-        $validated = $request->validated();
-        $roomIds = $validated['room_ids'] ?? [];
-        unset($validated['room_ids']);
+            $validated = $request->validated();
+            $roomIds = $validated['room_ids'] ?? [];
+            unset($validated['room_ids']);
 
-        $roomGroup = RoomGroup::create($validated);
-        $roomGroup->rooms()->sync($roomIds);
+            $roomGroup = RoomGroup::create($validated);
+            $roomGroup->rooms()->sync($roomIds);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group created.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group created.')]);
 
-        return to_route('room-groups.index');
+            return to_route('room-groups.index');
+        }, __('Failed to create room group.'));
     }
 
     public function update(UpdateRoomGroupRequest $request, RoomGroup $roomGroup): RedirectResponse
     {
-        $this->authorize('update', $roomGroup);
+        return $this->catchErrors(function () use ($request, $roomGroup) {
+            $this->authorize('update', $roomGroup);
 
-        $validated = $request->validated();
-        $roomIds = $validated['room_ids'] ?? [];
-        unset($validated['room_ids']);
+            $validated = $request->validated();
+            $roomIds = $validated['room_ids'] ?? [];
+            unset($validated['room_ids']);
 
-        $roomGroup->update($validated);
-        $roomGroup->rooms()->sync($roomIds);
+            $roomGroup->update($validated);
+            $roomGroup->rooms()->sync($roomIds);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group updated.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Room group updated.')]);
 
-        return back();
+            return back();
+        }, __('Failed to update room group.'));
     }
 
     public function destroy(RoomGroup $roomGroup): RedirectResponse
     {
-        $this->authorize('delete', $roomGroup);
+        return $this->catchErrors(function () use ($roomGroup) {
+            $this->authorize('delete', $roomGroup);
 
-        $roomGroup->delete();
+            $roomGroup->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room grouping deleted.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Room grouping deleted.')]);
 
-        return back();
+            return back();
+        }, __('Failed to delete room group.'));
     }
 
     public function media(RoomGroup $roomGroup): Response

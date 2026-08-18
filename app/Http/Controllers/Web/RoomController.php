@@ -36,35 +36,41 @@ class RoomController extends Controller
 
     public function store(StoreRoomRequest $request): RedirectResponse
     {
-        $this->authorize('create', Room::class);
+        return $this->catchErrors(function () use ($request) {
+            $this->authorize('create', Room::class);
 
-        $room = Room::create($request->validated());
+            Room::create($request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room created.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Room created.')]);
 
-        return to_route('rooms.index');
+            return to_route('rooms.index');
+        }, __('Failed to create room.'));
     }
 
     public function update(UpdateRoomRequest $request, Room $room): RedirectResponse
     {
-        $this->authorize('update', $room);
+        return $this->catchErrors(function () use ($request, $room) {
+            $this->authorize('update', $room);
 
-        $room->update($request->validated());
+            $room->update($request->validated());
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room updated.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Room updated.')]);
 
-        return back();
+            return back();
+        }, __('Failed to update room.'));
     }
 
     public function destroy(Room $room): RedirectResponse
     {
-        $this->authorize('delete', $room);
+        return $this->catchErrors(function () use ($room) {
+            $this->authorize('delete', $room);
 
-        $room->delete();
+            $room->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Room deleted.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Room deleted.')]);
 
-        return back();
+            return back();
+        }, __('Failed to delete room.'));
     }
 
     public function media(Room $room): Response

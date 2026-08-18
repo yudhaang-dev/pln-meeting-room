@@ -50,49 +50,55 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        $this->authorize('create', User::class);
+        return $this->catchErrors(function () use ($request) {
+            $this->authorize('create', User::class);
 
-        User::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => $request->input('password'),
-            'role' => $request->input('role'),
-        ]);
+            User::create([
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'password' => $request->input('password'),
+                'role' => $request->input('role'),
+            ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'User created.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'User created.']);
 
-        return to_route('users.index');
+            return to_route('users.index');
+        }, __('Failed to create user.'));
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $this->authorize('update', $user);
+        return $this->catchErrors(function () use ($request, $user) {
+            $this->authorize('update', $user);
 
-        $data = [
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'role' => $request->input('role'),
-        ];
+            $data = [
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'role' => $request->input('role'),
+            ];
 
-        if ($request->filled('password')) {
-            $data['password'] = $request->input('password');
-        }
+            if ($request->filled('password')) {
+                $data['password'] = $request->input('password');
+            }
 
-        $user->update($data);
+            $user->update($data);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'User updated.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'User updated.']);
 
-        return back();
+            return back();
+        }, __('Failed to update user.'));
     }
 
     public function destroy(User $user): RedirectResponse
     {
-        $this->authorize('delete', $user);
+        return $this->catchErrors(function () use ($user) {
+            $this->authorize('delete', $user);
 
-        $user->delete();
+            $user->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'User deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'User deleted.']);
 
-        return back();
+            return back();
+        }, __('Failed to delete user.'));
     }
 }

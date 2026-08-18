@@ -35,68 +35,74 @@ class PersonController extends Controller
 
     public function store(StorePersonRequest $request): RedirectResponse
     {
-        $this->authorize('create', Person::class);
+        return $this->catchErrors(function () use ($request) {
+            $this->authorize('create', Person::class);
 
-        $validated = $request->except('photo');
+            $validated = $request->except('photo');
 
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
-            $stream = fopen($file->getPathname(), 'r');
-            if ($stream === false) {
-                Inertia::flash('toast', ['type' => 'error', 'message' => __('Unable to read the uploaded photo.')]);
+            if ($request->hasFile('photo')) {
+                $file = $request->file('photo');
+                $name = Str::random(40).'.'.$file->getClientOriginalExtension();
+                $stream = fopen($file->getPathname(), 'r');
+                if ($stream === false) {
+                    Inertia::flash('toast', ['type' => 'error', 'message' => __('Unable to read the uploaded photo.')]);
 
-                return back();
+                    return back();
+                }
+                Storage::disk('public')->put('people/'.$name, $stream);
+                fclose($stream);
+                $validated['photo'] = 'people/'.$name;
             }
-            Storage::disk('public')->put('people/'.$name, $stream);
-            fclose($stream);
-            $validated['photo'] = 'people/'.$name;
-        }
 
-        Person::create($validated);
+            Person::create($validated);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Person created.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Person created.')]);
 
-        return to_route('people.index');
+            return to_route('people.index');
+        }, __('Failed to create person.'));
     }
 
     public function update(UpdatePersonRequest $request, Person $person): RedirectResponse
     {
-        $this->authorize('update', $person);
+        return $this->catchErrors(function () use ($request, $person) {
+            $this->authorize('update', $person);
 
-        $validated = $request->except('photo');
+            $validated = $request->except('photo');
 
-        if ($request->hasFile('photo')) {
-            $person->deletePhoto();
-            $file = $request->file('photo');
-            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
-            $stream = fopen($file->getPathname(), 'r');
-            if ($stream === false) {
-                Inertia::flash('toast', ['type' => 'error', 'message' => __('Unable to read the uploaded photo.')]);
+            if ($request->hasFile('photo')) {
+                $person->deletePhoto();
+                $file = $request->file('photo');
+                $name = Str::random(40).'.'.$file->getClientOriginalExtension();
+                $stream = fopen($file->getPathname(), 'r');
+                if ($stream === false) {
+                    Inertia::flash('toast', ['type' => 'error', 'message' => __('Unable to read the uploaded photo.')]);
 
-                return back();
+                    return back();
+                }
+                Storage::disk('public')->put('people/'.$name, $stream);
+                fclose($stream);
+                $validated['photo'] = 'people/'.$name;
             }
-            Storage::disk('public')->put('people/'.$name, $stream);
-            fclose($stream);
-            $validated['photo'] = 'people/'.$name;
-        }
 
-        $person->update($validated);
+            $person->update($validated);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Person updated.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Person updated.')]);
 
-        return back();
+            return back();
+        }, __('Failed to update person.'));
     }
 
     public function destroy(Person $person): RedirectResponse
     {
-        $this->authorize('delete', $person);
+        return $this->catchErrors(function () use ($person) {
+            $this->authorize('delete', $person);
 
-        $person->deletePhoto();
-        $person->delete();
+            $person->deletePhoto();
+            $person->delete();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Person deleted.')]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Person deleted.')]);
 
-        return back();
+            return back();
+        }, __('Failed to delete person.'));
     }
 }

@@ -37,239 +37,251 @@ class MediaController extends Controller
 
     public function storeGlobal(): RedirectResponse
     {
-        $this->authorize('create', Media::class);
+        return $this->catchErrors(function () {
+            $this->authorize('create', Media::class);
 
-        request()->validate([
-            'files' => ['required', 'array'],
-            'files.*' => ['file', 'max:51200'],
-        ]);
-
-        $maxSort = Media::global()->max('sort_order') ?? 0;
-        $files = request()->file('files');
-        $created = [];
-
-        foreach ($files as $index => $file) {
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
-            $stream = fopen($file->getPathname(), 'r');
-            if ($stream === false) {
-                Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
-
-                return back();
-            }
-            Storage::disk('public')->put('media/'.$name, $stream);
-            fclose($stream);
-
-            $created[] = Media::create([
-                'mediable_type' => null,
-                'mediable_id' => null,
-                'path' => 'media/'.$name,
-                'type' => $this->determineFileType($file->getClientOriginalExtension()),
-                'name' => $originalName,
-                'size' => $file->getSize(),
-                'mime' => $file->getClientMimeType(),
-                'sort_order' => $maxSort + $index + 1,
-                'is_active' => true,
+            request()->validate([
+                'files' => ['required', 'array'],
+                'files.*' => ['file', 'max:51200'],
             ]);
-        }
 
-        if (count($created) > 0) {
-            $this->broadcastMediaUpdated($created[0]);
-        }
+            $maxSort = Media::global()->max('sort_order') ?? 0;
+            $files = request()->file('files');
+            $created = [];
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
-        Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+            foreach ($files as $index => $file) {
+                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $name = Str::random(40).'.'.$file->getClientOriginalExtension();
+                $stream = fopen($file->getPathname(), 'r');
+                if ($stream === false) {
+                    Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
 
-        return back();
+                    return back();
+                }
+                Storage::disk('public')->put('media/'.$name, $stream);
+                fclose($stream);
+
+                $created[] = Media::create([
+                    'mediable_type' => null,
+                    'mediable_id' => null,
+                    'path' => 'media/'.$name,
+                    'type' => $this->determineFileType($file->getClientOriginalExtension()),
+                    'name' => $originalName,
+                    'size' => $file->getSize(),
+                    'mime' => $file->getClientMimeType(),
+                    'sort_order' => $maxSort + $index + 1,
+                    'is_active' => true,
+                ]);
+            }
+
+            if (count($created) > 0) {
+                $this->broadcastMediaUpdated($created[0]);
+            }
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
+            Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+
+            return back();
+        }, __('Failed to upload media.'));
     }
 
     private function doStore(Room|RoomGroup $mediable): RedirectResponse
     {
-        $this->authorize('create', Media::class);
+        return $this->catchErrors(function () use ($mediable) {
+            $this->authorize('create', Media::class);
 
-        request()->validate([
-            'files' => ['required', 'array'],
-            'files.*' => ['file', 'max:51200'],
-        ]);
-
-        $maxSort = $mediable->media()->max('sort_order') ?? 0;
-        $files = request()->file('files');
-        $created = [];
-
-        foreach ($files as $index => $file) {
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $name = Str::random(40).'.'.$file->getClientOriginalExtension();
-            $stream = fopen($file->getPathname(), 'r');
-            if ($stream === false) {
-                Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
-
-                return back();
-            }
-            Storage::disk('public')->put('media/'.$name, $stream);
-            fclose($stream);
-
-            $created[] = Media::create([
-                'mediable_type' => $mediable::class,
-                'mediable_id' => $mediable->id,
-                'path' => 'media/'.$name,
-                'type' => $this->determineFileType($file->getClientOriginalExtension()),
-                'name' => $originalName,
-                'size' => $file->getSize(),
-                'mime' => $file->getClientMimeType(),
-                'sort_order' => $maxSort + $index + 1,
-                'is_active' => true,
+            request()->validate([
+                'files' => ['required', 'array'],
+                'files.*' => ['file', 'max:51200'],
             ]);
-        }
 
-        if (count($created) > 0) {
-            $this->broadcastMediaUpdated($created[0]);
-        }
+            $maxSort = $mediable->media()->max('sort_order') ?? 0;
+            $files = request()->file('files');
+            $created = [];
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
-        Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+            foreach ($files as $index => $file) {
+                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $name = Str::random(40).'.'.$file->getClientOriginalExtension();
+                $stream = fopen($file->getPathname(), 'r');
+                if ($stream === false) {
+                    Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
 
-        return back();
+                    return back();
+                }
+                Storage::disk('public')->put('media/'.$name, $stream);
+                fclose($stream);
+
+                $created[] = Media::create([
+                    'mediable_type' => $mediable::class,
+                    'mediable_id' => $mediable->id,
+                    'path' => 'media/'.$name,
+                    'type' => $this->determineFileType($file->getClientOriginalExtension()),
+                    'name' => $originalName,
+                    'size' => $file->getSize(),
+                    'mime' => $file->getClientMimeType(),
+                    'sort_order' => $maxSort + $index + 1,
+                    'is_active' => true,
+                ]);
+            }
+
+            if (count($created) > 0) {
+                $this->broadcastMediaUpdated($created[0]);
+            }
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
+            Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+
+            return back();
+        }, __('Failed to upload media.'));
     }
 
     public function chunk(): JsonResponse
     {
-        $this->authorize('create', Media::class);
+        return $this->catchErrorsJson(function () {
+            $this->authorize('create', Media::class);
 
-        $validated = request()->validate([
-            'upload_id' => ['required', 'string', 'max:64'],
-            'index' => ['required', 'integer', 'min:0'],
-            'total_chunks' => ['required', 'integer', 'min:1'],
-            'file' => ['required', 'file', 'max:10240'],
-        ]);
+            $validated = request()->validate([
+                'upload_id' => ['required', 'string', 'max:64'],
+                'index' => ['required', 'integer', 'min:0'],
+                'total_chunks' => ['required', 'integer', 'min:1'],
+                'file' => ['required', 'file', 'max:10240'],
+            ]);
 
-        $disk = Storage::disk('local');
-        $chunkDir = 'uploads/chunks/'.$validated['upload_id'];
-        $chunkPath = $chunkDir.'/'.$validated['index'];
+            $disk = Storage::disk('local');
+            $chunkDir = 'uploads/chunks/'.$validated['upload_id'];
+            $chunkPath = $chunkDir.'/'.$validated['index'];
 
-        if (! $disk->exists($chunkDir)) {
-            $disk->makeDirectory($chunkDir);
-        }
+            if (! $disk->exists($chunkDir)) {
+                $disk->makeDirectory($chunkDir);
+            }
 
-        $stream = fopen(request()->file('file')->getPathname(), 'r');
-        if ($stream === false) {
-            return response()->json(['message' => 'Could not read the uploaded chunk.'], 500);
-        }
-        $disk->put($chunkPath, $stream);
-        fclose($stream);
+            $stream = fopen(request()->file('file')->getPathname(), 'r');
+            if ($stream === false) {
+                return response()->json(['message' => 'Could not read the uploaded chunk.'], 500);
+            }
+            $disk->put($chunkPath, $stream);
+            fclose($stream);
 
-        return response()->json([
-            'uploaded' => $validated['index'] + 1,
-            'total' => $validated['total_chunks'],
-        ]);
+            return response()->json([
+                'uploaded' => $validated['index'] + 1,
+                'total' => $validated['total_chunks'],
+            ]);
+        }, 'Failed to upload chunk.');
     }
 
     public function assemble(): JsonResponse
     {
-        $this->authorize('create', Media::class);
+        return $this->catchErrorsJson(function () {
+            $this->authorize('create', Media::class);
 
-        $validated = request()->validate([
-            'upload_id' => ['required', 'string', 'max:64'],
-            'mediable_type' => ['required', 'string', 'in:global,rooms,room-groups'],
-            'mediable_id' => ['sometimes', 'integer'],
-            'original_name' => ['required', 'string', 'max:255'],
-            'mime_type' => ['required', 'string', 'max:128'],
-            'total_chunks' => ['required', 'integer', 'min:1'],
-        ]);
+            $validated = request()->validate([
+                'upload_id' => ['required', 'string', 'max:64'],
+                'mediable_type' => ['required', 'string', 'in:global,rooms,room-groups'],
+                'mediable_id' => ['sometimes', 'integer'],
+                'original_name' => ['required', 'string', 'max:255'],
+                'mime_type' => ['required', 'string', 'max:128'],
+                'total_chunks' => ['required', 'integer', 'min:1'],
+            ]);
 
-        $chunkDir = 'uploads/chunks/'.$validated['upload_id'];
-        $localDisk = Storage::disk('local');
+            $chunkDir = 'uploads/chunks/'.$validated['upload_id'];
+            $localDisk = Storage::disk('local');
 
-        $mediable = match ($validated['mediable_type']) {
-            'rooms' => Room::findOrFail($validated['mediable_id']),
-            'room-groups' => RoomGroup::findOrFail($validated['mediable_id']),
-            default => null,
-        };
+            $mediable = match ($validated['mediable_type']) {
+                'rooms' => Room::findOrFail($validated['mediable_id']),
+                'room-groups' => RoomGroup::findOrFail($validated['mediable_id']),
+                default => null,
+            };
 
-        if ($mediable !== null && ! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
-            abort(422);
-        }
-
-        $extension = pathinfo($validated['original_name'], PATHINFO_EXTENSION);
-        $originalFilename = pathinfo($validated['original_name'], PATHINFO_FILENAME);
-        $name = Str::random(40).'.'.$extension;
-        $finalPath = 'media/'.$name;
-
-        Storage::disk('public')->makeDirectory(dirname($finalPath));
-
-        $targetPath = Storage::disk('public')->path($finalPath);
-        $target = fopen($targetPath, 'wb');
-        if ($target === false) {
-            return response()->json(['message' => 'Could not open target file.'], 500);
-        }
-
-        for ($i = 0; $i < $validated['total_chunks']; $i++) {
-            $relativeChunkPath = $chunkDir.'/'.$i;
-            if (! $localDisk->exists($relativeChunkPath)) {
-                fclose($target);
-
-                return response()->json(['message' => "Chunk {$i} not found."], 422);
+            if ($mediable !== null && ! $mediable instanceof Room && ! $mediable instanceof RoomGroup) {
+                abort(422);
             }
-            $chunk = fopen($localDisk->path($relativeChunkPath), 'rb');
-            if ($chunk === false) {
-                fclose($target);
 
-                return response()->json(['message' => "Chunk {$i} not found."], 422);
+            $extension = pathinfo($validated['original_name'], PATHINFO_EXTENSION);
+            $originalFilename = pathinfo($validated['original_name'], PATHINFO_FILENAME);
+            $name = Str::random(40).'.'.$extension;
+            $finalPath = 'media/'.$name;
+
+            Storage::disk('public')->makeDirectory(dirname($finalPath));
+
+            $targetPath = Storage::disk('public')->path($finalPath);
+            $target = fopen($targetPath, 'wb');
+            if ($target === false) {
+                return response()->json(['message' => 'Could not open target file.'], 500);
             }
-            stream_copy_to_stream($chunk, $target);
-            fclose($chunk);
-        }
 
-        fclose($target);
+            for ($i = 0; $i < $validated['total_chunks']; $i++) {
+                $relativeChunkPath = $chunkDir.'/'.$i;
+                if (! $localDisk->exists($relativeChunkPath)) {
+                    fclose($target);
 
-        $maxSort = $mediable instanceof Room || $mediable instanceof RoomGroup
-            ? $mediable->media()->max('sort_order')
-            : Media::global()->max('sort_order');
-        $media = Media::create([
-            'mediable_type' => $mediable ? $mediable::class : null,
-            'mediable_id' => $mediable?->id,
-            'path' => $finalPath,
-            'type' => $this->determineFileType($extension),
-            'name' => $originalFilename,
-            'mime' => $validated['mime_type'],
-            'sort_order' => ($maxSort ?? 0) + 1,
-            'is_active' => true,
-        ]);
+                    return response()->json(['message' => "Chunk {$i} not found."], 422);
+                }
+                $chunk = fopen($localDisk->path($relativeChunkPath), 'rb');
+                if ($chunk === false) {
+                    fclose($target);
 
-        $this->cleanupChunks($validated['upload_id']);
+                    return response()->json(['message' => "Chunk {$i} not found."], 422);
+                }
+                stream_copy_to_stream($chunk, $target);
+                fclose($chunk);
+            }
 
-        $this->broadcastMediaUpdated($media);
+            fclose($target);
 
-        return response()->json([
-            'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
-        ]);
+            $maxSort = $mediable instanceof Room || $mediable instanceof RoomGroup
+                ? $mediable->media()->max('sort_order')
+                : Media::global()->max('sort_order');
+            $media = Media::create([
+                'mediable_type' => $mediable ? $mediable::class : null,
+                'mediable_id' => $mediable?->id,
+                'path' => $finalPath,
+                'type' => $this->determineFileType($extension),
+                'name' => $originalFilename,
+                'mime' => $validated['mime_type'],
+                'sort_order' => ($maxSort ?? 0) + 1,
+                'is_active' => true,
+            ]);
+
+            $this->cleanupChunks($validated['upload_id']);
+
+            $this->broadcastMediaUpdated($media);
+
+            return response()->json([
+                'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
+            ]);
+        }, 'Failed to assemble media.');
     }
 
     public function reorder(): RedirectResponse
     {
-        $order = request()->input('order', []);
+        return $this->catchErrors(function () {
+            $order = request()->input('order', []);
 
-        foreach ($order as $index => $mediaId) {
-            Media::where('id', $mediaId)->update(['sort_order' => $index + 1]);
-        }
-
-        if (count($order) > 0) {
-            $media = Media::with('mediable')->find($order[0]);
-
-            if ($media instanceof Media) {
-                $this->broadcastMediaUpdated($media);
+            foreach ($order as $index => $mediaId) {
+                Media::where('id', $mediaId)->update(['sort_order' => $index + 1]);
             }
-        }
 
-        return back();
+            if (count($order) > 0) {
+                $media = Media::with('mediable')->find($order[0]);
+
+                if ($media instanceof Media) {
+                    $this->broadcastMediaUpdated($media);
+                }
+            }
+
+            return back();
+        }, __('Failed to reorder media.'));
     }
 
     public function toggleActive(mixed $parent, Media $media): RedirectResponse
     {
-        $media->update(['is_active' => ! $media->is_active]);
+        return $this->catchErrors(function () use ($media) {
+            $media->update(['is_active' => ! $media->is_active]);
 
-        $this->broadcastMediaUpdated($media);
+            $this->broadcastMediaUpdated($media);
 
-        return back();
+            return back();
+        }, __('Failed to update media status.'));
     }
 
     public function toggleActiveGlobal(Media $media): RedirectResponse
@@ -279,16 +291,18 @@ class MediaController extends Controller
 
     public function destroy(mixed $parent, Media $media): RedirectResponse
     {
-        $this->authorize('delete', $media);
-        $media->load('mediable');
-        $media->deleteFile();
-        $media->delete();
-        $this->resequenceSortOrder($media);
-        $this->broadcastMediaUpdated($media);
+        return $this->catchErrors(function () use ($media) {
+            $this->authorize('delete', $media);
+            $media->load('mediable');
+            $media->deleteFile();
+            $media->delete();
+            $this->resequenceSortOrder($media);
+            $this->broadcastMediaUpdated($media);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Media deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Media deleted.']);
 
-        return back();
+            return back();
+        }, __('Failed to delete media.'));
     }
 
     public function destroyGlobal(Media $media): RedirectResponse
@@ -308,53 +322,57 @@ class MediaController extends Controller
 
     public function bulkDeleteGlobal(): RedirectResponse
     {
-        $mediaIds = request()->input('media_ids', []);
+        return $this->catchErrors(function () {
+            $mediaIds = request()->input('media_ids', []);
 
-        $mediaItems = Media::global()
-            ->whereIn('id', $mediaIds)
-            ->with('mediable')
-            ->get();
+            $mediaItems = Media::global()
+                ->whereIn('id', $mediaIds)
+                ->with('mediable')
+                ->get();
 
-        foreach ($mediaItems as $media) {
-            $this->authorize('delete', $media);
-            $media->deleteFile();
-            $media->delete();
-        }
+            foreach ($mediaItems as $media) {
+                $this->authorize('delete', $media);
+                $media->deleteFile();
+                $media->delete();
+            }
 
-        if ($mediaItems->isNotEmpty()) {
-            $this->resequenceSortOrder($mediaItems->first());
-            $this->broadcastMediaUpdated($mediaItems->first());
-        }
+            if ($mediaItems->isNotEmpty()) {
+                $this->resequenceSortOrder($mediaItems->first());
+                $this->broadcastMediaUpdated($mediaItems->first());
+            }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
 
-        return back();
+            return back();
+        }, __('Failed to delete media.'));
     }
 
     private function doBulkDelete(Room|RoomGroup $mediable): RedirectResponse
     {
-        $mediaIds = request()->input('media_ids', []);
+        return $this->catchErrors(function () use ($mediable) {
+            $mediaIds = request()->input('media_ids', []);
 
-        $mediaItems = Media::whereIn('id', $mediaIds)
-            ->where('mediable_type', $mediable::class)
-            ->where('mediable_id', $mediable->id)
-            ->with('mediable')
-            ->get();
+            $mediaItems = Media::whereIn('id', $mediaIds)
+                ->where('mediable_type', $mediable::class)
+                ->where('mediable_id', $mediable->id)
+                ->with('mediable')
+                ->get();
 
-        foreach ($mediaItems as $media) {
-            $this->authorize('delete', $media);
-            $media->deleteFile();
-            $media->delete();
-        }
+            foreach ($mediaItems as $media) {
+                $this->authorize('delete', $media);
+                $media->deleteFile();
+                $media->delete();
+            }
 
-        if ($mediaItems->isNotEmpty()) {
-            $this->resequenceSortOrder($mediaItems->first());
-            $this->broadcastMediaUpdated($mediaItems->first());
-        }
+            if ($mediaItems->isNotEmpty()) {
+                $this->resequenceSortOrder($mediaItems->first());
+                $this->broadcastMediaUpdated($mediaItems->first());
+            }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
 
-        return back();
+            return back();
+        }, __('Failed to delete media.'));
     }
 
     private function resequenceSortOrder(Media $media): void

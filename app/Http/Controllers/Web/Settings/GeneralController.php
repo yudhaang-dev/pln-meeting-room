@@ -30,26 +30,28 @@ class GeneralController extends Controller
 
     public function update(UpdateGeneralSettingRequest $request): RedirectResponse
     {
-        $settings = app(GeneralSettings::class);
-        $validated = $request->validated();
+        return $this->catchErrors(function () use ($request) {
+            $settings = app(GeneralSettings::class);
+            $validated = $request->validated();
 
-        $audio = $validated['audio_notification'] ?? null;
-        unset($validated['audio_notification']);
+            $audio = $validated['audio_notification'] ?? null;
+            unset($validated['audio_notification']);
 
-        if ($audio instanceof UploadedFile) {
-            if ($settings->audio_notification) {
-                Storage::disk('public')->delete($settings->audio_notification);
+            if ($audio instanceof UploadedFile) {
+                if ($settings->audio_notification) {
+                    Storage::disk('public')->delete($settings->audio_notification);
+                }
+
+                $validated['audio_notification'] = $audio->store('audio/settings', 'public');
             }
 
-            $validated['audio_notification'] = $audio->store('audio/settings', 'public');
-        }
+            $settings->fill($validated)->save();
 
-        $settings->fill($validated)->save();
+            PublicBroadcast::dispatch('Display.Global', 'SettingsUpdated', []);
 
-        PublicBroadcast::dispatch('Display.Global', 'SettingsUpdated', []);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Settings updated.')]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Settings updated.')]);
-
-        return to_route('settings.systems.general.edit');
+            return to_route('settings.systems.general.edit');
+        }, __('Failed to update settings.'));
     }
 }

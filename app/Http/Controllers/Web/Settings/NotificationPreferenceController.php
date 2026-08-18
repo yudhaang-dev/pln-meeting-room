@@ -27,29 +27,31 @@ class NotificationPreferenceController extends Controller
 
     public function update(UpdateNotificationPreferenceRequest $request): RedirectResponse
     {
-        $user = $request->user();
-        $validated = $request->validated();
+        return $this->catchErrors(function () use ($request) {
+            $user = $request->user();
+            $validated = $request->validated();
 
-        $audio = $validated['audio_notification'] ?? null;
+            $audio = $validated['audio_notification'] ?? null;
 
-        if (! empty($validated['remove_audio'])) {
-            $user->deleteNotificationAudio();
-            $user->save();
+            if (! empty($validated['remove_audio'])) {
+                $user->deleteNotificationAudio();
+                $user->save();
 
-            $message = __('Notification audio reset to default.');
-        } elseif ($audio instanceof UploadedFile) {
-            $user->deleteNotificationAudio();
-            $user->fill([
-                'notification_audio' => $audio->store('users/notification-audio', 'public'),
-            ])->save();
+                $message = __('Notification audio reset to default.');
+            } elseif ($audio instanceof UploadedFile) {
+                $user->deleteNotificationAudio();
+                $user->fill([
+                    'notification_audio' => $audio->store('users/notification-audio', 'public'),
+                ])->save();
 
-            $message = __('Notification audio updated.');
-        } else {
+                $message = __('Notification audio updated.');
+            } else {
+                return to_route('settings.account.notification.edit');
+            }
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
+
             return to_route('settings.account.notification.edit');
-        }
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
-
-        return to_route('settings.account.notification.edit');
+        }, __('Failed to update notification preferences.'));
     }
 }

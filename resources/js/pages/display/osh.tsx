@@ -1,11 +1,21 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { TableSchedule } from '@/components/features/display/table-schedule';
 import { TopBar } from '@/components/shared/general/top-bar';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useDisplayPolling } from '@/hooks/use-display-polling';
-import { playBeep } from '@/lib/notification-audio';
+import { AUDIO_UNLOCK_EVENT, playBeep } from '@/lib/notification-audio';
+import { flashTitle } from '@/lib/title-flash';
 import { cn, formatDayDate } from '@/lib/utils';
 
 type Booking = {
@@ -44,6 +54,18 @@ export default function Osh({
     orientation,
     refreshInterval,
 }: Props) {
+    const [docTitle, setDocTitle] = useState<string>('');
+    const [audioPromptOpen, setAudioPromptOpen] = useState(true);
+
+    useEffect(() => {
+        const handleUnlocked = () => setAudioPromptOpen(false);
+
+        window.addEventListener(AUDIO_UNLOCK_EVENT, handleUnlocked);
+
+        return () =>
+            window.removeEventListener(AUDIO_UNLOCK_EVENT, handleUnlocked);
+    }, []);
+
     // 1. Ambil status koneksi WebSocket Reverb ("connected", "disconnected", "connecting", dll)
     const connectionStatus = useConnectionStatus();
 
@@ -61,6 +83,8 @@ export default function Osh({
     // 3. Listen Event menggunakan useEcho jika WebSocket aktif
     useEchoPublic(`Display.Osh`, 'BookingUpdated', () => {
         playBeep();
+        setDocTitle('Ada perubahan pada acara');
+        flashTitle('Ada perubahan pada acara');
         router.reload({ only: ['todayBookings', 'tomorrowBookings'] });
     });
 
@@ -85,7 +109,7 @@ export default function Osh({
 
     return (
         <>
-            <Head title="OSH Display" />
+            <Head title={docTitle ?? 'OSH Display'} />
             <div className="bg-linear-to-b flex min-h-svh w-full flex-col from-white/70 to-transparent">
                 <TopBar
                     className="w-full gap-6 p-6 md:p-10"
@@ -109,6 +133,28 @@ export default function Osh({
                     />
                 </div>
             </div>
+
+            <AlertDialog open={audioPromptOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Suara belum aktif</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Klik "Aktifkan Suara" untuk mengaktifkan notifikasi
+                            beep pada tampilan OSH.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction
+                            onClick={() => {
+                                playBeep();
+                                setAudioPromptOpen(false);
+                            }}
+                        >
+                            Aktifkan Suara
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

@@ -4,6 +4,8 @@ use App\Events\BookingCreated;
 use App\Events\BookingUpdated;
 use App\Events\PublicBroadcast;
 use App\Models\Booking;
+use App\Models\OshLevel;
+use App\Models\Person;
 use App\Models\Room;
 use App\Models\RoomGroup;
 use App\Models\User;
@@ -17,6 +19,8 @@ beforeEach(function () {
     $this->room = Room::factory()->create();
     $this->roomGroup = RoomGroup::factory()->create();
     $this->room->roomGroups()->attach($this->roomGroup->id);
+    $this->leader = Person::factory()->create();
+    $this->oshLevel = OshLevel::factory()->create();
 });
 
 test('booking updated broadcasts to osh for any approved booking', function () {
@@ -133,11 +137,13 @@ test('booking creation dispatches booking created but not booking updated', func
 
     $this->actingAs($this->user)->post(route('bookings.store'), [
         'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
         'title' => 'New Booking',
         'start_time' => now()->addDays(2)->setTime(9, 0),
         'end_time' => now()->addDays(2)->setTime(10, 0),
         'participants_count' => 5,
         'attachment' => $file,
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
     ]);
 
     Event::assertDispatched(BookingCreated::class);

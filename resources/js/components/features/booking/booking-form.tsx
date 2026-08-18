@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Combobox,
@@ -69,6 +69,19 @@ const emptyForm = {
     qr_attendance: null as File | null,
 };
 
+const bookingToFormData = (booking: BookingData) => ({
+    room_id: String(booking.room_id),
+    chairperson_id: booking.chairperson_id
+        ? String(booking.chairperson_id)
+        : '',
+    osh_level_id: booking.osh_level_id ? String(booking.osh_level_id) : '',
+    title: booking.title,
+    description: booking.description ?? '',
+    start_time: booking.start_time.replace(' ', 'T'),
+    end_time: booking.end_time.replace(' ', 'T'),
+    participants_count: booking.participants_count,
+});
+
 export function BookingForm({
     open,
     onOpenChange,
@@ -84,23 +97,14 @@ export function BookingForm({
 
     const { data, setData, post, put, processing, reset, errors } = useForm({
         ...emptyForm,
-        ...(booking
-            ? {
-                  room_id: String(booking.room_id),
-                  chairperson_id: booking.chairperson_id
-                      ? String(booking.chairperson_id)
-                      : '',
-                  osh_level_id: booking.osh_level_id
-                      ? String(booking.osh_level_id)
-                      : '',
-                  title: booking.title,
-                  description: booking.description ?? '',
-                  start_time: booking.start_time.replace(' ', 'T'),
-                  end_time: booking.end_time.replace(' ', 'T'),
-                  participants_count: booking.participants_count,
-              }
-            : {}),
+        ...(booking ? bookingToFormData(booking) : {}),
     });
+
+    useEffect(() => {
+        if (open && booking) {
+            setData(bookingToFormData(booking));
+        }
+    }, [open, booking, setData]);
 
     const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();

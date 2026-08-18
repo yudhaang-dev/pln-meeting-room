@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { MediaPlayer } from '@/components/features/display/media-player';
 import { ScheduleItems } from '@/components/features/display/schedule-items';
 import { useDisplayPolling } from '@/hooks/use-display-polling';
+import { flashTitle } from '@/lib/title-flash';
 import { cn } from '@/lib/utils';
 
 type Media = {
@@ -84,19 +85,22 @@ export default function Lobby({
         },
     );
 
-    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, '.BookingUpdated', () =>
-        router.reload({ only: ['bookings'] }),
-    );
+    useEchoPublic(`Display.RoomGroup.${roomGroup.id}`, 'BookingUpdated', () => {
+        flashTitle('Ada perubahan pada acara');
+        router.reload({ only: ['bookings'] });
+    });
 
-    useEchoPublic('Display.Global', '.MediaUpdated', () =>
-        router.reload({ only: ['media'] }),
-    );
+    useEchoPublic('Display.Global', '.MediaUpdated', () => {
+        flashTitle('Media diperbarui');
+        router.reload({ only: ['media'] });
+    });
 
-    useEchoPublic('Display.Global', '.SettingsUpdated', () =>
+    useEchoPublic('Display.Global', '.SettingsUpdated', () => {
+        flashTitle('Pengaturan diperbarui');
         router.reload({
             only: ['refreshInterval', 'mediaLoopDuration'],
-        }),
-    );
+        });
+    });
 
     // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
     useEffect(() => {

@@ -6,6 +6,7 @@ import { MediaPlayer } from '@/components/features/display/media-player';
 import { TopBar } from '@/components/shared/general/top-bar';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useDisplayPolling } from '@/hooks/use-display-polling';
+import { flashTitle } from '@/lib/title-flash';
 import { formatTime } from '@/lib/utils';
 
 type Media = {
@@ -90,19 +91,22 @@ export default function Room({
     );
 
     // 3. Listen Event menggunakan useEcho jika WebSocket aktif
-    useEchoPublic(`Display.Room.${room.id}`, '.BookingUpdated', () =>
-        router.reload({ only: ['currentBooking'] }),
-    );
+    useEchoPublic(`Display.Room.${room.id}`, 'BookingUpdated', () => {
+        flashTitle('Ada perubahan pada acara');
+        router.reload({ only: ['currentBooking'] });
+    });
 
-    useEchoPublic('Display.Global', '.MediaUpdated', () =>
-        router.reload({ only: ['media'] }),
-    );
+    useEchoPublic('Display.Global', '.MediaUpdated', () => {
+        flashTitle('Media diperbarui');
+        router.reload({ only: ['media'] });
+    });
 
-    useEchoPublic('Display.Global', '.SettingsUpdated', () =>
+    useEchoPublic('Display.Global', '.SettingsUpdated', () => {
+        flashTitle('Pengaturan diperbarui');
         router.reload({
             only: ['refreshInterval', 'mediaLoopDuration'],
-        }),
-    );
+        });
+    });
 
     // 4. Logika Sakelar: Hidupkan Polling HANYA JIKA WebSocket Tidak Terhubung
     useEffect(() => {

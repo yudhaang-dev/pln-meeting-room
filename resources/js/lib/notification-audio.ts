@@ -1,8 +1,14 @@
 import beepSound from '@/../assets/audio/beep.wav';
 
+export const AUDIO_UNLOCK_EVENT = 'audio-unlocked';
+
+const AUDIO_UNLOCK_KEY = 'display-media-audio-unlocked';
+
 let soundUrl: string | null = null;
 let audioElement: HTMLAudioElement | null = null;
-let audioUnlocked = false;
+let audioUnlocked =
+    typeof window !== 'undefined' &&
+    window.localStorage.getItem(AUDIO_UNLOCK_KEY) === '1';
 
 function resolveSoundUrl() {
     return soundUrl ?? beepSound;
@@ -22,28 +28,40 @@ function unlockAudio() {
         return;
     }
 
-    audioElement = new Audio(resolveSoundUrl());
-    audioElement.volume = 0;
-    audioElement.muted = true;
-    void audioElement.play().catch(() => {});
-
-    const ctx = new AudioContext();
-    const buffer = ctx.createBuffer(1, 1, 22050);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start(0);
-
-    if (ctx.state === 'suspended') {
-        void ctx.resume();
+    if (!audioElement) {
+        audioElement = new Audio(resolveSoundUrl());
     }
 
-    audioUnlocked = true;
-    window.setTimeout(() => ctx.close(), 500);
+    audioElement.volume = 0;
+    audioElement.muted = true;
+
+    audioElement
+        .play()
+        .then(() => {
+            audioUnlocked = true;
+            window.localStorage.setItem(AUDIO_UNLOCK_KEY, '1');
+            window.dispatchEvent(new Event(AUDIO_UNLOCK_EVENT));
+            audioElement?.pause();
+        })
+        .catch(() => {});
+}
+
+export function isAudioUnlocked(): boolean {
+    return audioUnlocked;
 }
 
 export function setupAudioUnlock() {
-    document.addEventListener('click', unlockAudio, { once: true });
+    const unlock = () => unlockAudio();
+    const events: (keyof DocumentEventMap)[] = [
+        'click',
+        'pointerdown',
+        'keydown',
+        'touchstart',
+    ];
+
+    for (const event of events) {
+        document.addEventListener(event, unlock, { once: true });
+    }
 }
 
 export function playBeep() {
@@ -58,6 +76,7 @@ export function playBeep() {
     audioElement.volume = 1;
     audioElement.muted = false;
     audioElement.currentTime = 0;
+
     audioElement.play().catch((error) => {
         console.warn('Beep playback failed:', error);
     });

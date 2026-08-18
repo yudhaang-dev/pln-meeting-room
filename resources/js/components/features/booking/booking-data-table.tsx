@@ -28,8 +28,8 @@ type Booking = {
     status: string;
     participants_count: number;
     room: { id: number; name: string; building: { id: number; name: string } };
-    requested_by: { id: number; name: string };
-    approved_by: { id: number; name: string };
+    requested_by: { id: number; name: string; email: string };
+    approved_by: { id: number; name: string; email: string };
     chairperson: { name: string };
     osh_level: { name: string; color: string } | null;
 };
@@ -180,6 +180,8 @@ export function BookingDataTable({
                         </SortableHeader>
                         <TableHead>Agenda</TableHead>
                         <TableHead>Lokasi</TableHead>
+                        <TableHead>Diajukan oleh</TableHead>
+                        <TableHead>Ditinjau oleh</TableHead>
                         <TableHead>Level Keamanan</TableHead>
                         <SortableHeader
                             column="status"
@@ -234,6 +236,23 @@ export function BookingDataTable({
                                         {row.room?.building.name ?? '-'}
                                     </div>
                                 </TableCell>
+                                <TableCell>
+                                    <div className="text-sm">
+                                        {row.requested_by.name}
+                                    </div>
+                                    <div className="text-muted-foreground text-xs">
+                                        {row.requested_by.email}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="text-sm">
+                                        {row?.approved_by?.name ?? '-'}
+                                    </div>
+                                    <div className="text-muted-foreground text-xs">
+                                        {row?.approved_by?.email ?? '-'}
+                                    </div>
+                                </TableCell>
+
                                 <TableCell>
                                     {row.osh_level ? (
                                         <OshBadge level={row.osh_level} />

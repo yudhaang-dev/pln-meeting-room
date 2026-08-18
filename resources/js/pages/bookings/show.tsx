@@ -313,6 +313,7 @@ export default function BookingsShow({
                     attachment_url: booking.attachment_url,
                     qr_attendance_url: booking.qr_attendance_url,
                 }}
+                onSuccess={() => router.reload()}
             />
         </>
     );

@@ -31,50 +31,48 @@ class NotificationController extends Controller
      */
     public function markAsRead(Request $request, string $notification): RedirectResponse
     {
-        $notification = $request->user()
-            ->notifications()
-            ->where('id', $notification)
-            ->firstOrFail();
+        return $this->catchErrors(function () use ($request, $notification) {
+            $notification = $request->user()
+                ->notifications()
+                ->where('id', $notification)
+                ->firstOrFail();
 
-        $notification->markAsRead();
+            $notification->markAsRead();
 
-        // Mengembalikan back() agar Inertia me-refresh properti global secara otomatis
-        return back();
+            return back();
+        }, __('Failed to mark notification as read.'));
     }
 
-    /**
-     * Menandai seluruh notifikasi user sebagai selesai dibaca.
-     */
     public function markAllAsRead(Request $request): RedirectResponse
     {
-        $request->user()->unreadNotifications()->update([
-            'read_at' => now(),
-        ]);
+        return $this->catchErrors(function () use ($request) {
+            $request->user()->unreadNotifications()->update([
+                'read_at' => now(),
+            ]);
 
-        return back();
+            return back();
+        }, __('Failed to mark notifications as read.'));
     }
 
-    /**
-     * Menghapus satu data notifikasi.
-     */
     public function destroy(Request $request, string $id): RedirectResponse
     {
-        $request->user()
-            ->notifications()
-            ->where('id', $id)
-            ->delete();
+        return $this->catchErrors(function () use ($request, $id) {
+            $request->user()
+                ->notifications()
+                ->where('id', $id)
+                ->delete();
 
-        return back();
+            return back();
+        }, __('Failed to delete notification.'));
     }
 
-    /**
-     * Menghapus seluruh riwayat notifikasi user.
-     */
     public function clearAll(Request $request): RedirectResponse
     {
-        $request->user()->notifications()->delete();
+        return $this->catchErrors(function () use ($request) {
+            $request->user()->notifications()->delete();
 
-        return back();
+            return back();
+        }, __('Failed to clear notifications.'));
     }
 
     /**

@@ -21,6 +21,8 @@ class DummySeeder extends Seeder
         'bookings/UwtEMnFoT2EBX3Ar03aaqw5DmJDbSo3ha0wUwdA3.pdf',
     ];
 
+    private int $chairpersonCursor = 0;
+
     public function run(): void
     {
         $this->seedMasterData();
@@ -216,6 +218,19 @@ class DummySeeder extends Seeder
         }
     }
 
+    private function resolveChairperson(?int $chairpersonId): int
+    {
+        if ($chairpersonId !== null) {
+            return $chairpersonId;
+        }
+
+        $people = Person::where('is_active', true)->orderBy('id')->pluck('id');
+        $id = $people[$this->chairpersonCursor % $people->count()];
+        $this->chairpersonCursor++;
+
+        return $id;
+    }
+
     private function seedNotifications(): void
     {
         DB::table('notifications')->truncate();
@@ -330,6 +345,11 @@ class DummySeeder extends Seeder
     ): array {
         $pdfPath = $pdfIndex >= 0 ? $this->pdfs[$pdfIndex % count($this->pdfs)] : null;
 
+        $oshLevel = OshLevel::determineForParticipants($participantsCount)
+            ?? OshLevel::orderByDesc('max_participants')->first();
+
+        $chairpersonId = $this->resolveChairperson($chairpersonId);
+
         return [
             'room_id' => $roomId,
             'requested_id' => $requesterId,
@@ -339,6 +359,7 @@ class DummySeeder extends Seeder
             'start_time' => $startTime,
             'end_time' => $endTime,
             'participants_count' => $participantsCount,
+            'osh_level_id' => $oshLevel?->id,
             'status' => $status,
             'attachment_path' => $pdfPath,
             'reason' => $reason,
