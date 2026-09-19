@@ -29,7 +29,6 @@ yarn-error.log
 /.opencode
 /.github
 /.agent
-/docs
 opencode.json
 AGENTS.md
 DESIGN.md
