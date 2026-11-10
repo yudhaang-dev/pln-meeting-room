@@ -34,3 +34,6 @@ AGENTS.md
 DESIGN.md
 revisi.md
 /.revisi
+
+# Berkas peluncur sementara untuk tombol Jalankan/Restart layanan
+/storage/framework/service-*.bat
