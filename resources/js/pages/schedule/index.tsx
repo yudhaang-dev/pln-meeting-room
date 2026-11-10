@@ -100,8 +100,13 @@ export default function ScheduleIndex({
                                         'bg-primary text-primary-foreground',
                                 )}
                             >
-                                {formatDayDate(day.date)}
-                                {day.is_today && ' (Hari ini)'}
+                                <div>
+                                    {formatDayDate(day.date).split(', ')[0]}
+                                    {day.is_today && ' · Hari ini'}
+                                </div>
+                                <div className="text-xs font-normal opacity-80">
+                                    {formatDayDate(day.date).split(', ')[1]}
+                                </div>
                             </header>
                             <div className="flex flex-1 flex-col gap-2 p-2">
                                 {day.bookings.length === 0 && (
