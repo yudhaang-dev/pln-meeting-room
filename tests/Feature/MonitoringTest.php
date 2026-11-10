@@ -137,6 +137,20 @@ test('clearing cache is admin only and logged', function () {
     expect(App\Models\ActivityLog::where('event', 'system.clear_cache')->where('user_id', $admin->id)->count())->toBe(1);
 });
 
+test('clearing cache never removes the restart signals that queue worker and reverb watch', function () {
+    // Worker dan Reverb berhenti sendiri bila nilai tanda ini berubah, termasuk saat hilang.
+    Illuminate\Support\Facades\Cache::forever('illuminate:queue:restart', 111);
+    Illuminate\Support\Facades\Cache::forever('laravel:reverb:restart', 222);
+    Illuminate\Support\Facades\Cache::put('data-lain', 'x', 600);
+
+    $this->actingAs(App\Models\User::factory()->create(['role' => 'admin']))
+        ->post(route('admin.actions.clearCache'))->assertRedirect();
+
+    expect(Illuminate\Support\Facades\Cache::get('illuminate:queue:restart'))->toBe(111)
+        ->and(Illuminate\Support\Facades\Cache::get('laravel:reverb:restart'))->toBe(222)
+        ->and(Illuminate\Support\Facades\Cache::get('data-lain'))->toBe('x');
+});
+
 test('dangerous admin actions require password confirmation', function () {
     $admin = App\Models\User::factory()->create(['role' => 'admin']);
 

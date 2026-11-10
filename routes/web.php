@@ -66,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('admin/monitoring', Web\MonitoringController::class)->name('admin.monitoring');
         Route::get('admin/activity', Web\ActivityLogController::class)->name('admin.activity');
 
+        Route::post('admin/services/{service}/start', [Web\ServiceControlController::class, 'start'])
+            ->whereIn('service', ['queue', 'reverb'])->name('admin.services.start');
+        Route::post('admin/services/{service}/restart', [Web\ServiceControlController::class, 'restart'])
+            ->whereIn('service', ['queue', 'reverb'])->name('admin.services.restart');
+
         Route::post('admin/actions/clear-cache', [Web\AdminActionController::class, 'clearCache'])->name('admin.actions.clearCache');
         Route::middleware('password.confirm')->group(function () {
             Route::post('admin/actions/logout-all', [Web\AdminActionController::class, 'logoutAll'])->name('admin.actions.logoutAll');

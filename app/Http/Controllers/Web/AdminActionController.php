@@ -20,15 +20,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class AdminActionController extends Controller
 {
     /**
-     * Bersihkan cache aplikasi, konfigurasi, rute, dan tampilan.
+     * Bersihkan cache konfigurasi, rute, tampilan, dan event.
+     *
+     * Cache DATA (tempat tanda restart queue worker dan Reverb) sengaja tidak dihapus:
+     * kedua proses itu berhenti sendiri bila tanda tersebut hilang, dan tanpa pengawas
+     * proses layanan tidak akan hidup lagi.
      */
     public function clearCache(Request $request): RedirectResponse
     {
-        Artisan::call('optimize:clear');
+        foreach (['view:clear', 'config:clear', 'route:clear', 'event:clear'] as $command) {
+            Artisan::call($command);
+        }
 
-        $this->record($request, 'system.clear_cache', 'Membersihkan cache aplikasi');
+        $this->record($request, 'system.clear_cache', 'Membersihkan cache konfigurasi, rute, dan tampilan');
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Cache aplikasi dibersihkan.']);
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Cache konfigurasi, rute, dan tampilan dibersihkan.']);
 
         return back();
     }

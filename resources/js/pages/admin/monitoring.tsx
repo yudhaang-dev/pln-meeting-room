@@ -3,6 +3,7 @@ import { usePoll } from '@inertiajs/react';
 import { Activity, Radio, RefreshCw, Server } from 'lucide-react';
 import { useState } from 'react';
 import { QuickActionsCard } from '@/components/features/monitoring/quick-actions-card';
+import { ServiceControlsCard } from '@/components/features/monitoring/service-controls-card';
 import { ServerHealthCard } from '@/components/features/monitoring/server-health-card';
 import type { HealthData } from '@/components/features/monitoring/server-health-card';
 import { ServiceHealthBanner } from '@/components/features/monitoring/service-health-banner';
@@ -38,6 +39,7 @@ type Props = {
     queue: QueueStatus;
     reverb: ReverbStatus;
     health: HealthData;
+    controls: { php_cli: string | null };
     checked_at: string;
 };
 
@@ -72,6 +74,7 @@ export default function Monitoring({
     queue,
     reverb,
     health,
+    controls,
     checked_at,
 }: Props) {
     const [refreshing, setRefreshing] = useState(false);
@@ -187,6 +190,12 @@ export default function Monitoring({
                         ]}
                     />
                 </div>
+
+                <ServiceControlsCard
+                    queueUp={queue.worker.alive}
+                    reverbUp={reverb.up}
+                    phpCli={controls.php_cli}
+                />
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <ServerHealthCard health={health} />

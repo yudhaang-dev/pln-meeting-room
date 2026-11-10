@@ -94,6 +94,14 @@ class MonitoringService
     }
 
     /**
+     * Whether the Reverb server answers its health check.
+     */
+    public function reverbUp(): bool
+    {
+        return $this->reverbIsUp($this->reverbBaseUrl());
+    }
+
+    /**
      * Gather the Reverb server status.
      *
      * @return array<string, mixed>

@@ -33,9 +33,9 @@ const ACTIONS: Action[] = [
         key: 'clear-cache',
         title: 'Bersihkan Cache',
         description:
-            'Menghapus cache aplikasi, konfigurasi, dan tampilan. Berguna jika halaman terasa aneh atau lambat.',
+            'Menghapus cache konfigurasi, rute, dan tampilan. Berguna jika halaman terasa aneh atau lambat. Layanan latar belakang tidak terganggu.',
         confirm:
-            'Cache aplikasi akan dibersihkan. Halaman berikutnya mungkin terasa sedikit lebih lambat sebentar. Lanjutkan?',
+            'Cache konfigurasi, rute, dan tampilan akan dibersihkan. Halaman berikutnya mungkin terasa sedikit lebih lambat sebentar. Lanjutkan?',
         destructive: false,
         url: '/admin/actions/clear-cache',
     },
