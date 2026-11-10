@@ -371,7 +371,7 @@ export function BookingForm({
                         </Field>
 
                         <Field>
-                            <FieldLabel>Media</FieldLabel>
+                            <FieldLabel>Format Acara</FieldLabel>
                             <div className="flex gap-2">
                                 {(
                                     [

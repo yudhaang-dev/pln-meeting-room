@@ -59,6 +59,7 @@ return [
         'chairperson_id' => 'pimpinan acara',
         'osh_level_id' => 'level K3',
         'title' => 'judul acara',
+        'media' => 'format acara',
         'description' => 'keterangan',
         'start_time' => 'waktu mulai',
         'end_time' => 'waktu selesai',
