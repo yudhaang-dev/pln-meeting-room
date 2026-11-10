@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Room;
 use App\Services\DashboardStatistics;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -23,9 +24,51 @@ class DashboardController extends Controller
         return $this->user($request);
     }
 
+    /**
+     * Status ruangan saat ini: tiap ruangan aktif beserta rapat approved yang sedang berlangsung.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function roomStatuses(): array
+    {
+        $now = now();
+
+        $ongoing = Booking::where('status', 'approved')
+            ->where('start_time', '<=', $now)
+            ->whereRaw('COALESCE(ended_at, end_time) > ?', [$now->toDateTimeString()])
+            ->with('chairperson')
+            ->orderBy('start_time')
+            ->get()
+            ->groupBy('room_id');
+
+        return Room::where('is_active', true)
+            ->with('building')
+            ->orderBy('name')
+            ->get()
+            ->map(function (Room $room) use ($ongoing) {
+                $booking = $ongoing->get($room->id)?->first();
+
+                return [
+                    'id' => $room->id,
+                    'name' => $room->name,
+                    'building' => $room->building?->name,
+                    'booking' => $booking ? [
+                        'id' => $booking->id,
+                        'title' => $booking->title,
+                        'chairperson' => $booking->chairperson?->name,
+                        'start_time' => $booking->start_time->format('Y-m-d H:i'),
+                        'end_time' => $booking->end_time->format('Y-m-d H:i'),
+                        'effective_end_time' => $booking->effective_end_time,
+                    ] : null,
+                ];
+            })
+            ->all();
+    }
+
     private function admin(Request $request): Response
     {
         return Inertia::render('dashboard/admin', [
+            'roomStatuses' => $this->roomStatuses(),
             'statistics' => [
                 'eventsMonthly' => $this->statistics->monthlyEvents(),
                 'eventsByStatus' => $this->statistics->eventsByStatus(),
@@ -63,6 +106,7 @@ class DashboardController extends Controller
         }
 
         return Inertia::render('dashboard/index', [
+            'roomStatuses' => $this->roomStatuses(),
             'totalBookings' => (clone $myBookings)->count(),
             'pendingBookingsCount' => (clone $myBookings)->where('status', 'pending')->count(),
             'approvedBookingsCount' => (clone $myBookings)->where('status', 'approved')->count(),

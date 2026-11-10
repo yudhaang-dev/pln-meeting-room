@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { RoomStatusGrid } from '@/components/features/dashboard/room-status-grid';
+import type { RoomStatus } from '@/components/features/dashboard/room-status-grid';
+import { useRoomStatusRefresh } from '@/hooks/use-room-status-refresh';
 import { LengthOptions } from '@/components/shared/data-table/length-options';
 import { NavPagination } from '@/components/shared/data-table/nav-pagination';
 import { PageContainer } from '@/components/shared/page-container';
@@ -51,6 +54,7 @@ type Props = {
     approvedBookingsCount: number;
     rejectedBookingsCount: number;
     approvedSchedule: PaginatedData<ScheduleBooking>;
+    roomStatuses: RoomStatus[];
 };
 
 type StatCardProps = {
@@ -93,7 +97,9 @@ export default function UserDashboard({
     approvedBookingsCount,
     rejectedBookingsCount,
     approvedSchedule,
+    roomStatuses,
 }: Props) {
+    useRoomStatusRefresh();
     const { search, perPage, navigate } = useCrudIndex({
         indexRoute: dashboard().url,
         defaultSortBy: 'start_time',
@@ -174,6 +180,8 @@ export default function UserDashboard({
                         iconClassName="bg-red-100 text-red-700"
                     />
                 </div>
+
+                <RoomStatusGrid rooms={roomStatuses} />
 
                 <Card className="gap-0 pb-0">
                     <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

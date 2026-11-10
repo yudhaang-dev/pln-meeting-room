@@ -1,5 +1,8 @@
 import { AnnualMonthlyBarChart } from '@/components/features/dashboard/annual-monthly-bar-chart';
 import { OverallPieChart } from '@/components/features/dashboard/overall-pie-chart';
+import { RoomStatusGrid } from '@/components/features/dashboard/room-status-grid';
+import type { RoomStatus } from '@/components/features/dashboard/room-status-grid';
+import { useRoomStatusRefresh } from '@/hooks/use-room-status-refresh';
 import { PageContainer } from '@/components/shared/page-container';
 import { STATUS_COLORS, statusLabel } from '@/lib/chart';
 import { CHART_PALETTE } from '@/lib/chart';
@@ -23,6 +26,7 @@ type Statistics = {
 
 type Props = {
     statistics: Statistics;
+    roomStatuses: RoomStatus[];
 };
 
 function seriesFromRows(rows: MonthlyChartRow[]): ChartSeries[] {
@@ -35,7 +39,9 @@ function seriesFromRows(rows: MonthlyChartRow[]): ChartSeries[] {
     }));
 }
 
-export default function DashboardAdmin({ statistics }: Props) {
+export default function DashboardAdmin({ statistics, roomStatuses }: Props) {
+    useRoomStatusRefresh();
+
     const eventsByStatus = statistics.eventsByStatus.map((item) => ({
         name: statusLabel(item.name),
         value: item.value,
@@ -45,6 +51,8 @@ export default function DashboardAdmin({ statistics }: Props) {
     return (
         <PageContainer>
             <h1 className="text-2xl font-bold">Dashboard</h1>
+
+            <RoomStatusGrid rooms={roomStatuses} />
 
             <section aria-label="Statistik" className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
