@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AvailabilityPanel } from '@/components/features/booking/availability-panel';
 import { Button } from '@/components/ui/button';
 import {
     Combobox,
@@ -99,6 +100,7 @@ export function BookingForm({
     const isEditing = !!booking;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const qrInputRef = useRef<HTMLInputElement>(null);
+    const [hasConflict, setHasConflict] = useState(false);
 
     const { data, setData, post, put, processing, reset, errors } = useForm({
         ...emptyForm,
@@ -292,6 +294,16 @@ export function BookingForm({
                                 <FieldError>{errors.end_time}</FieldError>
                             )}
                         </Field>
+                        <div className="md:col-span-2">
+                            <AvailabilityPanel
+                                start={data.start_time}
+                                end={data.end_time}
+                                roomId={data.room_id}
+                                excludeId={booking?.id}
+                                onSelectRoom={(id) => setData('room_id', id)}
+                                onConflictChange={setHasConflict}
+                            />
+                        </div>
                         <Field>
                             <FieldLabel htmlFor="participants_count">
                                 Jumlah Peserta
@@ -478,7 +490,10 @@ export function BookingForm({
                                 >
                                     Batal
                                 </Button>
-                                <Button type="submit" disabled={processing}>
+                                <Button
+                                    type="submit"
+                                    disabled={processing || hasConflict}
+                                >
                                     {processing && <Spinner />}
                                     {isEditing ? 'Perbarui' : 'Ajukan'}
                                 </Button>

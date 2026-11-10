@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('meeting-rooms', [Web\MeetingRoomController::class, 'index'])->name('meeting-rooms.index');
     Route::get('meeting-rooms/{room}', [Web\MeetingRoomController::class, 'show'])->name('meeting-rooms.show');
 
+    Route::get('bookings/availability', Web\BookingAvailabilityController::class)->name('bookings.availability');
     Route::resource('bookings', Web\BookingController::class)->except(['create', 'edit']);
     Route::post('/bookings/{booking}/status/reject', [Web\BookingController::class, 'reject'])->name('bookings.reject');
     Route::post('/bookings/{booking}/finish', [Web\BookingController::class, 'finish'])->name('bookings.finish');
