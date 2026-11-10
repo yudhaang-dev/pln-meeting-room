@@ -68,6 +68,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/dashboard', Web\DashboardController::class)->name('dashboard');
+    Route::middleware('role:admin,operator')->group(function () {
+        Route::put('/dashboard/layout', [Web\DashboardLayoutController::class, 'update'])->name('dashboard.layout.update');
+        Route::delete('/dashboard/layout', [Web\DashboardLayoutController::class, 'destroy'])->name('dashboard.layout.destroy');
+    });
 
     Route::redirect('settings', '/settings/account/profile');
     Route::prefix('settings/account')->name('settings.account.')->group(function () {

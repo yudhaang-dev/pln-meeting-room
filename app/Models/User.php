@@ -25,6 +25,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  * @property string $password
  * @property string|null $avatar
  * @property string|null $notification_audio
+ * @property array<string, mixed>|null $dashboard_layout
  * @property bool $is_active
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
@@ -53,6 +54,7 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'dashboard_layout' => 'array',
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Services\DashboardLayout;
 use App\Services\DashboardStatistics;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -70,6 +71,7 @@ class DashboardController extends Controller
     {
         return Inertia::render('dashboard/admin', [
             'roomStatuses' => $this->roomStatuses(),
+            'layout' => DashboardLayout::for($request->user()),
             'statistics' => [
                 'eventsMonthly' => $this->statistics->monthlyEvents(),
                 'eventsByStatus' => $this->statistics->eventsByStatus(),
