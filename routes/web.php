@@ -65,6 +65,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('users', Web\UserController::class)->except(['create', 'show', 'edit']);
         Route::get('admin/monitoring', Web\MonitoringController::class)->name('admin.monitoring');
         Route::get('admin/activity', Web\ActivityLogController::class)->name('admin.activity');
+
+        Route::post('admin/actions/clear-cache', [Web\AdminActionController::class, 'clearCache'])->name('admin.actions.clearCache');
+        Route::middleware('password.confirm')->group(function () {
+            Route::post('admin/actions/logout-all', [Web\AdminActionController::class, 'logoutAll'])->name('admin.actions.logoutAll');
+            Route::get('admin/export-database', [Web\AdminActionController::class, 'exportDatabase'])->name('admin.exportDatabase');
+        });
     });
 
     Route::get('/dashboard', Web\DashboardController::class)->name('dashboard');

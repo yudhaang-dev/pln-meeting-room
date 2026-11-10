@@ -68,6 +68,7 @@ const CATEGORIES: { value: string | undefined; label: string }[] = [
     { value: 'booking', label: 'Booking' },
     { value: 'master', label: 'Data Master' },
     { value: 'user', label: 'Pengguna' },
+    { value: 'system', label: 'Sistem' },
 ];
 
 const ROLE_LABEL: Record<string, string> = {
@@ -87,6 +88,10 @@ function eventBadge(event: string) {
 
     if (event.startsWith('booking.')) {
         return <Badge>Booking</Badge>;
+    }
+
+    if (event.startsWith('system.')) {
+        return <Badge variant="destructive">Sistem</Badge>;
     }
 
     if (event.startsWith('user.')) {

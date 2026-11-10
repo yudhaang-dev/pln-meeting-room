@@ -23,6 +23,7 @@ class ActivityLogController extends Controller
         'booking' => ['booking.*'],
         'master' => ['room.*', 'building.*', 'room_group.*', 'osh_level.*', 'person.*', 'media.*'],
         'user' => ['user.*'],
+        'system' => ['system.*'],
     ];
 
     public function __invoke(Request $request): Response

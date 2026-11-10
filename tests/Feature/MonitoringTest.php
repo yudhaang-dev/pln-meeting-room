@@ -116,3 +116,65 @@ test('worker heartbeat jobs do not reschedule duplicates within the scheduling w
 
     Queue::assertPushed(WorkerHeartbeat::class, 1);
 });
+
+test('monitoring page includes server health checks', function () {
+    $admin = App\Models\User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($admin)->get(route('admin.monitoring'))->assertInertia(fn ($page) => $page
+        ->has('health.overall')
+        ->has('health.checks', 6)
+        ->where('health.checks.0.key', 'database')
+        ->where('health.checks.0.status', 'ok'));
+});
+
+test('clearing cache is admin only and logged', function () {
+    $operator = App\Models\User::factory()->create(['role' => 'operator']);
+    $admin = App\Models\User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($operator)->post(route('admin.actions.clearCache'))->assertForbidden();
+
+    $this->actingAs($admin)->post(route('admin.actions.clearCache'))->assertRedirect();
+    expect(App\Models\ActivityLog::where('event', 'system.clear_cache')->where('user_id', $admin->id)->count())->toBe(1);
+});
+
+test('dangerous admin actions require password confirmation', function () {
+    $admin = App\Models\User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($admin)->post(route('admin.actions.logoutAll'))->assertRedirect(route('password.confirm'));
+    $this->get(route('admin.exportDatabase'))->assertRedirect(route('password.confirm'));
+});
+
+test('logging out everyone removes other sessions but keeps the admin session', function () {
+    $admin = App\Models\User::factory()->create(['role' => 'admin']);
+    $other = App\Models\User::factory()->create(['role' => 'user', 'remember_token' => 'lama']);
+
+    Illuminate\Support\Facades\DB::table('sessions')->insert([
+        'id' => 'sesi-user', 'user_id' => $other->id, 'ip_address' => '10.0.0.5', 'user_agent' => 'x', 'payload' => '', 'last_activity' => time(),
+    ]);
+
+    $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+        ->post(route('admin.actions.logoutAll'))->assertRedirect();
+
+    expect(Illuminate\Support\Facades\DB::table('sessions')->where('id', 'sesi-user')->exists())->toBeFalse()
+        ->and($other->fresh()->remember_token)->not->toBe('lama')
+        ->and(App\Models\ActivityLog::where('event', 'system.logout_all')->count())->toBe(1);
+});
+
+test('database export downloads sql without sessions and is logged', function () {
+    $admin = App\Models\User::factory()->create(['role' => 'admin', 'email' => 'eksport@contoh.test']);
+
+    Illuminate\Support\Facades\DB::table('sessions')->insert([
+        'id' => 'rahasia-sesi-123', 'user_id' => $admin->id, 'ip_address' => '10.0.0.5', 'user_agent' => 'x', 'payload' => '', 'last_activity' => time(),
+    ]);
+
+    $response = $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('admin.exportDatabase'));
+
+    $response->assertOk();
+    $sql = $response->streamedContent();
+
+    expect($response->headers->get('content-disposition'))->toContain('jadwal-rapat-')->toContain('.sql')
+        ->and($sql)->toContain('CREATE TABLE')->toContain('INSERT INTO `users`')->toContain('eksport@contoh.test')
+        ->and($sql)->not->toContain('rahasia-sesi-123')->not->toContain('CREATE TABLE "sessions"')
+        ->and(App\Models\ActivityLog::where('event', 'system.export_database')->count())->toBe(1);
+});

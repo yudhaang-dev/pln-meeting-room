@@ -2,6 +2,9 @@ import { Head, router } from '@inertiajs/react';
 import { usePoll } from '@inertiajs/react';
 import { Activity, Radio, RefreshCw, Server } from 'lucide-react';
 import { useState } from 'react';
+import { QuickActionsCard } from '@/components/features/monitoring/quick-actions-card';
+import { ServerHealthCard } from '@/components/features/monitoring/server-health-card';
+import type { HealthData } from '@/components/features/monitoring/server-health-card';
 import { ServiceHealthBanner } from '@/components/features/monitoring/service-health-banner';
 import { ServiceStatusCard } from '@/components/features/monitoring/service-status-card';
 import { PageContainer } from '@/components/shared/page-container';
@@ -34,6 +37,7 @@ type ReverbStatus = {
 type Props = {
     queue: QueueStatus;
     reverb: ReverbStatus;
+    health: HealthData;
     checked_at: string;
 };
 
@@ -64,15 +68,20 @@ function formatUptime(totalSeconds: number): string {
     return parts.join(' ');
 }
 
-export default function Monitoring({ queue, reverb, checked_at }: Props) {
+export default function Monitoring({
+    queue,
+    reverb,
+    health,
+    checked_at,
+}: Props) {
     const [refreshing, setRefreshing] = useState(false);
 
-    usePoll(REFRESH_INTERVAL, { only: ['queue', 'reverb', 'checked_at'] });
+    usePoll(REFRESH_INTERVAL, { only: ['queue', 'reverb', 'health', 'checked_at'] });
 
     const reload = () => {
         setRefreshing(true);
         router.reload({
-            only: ['queue', 'reverb', 'checked_at'],
+            only: ['queue', 'reverb', 'health', 'checked_at'],
             onFinish: () => setRefreshing(false),
         });
     };
@@ -177,6 +186,11 @@ export default function Monitoring({ queue, reverb, checked_at }: Props) {
                             },
                         ]}
                     />
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <ServerHealthCard health={health} />
+                    <QuickActionsCard />
                 </div>
             </PageContainer>
         </>
