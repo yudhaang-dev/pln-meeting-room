@@ -14,6 +14,8 @@ type Props = {
     /** Nilai datetime-local, mis. 2026-11-12T09:00 */
     start: string;
     end: string;
+    /** Tanggal terpilih (boleh terisi walau jam belum dipilih). */
+    date?: string;
     roomId: string;
     excludeId?: number;
     onSelectRoom: (roomId: string) => void;
@@ -47,12 +49,13 @@ const label = (value: string, date: string) =>
 export function AvailabilityPanel({
     start,
     end,
+    date: dateProp,
     roomId,
     excludeId,
     onSelectRoom,
     onConflictChange,
 }: Props) {
-    const date = start ? start.slice(0, 10) : '';
+    const date = dateProp || (start ? start.slice(0, 10) : '');
     const [rooms, setRooms] = useState<RoomAvailability[] | null>(null);
     const [failed, setFailed] = useState(false);
 
@@ -113,8 +116,8 @@ export function AvailabilityPanel({
     if (!date) {
         return (
             <p className="text-muted-foreground rounded-md border border-dashed p-3 text-sm">
-                Pilih waktu mulai untuk melihat ketersediaan ruangan pada
-                tanggal tersebut.
+                Pilih tanggal untuk melihat ketersediaan semua ruangan pada
+                hari tersebut.
             </p>
         );
     }

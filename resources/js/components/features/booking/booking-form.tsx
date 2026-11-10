@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { AvailabilityPanel } from '@/components/features/booking/availability-panel';
+import { SlotPicker } from '@/components/features/booking/slot-picker';
 import { Button } from '@/components/ui/button';
 import {
     Combobox,
@@ -101,6 +102,9 @@ export function BookingForm({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const qrInputRef = useRef<HTMLInputElement>(null);
     const [hasConflict, setHasConflict] = useState(false);
+    const [pickedDate, setPickedDate] = useState(
+        booking ? booking.start_time.slice(0, 10) : '',
+    );
 
     const { data, setData, post, put, processing, reset, errors } = useForm({
         ...emptyForm,
@@ -110,6 +114,7 @@ export function BookingForm({
     useEffect(() => {
         if (open && booking) {
             setData(bookingToFormData(booking));
+            setPickedDate(booking.start_time.slice(0, 10));
         }
     }, [open, booking, setData]);
 
@@ -139,6 +144,7 @@ export function BookingForm({
 
     const handleClose = () => {
         reset();
+        setPickedDate(booking ? booking.start_time.slice(0, 10) : '');
         onOpenChange(false);
     };
 
@@ -262,42 +268,29 @@ export function BookingForm({
                                 <FieldError>{errors.room_id}</FieldError>
                             )}
                         </Field>
-                        <Field>
-                            <FieldLabel htmlFor="start_time">
-                                Waktu Mulai
-                            </FieldLabel>
-                            <Input
-                                id="start_time"
-                                type="datetime-local"
-                                value={data.start_time}
-                                onChange={(e) =>
-                                    setData('start_time', e.target.value)
-                                }
+                        <div className="md:col-span-2">
+                            <SlotPicker
+                                roomId={data.room_id}
+                                excludeId={booking?.id}
+                                start={data.start_time}
+                                end={data.end_time}
+                                date={pickedDate}
+                                onDateChange={setPickedDate}
+                                onChange={({ start, end }) => {
+                                    setData((prev) => ({
+                                        ...prev,
+                                        start_time: start,
+                                        end_time: end,
+                                    }));
+                                }}
+                                errors={errors}
                             />
-                            {errors.start_time && (
-                                <FieldError>{errors.start_time}</FieldError>
-                            )}
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="end_time">
-                                Waktu Selesai
-                            </FieldLabel>
-                            <Input
-                                id="end_time"
-                                type="datetime-local"
-                                value={data.end_time}
-                                onChange={(e) =>
-                                    setData('end_time', e.target.value)
-                                }
-                            />
-                            {errors.end_time && (
-                                <FieldError>{errors.end_time}</FieldError>
-                            )}
-                        </Field>
+                        </div>
                         <div className="md:col-span-2">
                             <AvailabilityPanel
                                 start={data.start_time}
                                 end={data.end_time}
+                                date={pickedDate}
                                 roomId={data.room_id}
                                 excludeId={booking?.id}
                                 onSelectRoom={(id) => setData('room_id', id)}
