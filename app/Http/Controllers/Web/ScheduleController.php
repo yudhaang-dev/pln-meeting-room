@@ -44,6 +44,7 @@ class ScheduleController extends Controller
                     'title' => $b->title,
                     'room' => $b->room?->name,
                     'building' => $b->room?->building?->name,
+                    'chairperson_id' => $b->chairperson_id,
                     'chairperson' => $b->chairperson?->name,
                     'media' => $b->media,
                     'osh_color' => $b->osh_level?->color,
