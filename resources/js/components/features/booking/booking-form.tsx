@@ -61,6 +61,7 @@ type Props = {
 const emptyForm = {
     room_id: '',
     chairperson_id: '',
+    osh_level_id: '',
     title: '',
     description: '',
     start_time: '',
@@ -310,63 +311,56 @@ export function BookingForm({
                                 </FieldError>
                             )}
                         </Field>
-                        {isEditing && (
-                            <Field className="relative">
-                                <FieldLabel htmlFor="osh_level_id">
-                                    Level Keamanan
-                                </FieldLabel>
-                                <Combobox
-                                    id="osh_level_id"
-                                    items={osh_levels}
-                                    value={
-                                        osh_levels.find(
-                                            (r) =>
-                                                String(r.id) ===
-                                                data.osh_level_id,
-                                        ) ?? null
-                                    }
-                                    onValueChange={(osh_level) =>
-                                        setData(
-                                            'osh_level_id',
-                                            osh_level
-                                                ? String(osh_level.id)
-                                                : '',
-                                        )
-                                    }
-                                    itemToStringValue={(osh_level) =>
-                                        String(osh_level.id)
-                                    }
-                                    itemToStringLabel={(osh_level) =>
-                                        osh_level.name
-                                    }
-                                >
-                                    <ComboboxInput
-                                        placeholder="Pilih level"
-                                        showClear
-                                    />
-                                    <ComboboxContent>
-                                        <ComboboxEmpty>
-                                            No osh_levels found.
-                                        </ComboboxEmpty>
-                                        <ComboboxList>
-                                            {(osh_level) => (
-                                                <ComboboxItem
-                                                    key={osh_level.id}
-                                                    value={osh_level}
-                                                >
-                                                    {osh_level.name}
-                                                </ComboboxItem>
-                                            )}
-                                        </ComboboxList>
-                                    </ComboboxContent>
-                                </Combobox>
-                                {errors.osh_level_id && (
-                                    <FieldError>
-                                        {errors.osh_level_id}
-                                    </FieldError>
-                                )}
-                            </Field>
-                        )}
+                        <Field className="relative">
+                            <FieldLabel htmlFor="osh_level_id">
+                                Level K3
+                            </FieldLabel>
+                            <Combobox
+                                id="osh_level_id"
+                                items={osh_levels}
+                                value={
+                                    osh_levels.find(
+                                        (r) =>
+                                            String(r.id) === data.osh_level_id,
+                                    ) ?? null
+                                }
+                                onValueChange={(osh_level) =>
+                                    setData(
+                                        'osh_level_id',
+                                        osh_level ? String(osh_level.id) : '',
+                                    )
+                                }
+                                itemToStringValue={(osh_level) =>
+                                    String(osh_level.id)
+                                }
+                                itemToStringLabel={(osh_level) =>
+                                    osh_level.name
+                                }
+                            >
+                                <ComboboxInput
+                                    placeholder="Pilih level K3"
+                                    showClear
+                                />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>
+                                        Tidak ada level K3.
+                                    </ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(osh_level) => (
+                                            <ComboboxItem
+                                                key={osh_level.id}
+                                                value={osh_level}
+                                            >
+                                                {osh_level.name}
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+                            {errors.osh_level_id && (
+                                <FieldError>{errors.osh_level_id}</FieldError>
+                            )}
+                        </Field>
 
                         <Field className="md:col-span-2">
                             <FieldLabel htmlFor="description">

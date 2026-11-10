@@ -25,6 +25,11 @@ class SendBookingNotification implements ShouldQueue
      */
     public function handle(BookingCreated|BookingUpdated $event): void
     {
+        // Event yang hanya memperbarui tampilan (mis. rapat diakhiri) tidak mengirim notifikasi.
+        if ($event instanceof BookingUpdated && ! $event->notify) {
+            return;
+        }
+
         $booking = $event->booking;
 
         // Skenario 1: Booking Baru Dibuat

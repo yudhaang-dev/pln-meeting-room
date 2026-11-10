@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('bookings', Web\BookingController::class)->except(['create', 'edit']);
     Route::post('/bookings/{booking}/status/reject', [Web\BookingController::class, 'reject'])->name('bookings.reject');
+    Route::post('/bookings/{booking}/finish', [Web\BookingController::class, 'finish'])->name('bookings.finish');
     Route::post('/bookings/{booking}/status/approve', [Web\BookingController::class, 'approve'])->name('bookings.approve');
 
     Route::get('/notifications/unread-count', [Web\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');

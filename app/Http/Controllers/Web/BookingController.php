@@ -138,6 +138,7 @@ class BookingController extends Controller
 
         return inertia('bookings/show', [
             'booking' => $booking,
+            'can_finish' => Auth::user()->can('finish', $booking),
             'rooms' => $rooms,
             'people' => $people,
             'osh_levels' => $osh_levels,
@@ -235,5 +236,20 @@ class BookingController extends Controller
 
             return back();
         }, __('Failed to reject booking.'));
+    }
+
+    public function finish(Booking $booking): RedirectResponse
+    {
+        return $this->catchErrors(function () use ($booking) {
+            $this->authorize('finish', $booking);
+
+            $booking->update(['ended_at' => now()]);
+
+            BookingUpdated::dispatch($booking, notify: false);
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Meeting marked as finished.')]);
+
+            return back();
+        }, __('Failed to finish meeting.'));
     }
 }

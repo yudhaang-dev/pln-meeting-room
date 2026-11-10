@@ -23,6 +23,7 @@ type Schedule = {
     title: string;
     start_time: string;
     end_time: string;
+    effective_end_time?: string;
     room: {
         id: number;
         name: string;
@@ -53,7 +54,7 @@ export function ScheduleInfo({ data }: Props) {
     const computedSchedule = useMemo(() => {
         const now = new Date();
         const start = new Date(data.start_time);
-        const end = new Date(data.end_time);
+        const end = new Date(data.effective_end_time ?? data.end_time);
 
         // 1. Logika Penentuan Status Jadwal
         let statusText = 'Akan datang';
@@ -93,7 +94,7 @@ export function ScheduleInfo({ data }: Props) {
             endTimeStr,
             durationStr,
         };
-    }, [data.start_time, data.end_time]);
+    }, [data.start_time, data.end_time, data.effective_end_time]);
 
     return (
         <>

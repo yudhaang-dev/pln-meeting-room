@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $description
  * @property Carbon $start_time
  * @property Carbon $end_time
+ * @property Carbon|null $ended_at
  * @property int $participants_count
  * @property int|null $osh_level_id
  * @property string $status
@@ -29,13 +30,13 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $approved_id
  * @property Carbon|null $approved_at
  */
-#[Fillable(['requested_id', 'room_id', 'chairperson_id', 'title', 'description', 'start_time', 'end_time', 'participants_count', 'osh_level_id', 'attachment_path', 'qr_attendance_path', 'status', 'approved_id', 'approved_at', 'reason'])]
+#[Fillable(['requested_id', 'room_id', 'chairperson_id', 'title', 'description', 'start_time', 'end_time', 'ended_at', 'participants_count', 'osh_level_id', 'attachment_path', 'qr_attendance_path', 'status', 'approved_id', 'approved_at', 'reason'])]
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
 
-    protected $appends = ['attachment_url', 'qr_attendance_url'];
+    protected $appends = ['attachment_url', 'qr_attendance_url', 'effective_end_time'];
 
     protected $with = ['osh_level'];
 
@@ -45,6 +46,7 @@ class Booking extends Model
             'start_time' => 'datetime:Y-m-d H:i',
             'end_time' => 'datetime:Y-m-d H:i',
             'participants_count' => 'integer',
+            'ended_at' => 'datetime',
             'approved_at' => 'datetime',
         ];
     }
@@ -129,6 +131,22 @@ class Booking extends Model
     public function scopeForDate(Builder $query, string $date): Builder
     {
         return $query->whereDate('start_time', $date);
+    }
+
+    /**
+     * Waktu selesai yang berlaku: waktu selesai aktual jika rapat diakhiri lebih awal.
+     */
+    public function getEffectiveEndTimeAttribute(): string
+    {
+        return ($this->ended_at ?? $this->end_time)->toIso8601String();
+    }
+
+    public function isOngoing(): bool
+    {
+        return $this->status === 'approved'
+            && $this->ended_at === null
+            && $this->start_time->lte(now())
+            && $this->end_time->gt(now());
     }
 
     public function getAttachmentUrlAttribute(): ?string

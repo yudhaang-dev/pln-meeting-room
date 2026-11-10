@@ -37,8 +37,8 @@ function EmptyItem() {
                 </EmptyMedia>
                 <EmptyTitle>Belum ada media</EmptyTitle>
                 <EmptyDescription>
-                    You haven&apos;t created any projects yet. Get started by
-                    creating your first project.
+                    Belum ada media aktif untuk ditampilkan. Unggah media pada
+                    menu Infografis.
                 </EmptyDescription>
             </EmptyHeader>
         </Empty>

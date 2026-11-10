@@ -62,4 +62,10 @@ class BookingPolicy
         return ($user->isAdmin() || $user->isOperator())
             && $booking->status === 'pending';
     }
+
+    public function finish(User $user, Booking $booking): bool
+    {
+        return ($user->isAdmin() || $user->isOperator())
+            && $booking->isOngoing();
+    }
 }

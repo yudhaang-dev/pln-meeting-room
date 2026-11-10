@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Check, Pencil, Trash2, X } from 'lucide-react';
+import { Check, Flag, Pencil, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { BookingForm } from '@/components/features/booking/booking-form';
 import BookingShow from '@/components/features/booking/booking-show';
@@ -47,10 +47,12 @@ type Booking = {
     };
     approved_by: { id: number; name: string; email: string } | null;
     approved_at: string | null;
+    ended_at: string | null;
 };
 
 type Props = {
     booking: Booking;
+    can_finish: boolean;
     rooms: Room[];
     people: Person[];
     osh_levels: {
@@ -62,6 +64,7 @@ type Props = {
 
 export default function BookingsShow({
     booking,
+    can_finish,
     rooms,
     people,
     osh_levels,
@@ -78,6 +81,7 @@ export default function BookingsShow({
     const [approveOpen, setApproveOpen] = useState(false);
     const [rejectOpen, setRejectOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
+    const [finishOpen, setFinishOpen] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
     const [processing, setProcessing] = useState(false);
 
@@ -116,6 +120,21 @@ export default function BookingsShow({
         );
     };
 
+    const handleFinish = () => {
+        setProcessing(true);
+        router.post(
+            bookings.finish(booking.id).url,
+            {},
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setFinishOpen(false);
+                },
+                preserveState: true,
+            },
+        );
+    };
+
     const handleDelete = () => {
         setProcessing(true);
         router.delete(bookings.destroy(booking.id).url, {
@@ -127,6 +146,22 @@ export default function BookingsShow({
         <>
             <Head title={`Booking: ${booking.title}`} />
             <BookingShow booking={booking} backHref={bookings.index()}>
+                {can_finish && (
+                    <div className="rounded-md border p-4">
+                        <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+                            Rapat Berlangsung
+                        </h2>
+                        <Button
+                            size="sm"
+                            className="w-full justify-start gap-2"
+                            onClick={() => setFinishOpen(true)}
+                            disabled={processing}
+                        >
+                            <Flag className="size-4" />
+                            Rapat selesai
+                        </Button>
+                    </div>
+                )}
                 {isAllowAction && (booking.status === 'pending' || isAdmin) && (
                     <div className="rounded-md border p-4">
                         <h2 className="text-muted-foreground mb-3 text-sm font-medium">
@@ -234,6 +269,31 @@ export default function BookingsShow({
                         >
                             {processing && <Spinner />}
                             Hapus
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={finishOpen} onOpenChange={setFinishOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Rapat Selesai</DialogTitle>
+                        <DialogDescription>
+                            Tandai <strong>{booking.title}</strong> sebagai
+                            selesai sekarang? Ruangan akan langsung tersedia
+                            untuk booking lain.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setFinishOpen(false)}
+                        >
+                            Batal
+                        </Button>
+                        <Button onClick={handleFinish} disabled={processing}>
+                            {processing && <Spinner />}
+                            Rapat selesai
                         </Button>
                     </DialogFooter>
                 </DialogContent>

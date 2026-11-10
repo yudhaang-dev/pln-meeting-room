@@ -3,27 +3,16 @@
 namespace App\Http\Requests;
 
 use App\Models\Booking;
-use App\Models\OshLevel;
 use App\Settings\GeneralSettings;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 class StoreBookingRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
-    }
-
-    public function prepareForValidation()
-    {
-        $osh_level = OshLevel::determineForParticipants($this->participants_count ?? 1);
-        if (empty($osh_level)) {
-            $osh_level = OshLevel::orderByDesc('max_participants')->first();
-        }
-        $this->merge([
-            'osh_level_id' => $osh_level->id,
-        ]);
     }
 
     /**
@@ -34,7 +23,7 @@ class StoreBookingRequest extends FormRequest
         return [
             'room_id' => ['required', 'integer', 'exists:rooms,id'],
             'chairperson_id' => ['required', 'integer', 'exists:people,id'],
-            'osh_level_id' => ['required', 'integer', 'exists:osh_levels,id'],
+            'osh_level_id' => ['required', 'integer', Rule::exists('osh_levels', 'id')->where('is_active', true)],
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
             'start_time' => ['required', 'date', 'after:now'],
@@ -86,7 +75,7 @@ class StoreBookingRequest extends FormRequest
                     $hasOverlap = Booking::where('room_id', $roomId)
                         ->whereIn('status', ['pending', 'approved'])
                         ->where('start_time', '<', $end)
-                        ->where('end_time', '>', $start)
+                        ->whereRaw('COALESCE(ended_at, end_time) > ?', [$start->toDateTimeString()])
                         ->exists();
 
                     if ($hasOverlap) {

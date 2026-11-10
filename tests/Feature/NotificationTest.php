@@ -30,6 +30,7 @@ test('booking creation notifies operators and admins', function () {
     $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
         'title' => 'Team Meeting',
         'start_time' => now()->addDays(2)->setTime(9, 0),
         'end_time' => now()->addDays(2)->setTime(10, 0),

@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\User;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -35,6 +36,7 @@ test('user can create a booking', function () {
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
         'title' => 'Team Meeting',
         'description' => 'Weekly sync',
         'start_time' => now()->addDays(2)->setTime(9, 0),
@@ -112,6 +114,7 @@ test('booking allows non-overlapping time slots', function () {
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
         'title' => 'Non-overlapping Meeting',
         'start_time' => now()->addDays(2)->setTime(11, 0)->toDateTimeString(),
         'end_time' => now()->addDays(2)->setTime(12, 0)->toDateTimeString(),
@@ -239,6 +242,7 @@ test('booking allowed when within advance hours window', function () {
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
         'title' => 'OK Booking',
         'start_time' => now()->addDays(2)->setTime(9, 0),
         'end_time' => now()->addDays(2)->setTime(10, 0),
@@ -267,6 +271,7 @@ test('booking allowed when within max days ahead', function () {
     $response = $this->post(route('bookings.store'), [
         'room_id' => $this->room->id,
         'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
         'title' => 'Far Future OK',
         'start_time' => now()->addDays(30)->setTime(9, 0),
         'end_time' => now()->addDays(30)->setTime(10, 0),
@@ -289,6 +294,7 @@ test('user can view their own booking detail', function () {
         'requested_id' => $this->user->id,
         'room_id' => $this->room->id,
         'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
     ]);
 
     $response = $this->get(route('bookings.show', $booking));
@@ -361,4 +367,109 @@ test('booking creation is rate limited', function () {
     ]);
 
     $response->assertTooManyRequests();
+});
+
+test('booking requires an active osh level chosen from master', function () {
+    $this->actingAs($this->user);
+    Storage::fake('public');
+
+    $inactive = OshLevel::factory()->create(['is_active' => false]);
+
+    $payload = [
+        'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
+        'title' => 'K3 Manual',
+        'start_time' => now()->addDays(2)->setTime(9, 0),
+        'end_time' => now()->addDays(2)->setTime(10, 0),
+        'participants_count' => 5,
+        'attachment' => UploadedFile::fake()->create('a.pdf', 100, 'application/pdf'),
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
+    ];
+
+    $this->post(route('bookings.store'), $payload)->assertSessionHasErrors('osh_level_id');
+    $this->post(route('bookings.store'), $payload + ['osh_level_id' => $inactive->id])->assertSessionHasErrors('osh_level_id');
+    $this->post(route('bookings.store'), $payload + ['osh_level_id' => $this->oshLevel->id])->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('bookings', ['title' => 'K3 Manual', 'osh_level_id' => $this->oshLevel->id]);
+});
+
+test('operator can finish an ongoing approved meeting and the room becomes free', function () {
+    $booking = Booking::factory()->approved()->create([
+        'room_id' => $this->room->id,
+        'start_time' => now()->subHour(),
+        'end_time' => now()->addHours(2),
+    ]);
+
+    $this->actingAs($this->operator)
+        ->post(route('bookings.finish', $booking))
+        ->assertRedirect();
+
+    expect($booking->fresh()->ended_at)->not->toBeNull();
+
+    // Slot yang tadinya terisi sampai end_time kini bebas untuk booking lain.
+    $this->actingAs($this->user)->post(route('bookings.store'), [
+        'room_id' => $this->room->id,
+        'chairperson_id' => $this->leader->id,
+        'osh_level_id' => $this->oshLevel->id,
+        'title' => 'Pakai slot yang dibebaskan',
+        'start_time' => now()->addMinutes(150)->setSecond(0),
+        'end_time' => now()->addMinutes(210)->setSecond(0),
+        'participants_count' => 5,
+        'attachment' => UploadedFile::fake()->create('a.pdf', 100, 'application/pdf'),
+        'qr_attendance' => UploadedFile::fake()->image('qr.png', 300, 300),
+    ])->assertSessionDoesntHaveErrors('room_id');
+});
+
+test('finish is only allowed for ongoing approved meetings by staff', function () {
+    $ongoing = fn (array $attrs = []) => Booking::factory()->approved()->create($attrs + [
+        'room_id' => $this->room->id,
+        'start_time' => now()->subHour(),
+        'end_time' => now()->addHour(),
+    ]);
+
+    // Pemohon biasa tidak boleh.
+    $this->actingAs($this->user)->post(route('bookings.finish', $ongoing()))->assertForbidden();
+
+    // Belum dimulai, sudah lewat, atau belum disetujui tidak boleh.
+    $future = $ongoing(['start_time' => now()->addHour(), 'end_time' => now()->addHours(2)]);
+    $past = $ongoing(['start_time' => now()->subHours(3), 'end_time' => now()->subHour()]);
+    $pending = $ongoing(['status' => 'pending']);
+
+    foreach ([$future, $past, $pending] as $booking) {
+        $this->actingAs($this->admin)->post(route('bookings.finish', $booking))->assertForbidden();
+        expect($booking->fresh()->ended_at)->toBeNull();
+    }
+
+    // Sudah diakhiri tidak bisa diakhiri lagi.
+    $done = $ongoing(['ended_at' => now()]);
+    $this->actingAs($this->admin)->post(route('bookings.finish', $done))->assertForbidden();
+});
+
+test('room display goes idle once the meeting is finished', function () {
+    $booking = Booking::factory()->approved()->create([
+        'room_id' => $this->room->id,
+        'start_time' => now()->subHour(),
+        'end_time' => now()->addHour(),
+    ]);
+
+    $this->get(route('display.room', $this->room))
+        ->assertInertia(fn ($page) => $page->where('currentBooking.id', $booking->id));
+
+    $booking->update(['ended_at' => now()]);
+
+    $this->get(route('display.room', $this->room))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('currentBooking', null));
+});
+
+test('finishing a meeting does not send approval notifications', function () {
+    $booking = Booking::factory()->approved()->create([
+        'room_id' => $this->room->id,
+        'start_time' => now()->subHour(),
+        'end_time' => now()->addHour(),
+    ]);
+
+    $this->actingAs($this->operator)->post(route('bookings.finish', $booking));
+
+    expect(DB::table('notifications')->count())->toBe(0);
 });

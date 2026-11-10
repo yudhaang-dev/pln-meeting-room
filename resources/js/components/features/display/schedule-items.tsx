@@ -38,6 +38,7 @@ type ItemType = {
     title: string;
     start_time: string;
     end_time: string;
+    effective_end_time?: string;
     room: {
         id: number;
         name: string;
@@ -231,7 +232,7 @@ function ScheduleItem({
     // Gunakan useMemo untuk membungkus seluruh perhitungan tanggal demi performa yang stabil
     const computedSchedule = useMemo(() => {
         const start = new Date(item.start_time);
-        const end = new Date(item.end_time);
+        const end = new Date(item.effective_end_time ?? item.end_time);
 
         // 1. Logika Penentuan Status Jadwal
         let statusText = 'Akan datang';
@@ -271,7 +272,7 @@ function ScheduleItem({
             endTimeStr,
             durationStr,
         };
-    }, [now, item.start_time, item.end_time]);
+    }, [now, item.start_time, item.end_time, item.effective_end_time]);
 
     return isSimple ? (
         <SimpleCardItem

@@ -72,6 +72,7 @@ class DisplayController extends Controller
         $currentBooking = Booking::with(['chairperson', 'requestedBy'])
             ->where('room_id', $room->id)
             ->where('status', 'approved')
+            ->whereNull('ended_at')
             ->where('start_time', '<=', now())
             ->where('end_time', '>=', now())
             ->first();

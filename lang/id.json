@@ -77,5 +77,7 @@
     "Failed to update user.": "Gagal memperbarui pengguna.",
     "Failed to upload chunk.": "Gagal mengunggah potongan file.",
     "Failed to upload media.": "Gagal mengunggah media.",
-    "(and :count more error)|(and :count more errors)": "(dan :count kesalahan lainnya)|(dan :count kesalahan lainnya)"
+    "(and :count more error)|(and :count more errors)": "(dan :count kesalahan lainnya)|(dan :count kesalahan lainnya)",
+    "Meeting marked as finished.": "Rapat ditandai selesai. Ruangan kini tersedia.",
+    "Failed to finish meeting.": "Gagal menandai rapat selesai."
 }

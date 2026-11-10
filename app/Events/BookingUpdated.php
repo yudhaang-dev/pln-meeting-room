@@ -16,7 +16,7 @@ class BookingUpdated implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public Booking $booking) {}
+    public function __construct(public Booking $booking, public bool $notify = true) {}
 
     /**
      * Get the channels the event should broadcast on.

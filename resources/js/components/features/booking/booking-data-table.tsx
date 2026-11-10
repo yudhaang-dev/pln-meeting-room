@@ -182,7 +182,7 @@ export function BookingDataTable({
                         <TableHead>Lokasi</TableHead>
                         <TableHead>Diajukan oleh</TableHead>
                         <TableHead>Ditinjau oleh</TableHead>
-                        <TableHead>Level Keamanan</TableHead>
+                        <TableHead>Level K3</TableHead>
                         <SortableHeader
                             column="status"
                             sortBy={sortBy}

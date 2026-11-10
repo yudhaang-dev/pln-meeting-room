@@ -63,7 +63,7 @@ class UpdateBookingRequest extends FormRequest
                     ->whereIn('status', ['pending', 'approved'])
                     ->where('id', '!=', $booking->id)
                     ->where('start_time', '<', $end)
-                    ->where('end_time', '>', $start)
+                    ->whereRaw('COALESCE(ended_at, end_time) > ?', [$start->toDateTimeString()])
                     ->exists();
 
                 if ($hasOverlap) {

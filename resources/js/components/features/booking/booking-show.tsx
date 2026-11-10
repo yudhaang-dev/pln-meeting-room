@@ -38,6 +38,7 @@ type Booking = {
     };
     approved_by: { id: number; name: string; email: string } | null;
     approved_at: string | null;
+    ended_at?: string | null;
 };
 
 type Props = {
@@ -118,6 +119,17 @@ export default function BookingShow({ booking, children }: Props) {
                                             </div>
                                         </dd>
                                     </div>
+                                    {booking.ended_at && (
+                                        <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt className="text-muted-foreground">
+                                                Selesai Aktual
+                                            </dt>
+                                            <dd className="mt-1 font-medium sm:col-span-2 sm:mt-0">
+                                                {formatDate(booking.ended_at)}{' '}
+                                                {formatTime(booking.ended_at)}
+                                            </dd>
+                                        </div>
+                                    )}
                                     <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt className="text-muted-foreground">
                                             Jumlah Peserta | K3
