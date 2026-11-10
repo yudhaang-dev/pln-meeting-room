@@ -1,8 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
-import { Clock, MapPin, User, Video } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    MapPin,
+    User,
+    Video,
+} from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { Badge } from '@/components/ui/badge';
-import { cn, formatDayDate, formatTime } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { cn, formatDate, formatDayDate, formatTime } from '@/lib/utils';
 
 type ScheduleBooking = {
     id: number;
@@ -12,6 +20,7 @@ type ScheduleBooking = {
     chairperson: string | null;
     media?: 'offline' | 'hybrid';
     is_mine: boolean;
+    osh_color?: string | null;
     start_time: string;
     end_time: string;
     effective_end_time: string;
@@ -24,19 +33,58 @@ type Day = {
     bookings: ScheduleBooking[];
 };
 
-export default function ScheduleIndex({ days }: { days: Day[] }) {
+type Range = { start: string; prev: string; next: string; today: string };
+
+export default function ScheduleIndex({
+    days,
+    range,
+}: {
+    days: Day[];
+    range: Range;
+}) {
+    const go = (start: string) => `/schedule?start=${start}`;
+    const isCurrent = range.start === range.today;
+
     return (
         <>
             <Head title="Jadwal" />
             <PageContainer>
-                <div>
-                    <h1 className="text-2xl font-bold">Jadwal</h1>
-                    <p className="text-muted-foreground text-sm">
-                        Rapat yang disetujui, hari ini sampai 7 hari ke depan.
-                    </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h1 className="text-2xl font-bold">Jadwal</h1>
+                        <p className="text-muted-foreground text-sm">
+                            {formatDate(days[0].date)} -{' '}
+                            {formatDate(days[days.length - 1].date)} · rapat
+                            yang disetujui
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            aria-label="Minggu sebelumnya"
+                            render={<Link href={go(range.prev)} />}
+                        >
+                            <ChevronLeft className="size-4" />
+                        </Button>
+                        <Button
+                            variant={isCurrent ? 'default' : 'outline'}
+                            render={<Link href={go(range.today)} />}
+                        >
+                            Hari ini
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            aria-label="Minggu berikutnya"
+                            render={<Link href={go(range.next)} />}
+                        >
+                            <ChevronRight className="size-4" />
+                        </Button>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
                     {days.map((day) => (
                         <section
                             key={day.date}
@@ -65,10 +113,18 @@ export default function ScheduleIndex({ days }: { days: Day[] }) {
                                     <Link
                                         key={b.id}
                                         href={`/bookings/${b.id}`}
+                                        style={
+                                            b.osh_color
+                                                ? {
+                                                      borderLeftColor:
+                                                          b.osh_color,
+                                                      borderLeftWidth: 4,
+                                                  }
+                                                : undefined
+                                        }
                                         className={cn(
                                             'hover:bg-accent block rounded-md border p-2 text-sm',
-                                            b.is_mine &&
-                                                'border-primary border-l-4',
+                                            b.is_mine && 'ring-primary ring-2',
                                             b.ended && 'opacity-60',
                                         )}
                                     >

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,18 +16,19 @@ class ScheduleController extends Controller
     /**
      * Kalender mingguan: rapat approved dari hari ini sampai 7 hari ke depan.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $from = now()->startOfDay();
+        $request->validate(['start' => ['nullable', 'date_format:Y-m-d']]);
+
+        $from = $request->filled('start')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('start'))->startOfDay()
+            : now()->startOfDay();
         $to = $from->copy()->addDays(self::DAYS);
 
         $bookings = Booking::where('status', 'approved')
             ->where('start_time', '>=', $from)
             ->where('start_time', '<', $to)
-            ->where(function ($q) {
-                $q->whereNull('ended_at')->orWhere('ended_at', '>', now()->subDay());
-            })
-            ->with(['room.building', 'chairperson'])
+            ->with(['room.building', 'chairperson', 'osh_level'])
             ->orderBy('start_time')
             ->get()
             ->groupBy(fn (Booking $b) => $b->start_time->format('Y-m-d'));
@@ -35,7 +38,7 @@ class ScheduleController extends Controller
 
             return [
                 'date' => $date->format('Y-m-d'),
-                'is_today' => $offset === 0,
+                'is_today' => $date->isToday(),
                 'bookings' => $bookings->get($date->format('Y-m-d'), collect())->values()->map(fn (Booking $b) => [
                     'id' => $b->id,
                     'title' => $b->title,
@@ -43,6 +46,7 @@ class ScheduleController extends Controller
                     'building' => $b->room?->building?->name,
                     'chairperson' => $b->chairperson?->name,
                     'media' => $b->media,
+                    'osh_color' => $b->osh_level?->color,
                     'is_mine' => $b->requested_id === auth()->id(),
                     'start_time' => $b->start_time->format('Y-m-d H:i'),
                     'end_time' => $b->end_time->format('Y-m-d H:i'),
@@ -52,6 +56,14 @@ class ScheduleController extends Controller
             ];
         })->all();
 
-        return Inertia::render('schedule/index', ['days' => $days]);
+        return Inertia::render('schedule/index', [
+            'days' => $days,
+            'range' => [
+                'start' => $from->format('Y-m-d'),
+                'prev' => $from->copy()->subDays(self::DAYS)->format('Y-m-d'),
+                'next' => $from->copy()->addDays(self::DAYS)->format('Y-m-d'),
+                'today' => now()->format('Y-m-d'),
+            ],
+        ]);
     }
 }
