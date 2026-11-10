@@ -28,6 +28,7 @@ type Booking = {
     end_time: string;
     status: string;
     participants_count: number;
+    media?: 'offline' | 'hybrid';
     reason: string | null;
     attachment_url: string | null;
     qr_attendance_url: string | null;
@@ -386,6 +387,7 @@ export default function BookingsShow({
                     end_time: booking.end_time,
                     status: booking.status,
                     participants_count: booking.participants_count,
+                    media: booking.media,
                     room_id: booking.room.id,
                     chairperson_id: booking.chairperson?.id ?? null,
                     osh_level_id: booking.osh_level?.id ?? null,

@@ -29,6 +29,7 @@ class StoreBookingRequest extends FormRequest
             'start_time' => ['required', 'date', 'after:now'],
             'end_time' => ['required', 'date', 'after:start_time'],
             'participants_count' => ['required', 'integer', 'min:1'],
+            'media' => ['sometimes',Rule::in(['offline', 'hybrid'])],
             'attachment' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'qr_attendance' => ['required', 'image', 'max:5120'],
         ];

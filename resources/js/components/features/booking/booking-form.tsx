@@ -41,6 +41,7 @@ type BookingData = {
     end_time: string;
     status: string;
     participants_count: number;
+    media?: 'offline' | 'hybrid';
     room_id: number;
     chairperson_id: number | null;
     osh_level_id: number | null;
@@ -67,6 +68,7 @@ const emptyForm = {
     start_time: '',
     end_time: '',
     participants_count: 1,
+    media: 'offline' as 'offline' | 'hybrid',
     attachment: null as File | null,
     qr_attendance: null as File | null,
 };
@@ -82,6 +84,7 @@ const bookingToFormData = (booking: BookingData) => ({
     start_time: booking.start_time.replace(' ', 'T'),
     end_time: booking.end_time.replace(' ', 'T'),
     participants_count: booking.participants_count,
+    media: booking.media ?? ('offline' as 'offline' | 'hybrid'),
 });
 
 export function BookingForm({
@@ -359,6 +362,34 @@ export function BookingForm({
                             </Combobox>
                             {errors.osh_level_id && (
                                 <FieldError>{errors.osh_level_id}</FieldError>
+                            )}
+                        </Field>
+
+                        <Field>
+                            <FieldLabel>Media</FieldLabel>
+                            <div className="flex gap-2">
+                                {(
+                                    [
+                                        ['offline', 'Offline'],
+                                        ['hybrid', 'Hybrid (Zoom)'],
+                                    ] as const
+                                ).map(([value, label]) => (
+                                    <Button
+                                        key={value}
+                                        type="button"
+                                        variant={
+                                            data.media === value
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        onClick={() => setData('media', value)}
+                                    >
+                                        {label}
+                                    </Button>
+                                ))}
+                            </div>
+                            {errors.media && (
+                                <FieldError>{errors.media}</FieldError>
                             )}
                         </Field>
 

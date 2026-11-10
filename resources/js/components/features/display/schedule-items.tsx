@@ -9,7 +9,13 @@ import {
     formatDuration,
 } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { ClockIcon, MapPinIcon, User2Icon, UserIcon } from 'lucide-react';
+import {
+    ClockIcon,
+    MapPinIcon,
+    User2Icon,
+    UserIcon,
+    VideoIcon,
+} from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +45,7 @@ type ItemType = {
     start_time: string;
     end_time: string;
     effective_end_time?: string;
+    media?: 'offline' | 'hybrid';
     room: {
         id: number;
         name: string;
@@ -96,6 +103,12 @@ function SimpleCardItem({
                     </div>
                     <CardTitle className="text-2xl font-bold">
                         {item.title}
+                        {item.media === 'hybrid' && (
+                            <VideoIcon
+                                aria-label="Hybrid (Zoom)"
+                                className="ml-2 inline-block size-6 text-blue-600"
+                            />
+                        )}
                     </CardTitle>
                     <div className="text-foreground flex flex-row items-center gap-2 text-sm font-medium">
                         <UserIcon className="text-muted-foreground size-4" />
@@ -146,6 +159,12 @@ function RichCardItem({
                 </CardTitle>
                 <CardDescription className="text-foreground mt-1 text-2xl font-bold">
                     {item.title}
+                    {item.media === 'hybrid' && (
+                        <VideoIcon
+                            aria-label="Hybrid (Zoom)"
+                            className="ml-2 inline-block size-6 text-blue-600"
+                        />
+                    )}
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">

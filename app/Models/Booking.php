@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon $end_time
  * @property Carbon|null $ended_at
  * @property int $participants_count
+ * @property string $media
  * @property int|null $osh_level_id
  * @property string $status
  * @property string|null $attachment_path
@@ -30,7 +31,7 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $approved_id
  * @property Carbon|null $approved_at
  */
-#[Fillable(['requested_id', 'room_id', 'chairperson_id', 'title', 'description', 'start_time', 'end_time', 'ended_at', 'participants_count', 'osh_level_id', 'attachment_path', 'qr_attendance_path', 'status', 'approved_id', 'approved_at', 'reason'])]
+#[Fillable(['requested_id', 'room_id', 'chairperson_id', 'title', 'description', 'start_time', 'end_time', 'ended_at', 'participants_count', 'media', 'osh_level_id', 'attachment_path', 'qr_attendance_path', 'status', 'approved_id', 'approved_at', 'reason'])]
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */

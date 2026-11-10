@@ -1,6 +1,7 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import { useConnectionStatus, useEchoPublic } from '@laravel/echo-react';
+import { Video } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { MediaPlayer } from '@/components/features/display/media-player';
 import { TopBar } from '@/components/shared/general/top-bar';
@@ -35,6 +36,7 @@ type Booking = {
     end_time: string;
     qr_attendance_url: string;
     description: string;
+    media?: 'offline' | 'hybrid';
     room: {
         id: number;
         name: string;
@@ -140,6 +142,12 @@ export default function Room({
                             <div className="border-y-3 h-auto w-full space-y-6 border-black py-8 text-center">
                                 <h1 className="text-6xl font-extrabold uppercase leading-tight">
                                     {currentBooking.title}
+                                    {currentBooking.media === 'hybrid' && (
+                                        <Video
+                                            aria-label="Hybrid (Zoom)"
+                                            className="ml-4 inline-block size-14 text-blue-600"
+                                        />
+                                    )}
                                 </h1>
                                 <div className="text-center">
                                     <span>Pimpinan:</span>

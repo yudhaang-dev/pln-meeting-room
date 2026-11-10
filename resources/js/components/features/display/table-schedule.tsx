@@ -1,4 +1,5 @@
 import { parseISO } from 'date-fns';
+import { Video } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { OshBadge } from '@/components/shared/osh-badge';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ type Booking = {
     end_time: string;
     effective_end_time?: string;
     participants_count: number;
+    media?: 'offline' | 'hybrid';
     room: {
         name: string;
         building: {
@@ -103,6 +105,12 @@ export function TableSchedule({ data = [], title = '', date = '' }: Props) {
                             </TableCell>
                             <TableCell>
                                 <span className="font-bold">{item.title}</span>
+                                {item.media === 'hybrid' && (
+                                    <Video
+                                        aria-label="Hybrid (Zoom)"
+                                        className="ml-2 inline-block size-5 text-blue-600"
+                                    />
+                                )}
                                 <br />
                                 <span>{item.chairperson?.name ?? '—'}</span>
                             </TableCell>

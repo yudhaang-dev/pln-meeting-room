@@ -110,6 +110,7 @@ class BookingController extends Controller
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
                 'participants_count' => $validated['participants_count'],
+                'media' => $validated['media'] ?? 'offline',
                 'attachment_path' => $attachmentPath,
                 'qr_attendance_path' => $qrAttendancePath,
                 'status' => 'pending',

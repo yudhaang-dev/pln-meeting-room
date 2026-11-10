@@ -19,6 +19,7 @@ type Booking = {
     end_time: string;
     status: string;
     participants_count: number;
+    media?: 'offline' | 'hybrid';
     reason: string | null;
     attachment_url: string | null;
     qr_attendance_url: string | null;
@@ -145,6 +146,16 @@ export default function BookingShow({ booking, children }: Props) {
                                                     level={booking.osh_level}
                                                 />
                                             </div>
+                                        </dd>
+                                    </div>
+                                    <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt className="text-muted-foreground">
+                                            Media
+                                        </dt>
+                                        <dd className="mt-1 font-medium sm:col-span-2 sm:mt-0">
+                                            {booking.media === 'hybrid'
+                                                ? 'Hybrid (Zoom)'
+                                                : 'Offline'}
                                         </dd>
                                     </div>
                                     <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">

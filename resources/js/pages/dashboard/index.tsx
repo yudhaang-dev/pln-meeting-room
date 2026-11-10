@@ -5,6 +5,7 @@ import {
     CalendarDays,
     CalendarX,
     SearchIcon,
+    Video,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -38,6 +39,7 @@ type ScheduleBooking = {
     title: string;
     start_time: string;
     end_time: string;
+    media?: 'offline' | 'hybrid';
     room: { id: number; name: string; building: { id: number; name: string } };
     requested_by: { id: number; name: string };
     chairperson: { name: string };
@@ -241,6 +243,12 @@ export default function UserDashboard({
                                             <TableCell>
                                                 <div className="text-sm font-medium">
                                                     {row.title}
+                                                    {row.media === 'hybrid' && (
+                                                        <Video
+                                                            aria-label="Hybrid (Zoom)"
+                                                            className="ml-2 inline-block size-4 text-blue-600"
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div className="text-muted-foreground text-xs">
                                                     {row.chairperson.name}
