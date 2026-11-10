@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('infografis/{media}/toggle-active', [Web\MediaController::class, 'toggleActiveGlobal'])->name('infografis.toggleActive');
     Route::delete('infografis/{media}', [Web\MediaController::class, 'destroyGlobal'])->name('infografis.destroy');
 
+    Route::get('schedule', [Web\ScheduleController::class, 'index'])->name('schedule.index');
     Route::get('meeting-rooms', [Web\MeetingRoomController::class, 'index'])->name('meeting-rooms.index');
     Route::get('meeting-rooms/{room}', [Web\MeetingRoomController::class, 'show'])->name('meeting-rooms.show');
 

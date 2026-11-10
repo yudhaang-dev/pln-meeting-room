@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Building2Icon,
     CalendarCheckIcon,
+    CalendarRangeIcon,
     DoorOpenIcon,
     LayersIcon,
     LayoutGridIcon,
@@ -36,6 +37,11 @@ const platformMenu = [
         title: 'Booking',
         href: '/bookings',
         icon: ListChecksIcon,
+    },
+    {
+        title: 'Jadwal',
+        href: '/schedule',
+        icon: CalendarRangeIcon,
     },
     {
         title: 'Ruang Rapat',
