@@ -303,17 +303,39 @@ test('user can view their own booking detail', function () {
     $response->assertInertia(fn ($page) => $page->component('bookings/show'));
 });
 
-test('user cannot view other users booking detail', function () {
+test('user cannot view other users non-approved booking detail', function () {
     $this->actingAs($this->user);
 
     $otherUser = User::factory()->create(['role' => 'user']);
     $booking = Booking::factory()->create([
         'requested_id' => $otherUser->id,
+        'status' => 'pending',
     ]);
 
-    $response = $this->get(route('bookings.show', $booking));
+    $this->get(route('bookings.show', $booking))->assertForbidden();
+});
 
-    $response->assertForbidden();
+test('user can view other users approved booking read-only without attachments', function () {
+    $this->actingAs($this->user);
+
+    $otherUser = User::factory()->create(['role' => 'user']);
+    $booking = Booking::factory()->create([
+        'requested_id' => $otherUser->id,
+        'status' => 'approved',
+        'attachment_path' => 'bookings/secret.pdf',
+        'qr_attendance_path' => 'bookings/qr/secret.png',
+    ]);
+
+    $this->get(route('bookings.show', $booking))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('read_only', true)
+            ->missing('booking.attachment_url')
+            ->missing('booking.qr_attendance_url')
+            ->missing('booking.requested_by.email'));
+
+    $this->put(route('bookings.update', $booking), ['title' => 'Hacked'])->assertForbidden();
+    $this->delete(route('bookings.destroy', $booking))->assertForbidden();
 });
 
 test('booking detail shows osh level', function () {

@@ -133,6 +133,14 @@ class BookingController extends Controller
 
         $booking->load(['room.building', 'requestedBy', 'chairperson', 'approvedBy']);
 
+        $readOnly = ! Auth::user()->can('viewDetails', $booking);
+
+        if ($readOnly) {
+            $booking->makeHidden(['attachment_path', 'qr_attendance_path', 'attachment_url', 'qr_attendance_url', 'reason']);
+            $booking->requestedBy?->makeHidden(['email']);
+            $booking->approvedBy?->makeHidden(['email']);
+        }
+
         $rooms = Room::where('is_active', true)->orderBy('name')->get();
         $people = Person::where('is_active', true)->orderBy('name')->get();
         $osh_levels = OshLevel::where('is_active', true)->orderBy('sort_order')->get();
@@ -140,6 +148,7 @@ class BookingController extends Controller
         return inertia('bookings/show', [
             'booking' => $booking,
             'can_finish' => Auth::user()->can('finish', $booking),
+            'read_only' => $readOnly,
             'rooms' => $rooms,
             'people' => $people,
             'osh_levels' => $osh_levels,

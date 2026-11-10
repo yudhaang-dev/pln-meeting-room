@@ -55,6 +55,7 @@ class DashboardController extends Controller
                     'booking' => $booking ? [
                         'id' => $booking->id,
                         'title' => $booking->title,
+                        'is_mine' => $booking->requested_id === auth()->id(),
                         'chairperson' => $booking->chairperson?->name,
                         'start_time' => $booking->start_time->format('Y-m-d H:i'),
                         'end_time' => $booking->end_time->format('Y-m-d H:i'),

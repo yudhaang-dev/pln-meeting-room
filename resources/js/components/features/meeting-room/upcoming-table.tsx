@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Video } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
     Table,
     TableBody,
@@ -16,6 +17,7 @@ export type UpcomingBooking = {
     chairperson: string | null;
     participants_count: number;
     media?: 'offline' | 'hybrid';
+    is_mine?: boolean;
     start_time: string;
     end_time: string;
     effective_end_time: string;
@@ -58,6 +60,9 @@ export function UpcomingTable({ items }: { items: UpcomingBooking[] }) {
                             >
                                 {item.title}
                             </Link>
+                            {item.is_mine && (
+                                <Badge className="ml-2">Milik Anda</Badge>
+                            )}
                             {item.media === 'hybrid' && (
                                 <Video
                                     aria-label="Hybrid (Zoom)"

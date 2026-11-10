@@ -17,6 +17,7 @@ export type RoomStatus = {
     booking: {
         id: number;
         title: string;
+        is_mine?: boolean;
         chairperson: string | null;
         start_time: string;
         end_time: string;
@@ -65,6 +66,11 @@ export function RoomStatusGrid({ rooms }: { rooms: RoomStatus[] }) {
                                             <div className="line-clamp-2 font-medium">
                                                 {room.booking.title}
                                             </div>
+                                            {room.booking.is_mine && (
+                                                <div className="text-xs font-semibold">
+                                                    ★ Milik Anda
+                                                </div>
+                                            )}
                                             <div className="text-xs opacity-80">
                                                 {formatTime(
                                                     room.booking.start_time,

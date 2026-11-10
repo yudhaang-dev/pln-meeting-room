@@ -30,14 +30,14 @@ type Booking = {
         capacity: number;
         building: { name: string };
     };
-    requested_by: { id: number; name: string; email: string };
+    requested_by: { id: number; name: string; email?: string };
     chairperson: { id: number; name: string } | null;
     osh_level: {
         id: number;
         name: string;
         color: string;
     };
-    approved_by: { id: number; name: string; email: string } | null;
+    approved_by: { id: number; name: string; email?: string } | null;
     approved_at: string | null;
     ended_at?: string | null;
 };
@@ -166,6 +166,8 @@ export default function BookingShow({ booking, children }: Props) {
                                             {booking.description || '-'}
                                         </dd>
                                     </div>
+                                    {(booking.attachment_url ||
+                                        booking.qr_attendance_url) && (
                                     <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dt className="text-muted-foreground">
                                             Lampiran
@@ -206,6 +208,7 @@ export default function BookingShow({ booking, children }: Props) {
                                             </div>
                                         </dd>
                                     </div>
+                                    )}
                                 </dl>
                             </CardContent>
                         </Card>

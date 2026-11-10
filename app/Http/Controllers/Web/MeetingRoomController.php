@@ -86,6 +86,7 @@ class MeetingRoomController extends Controller
             'chairperson' => $booking->chairperson?->name,
             'participants_count' => $booking->participants_count,
             'media' => $booking->media,
+            'is_mine' => $booking->requested_id === auth()->id(),
             'start_time' => $booking->start_time->format('Y-m-d H:i'),
             'end_time' => $booking->end_time->format('Y-m-d H:i'),
             'effective_end_time' => $booking->effective_end_time,

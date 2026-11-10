@@ -39,14 +39,14 @@ type Booking = {
         capacity: number;
         building: { name: string };
     };
-    requested_by: { id: number; name: string; email: string };
+    requested_by: { id: number; name: string; email?: string };
     chairperson: { id: number; name: string } | null;
     osh_level: {
         id: number;
         name: string;
         color: string;
     };
-    approved_by: { id: number; name: string; email: string } | null;
+    approved_by: { id: number; name: string; email?: string } | null;
     approved_at: string | null;
     ended_at: string | null;
 };
@@ -54,6 +54,7 @@ type Booking = {
 type Props = {
     booking: Booking;
     can_finish: boolean;
+    read_only?: boolean;
     rooms: Room[];
     people: Person[];
     osh_levels: {
@@ -66,6 +67,7 @@ type Props = {
 export default function BookingsShow({
     booking,
     can_finish,
+    read_only = false,
     rooms,
     people,
     osh_levels,
@@ -147,6 +149,11 @@ export default function BookingsShow({
         <>
             <Head title={`Booking: ${booking.title}`} />
             <BookingShow booking={booking} backHref={bookings.index()}>
+                {read_only && (
+                    <div className="text-muted-foreground rounded-md border border-dashed p-4 text-sm">
+                        Jadwal milik pengguna lain. Anda hanya dapat melihatnya.
+                    </div>
+                )}
                 {can_finish && (
                     <div className="rounded-md border p-4">
                         <h2 className="text-muted-foreground mb-3 text-sm font-medium">

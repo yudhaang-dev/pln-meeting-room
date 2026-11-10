@@ -14,6 +14,19 @@ class BookingPolicy
 
     public function view(User $user, Booking $booking): bool
     {
+        // Jadwal yang sudah disetujui terlihat oleh semua user (hanya baca);
+        // booking lain hanya untuk pemilik dan staf.
+        return $user->isAdmin()
+            || $user->isOperator()
+            || $booking->requested_id === $user->id
+            || $booking->status === 'approved';
+    }
+
+    /**
+     * Pemilik atau staf boleh melihat data sensitif (lampiran, email pemohon).
+     */
+    public function viewDetails(User $user, Booking $booking): bool
+    {
         return $user->isAdmin()
             || $user->isOperator()
             || $booking->requested_id === $user->id;
