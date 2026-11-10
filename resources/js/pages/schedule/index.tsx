@@ -89,7 +89,7 @@ export default function ScheduleIndex({
                         <section
                             key={day.date}
                             className={cn(
-                                'bg-card flex min-h-40 flex-col rounded-lg border',
+                                'bg-card flex min-h-40 flex-col overflow-hidden rounded-lg border',
                                 day.is_today && 'border-primary',
                             )}
                         >
