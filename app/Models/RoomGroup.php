@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Database\Factories\RoomGroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class RoomGroup extends Model
 {
     /** @use HasFactory<RoomGroupFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected function casts(): array
     {
@@ -53,5 +54,15 @@ class RoomGroup extends Model
         return $this->hasMany(Media::class, 'mediable_id')
             ->where('mediable_type', self::class)
             ->orderBy('sort_order');
+    }
+
+    public static function activityKey(): string
+    {
+        return 'room_group';
+    }
+
+    public static function activityLabel(): string
+    {
+        return 'kelompok ruangan';
     }
 }

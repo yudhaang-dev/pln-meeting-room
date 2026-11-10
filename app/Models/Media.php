@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Database\Factories\MediaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Storage;
 class Media extends Model
 {
     /** @use HasFactory<MediaFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $appends = ['file_url'];
 
@@ -75,5 +76,15 @@ class Media extends Model
     public function scopeGlobalActive(Builder $query): Builder
     {
         return $query->global()->where('is_active', true)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public static function activityKey(): string
+    {
+        return 'media';
+    }
+
+    public static function activityLabel(): string
+    {
+        return 'media';
     }
 }

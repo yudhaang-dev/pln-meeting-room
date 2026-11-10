@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Storage;
 class Person extends Model
 {
     /** @use HasFactory<PersonFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected function casts(): array
     {
@@ -39,5 +40,15 @@ class Person extends Model
         if ($this->photo && Storage::disk('public')->exists($this->photo)) {
             Storage::disk('public')->delete($this->photo);
         }
+    }
+
+    public static function activityKey(): string
+    {
+        return 'person';
+    }
+
+    public static function activityLabel(): string
+    {
+        return 'pimpinan acara';
     }
 }

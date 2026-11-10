@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\AuthActivityListener;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -26,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Event::subscribe(AuthActivityListener::class);
 
         // Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
         //     if (in_array($response->statusCode(), [403, 404, 500, 503])) {

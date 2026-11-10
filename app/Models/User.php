@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\LogsActivity;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -37,7 +38,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable;
+    use HasFactory, Notifiable, PasskeyAuthenticatable, LogsActivity;
 
     protected $appends = ['avatar_url', 'notification_audio_url'];
 
@@ -110,5 +111,15 @@ class User extends Authenticatable implements PasskeyUser
     public function approvedBookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'approved_id');
+    }
+
+    public static function activityKey(): string
+    {
+        return 'user';
+    }
+
+    public static function activityLabel(): string
+    {
+        return 'pengguna';
     }
 }

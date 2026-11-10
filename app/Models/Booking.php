@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,7 +36,7 @@ use Illuminate\Support\Facades\Storage;
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $appends = ['attachment_url', 'qr_attendance_url', 'effective_end_time'];
 
@@ -172,5 +173,39 @@ class Booking extends Model
         if ($this->qr_attendance_path && Storage::disk('public')->exists($this->qr_attendance_path)) {
             Storage::disk('public')->delete($this->qr_attendance_path);
         }
+    }
+
+    public static function activityKey(): string
+    {
+        return 'booking';
+    }
+
+    public static function activityLabel(): string
+    {
+        return 'booking';
+    }
+
+    /**
+     * @param  array<string, array{0: mixed, 1: mixed}>  $changes
+     * @return array{0: string, 1: string}
+     */
+    protected function activityUpdateEvent(array $changes): array
+    {
+        $subject = $this->activitySubject();
+
+        if (isset($changes['status'])) {
+            return match ($changes['status'][1]) {
+                'approved' => ['approved', 'Menyetujui booking '.$subject],
+                'rejected' => ['rejected', 'Menolak booking '.$subject],
+                'cancelled' => ['cancelled', 'Membatalkan booking '.$subject],
+                default => ['updated', 'Mengubah status booking '.$subject],
+            };
+        }
+
+        if (isset($changes['ended_at']) && $changes['ended_at'][1] !== null) {
+            return ['finished', 'Mengakhiri rapat '.$subject.' lebih awal'];
+        }
+
+        return ['updated', 'Mengubah booking '.$subject];
     }
 }

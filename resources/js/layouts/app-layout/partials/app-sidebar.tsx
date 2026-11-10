@@ -4,6 +4,7 @@ import {
     CalendarCheckIcon,
     CalendarRangeIcon,
     DoorOpenIcon,
+    HistoryIcon,
     LayersIcon,
     LayoutGridIcon,
     ListChecksIcon,
@@ -73,6 +74,11 @@ const masterMenu = [
         title: 'Infografis',
         href: '/infografis',
         icon: MonitorPlayIcon,
+    },
+    {
+        title: 'Log Aktivitas',
+        href: '/admin/activity',
+        icon: HistoryIcon,
     },
     {
         title: 'Pengaturan Sistem',

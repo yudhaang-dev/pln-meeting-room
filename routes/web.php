@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::resource('users', Web\UserController::class)->except(['create', 'show', 'edit']);
         Route::get('admin/monitoring', Web\MonitoringController::class)->name('admin.monitoring');
+        Route::get('admin/activity', Web\ActivityLogController::class)->name('admin.activity');
     });
 
     Route::get('/dashboard', Web\DashboardController::class)->name('dashboard');
