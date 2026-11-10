@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Building2Icon,
     CalendarCheckIcon,
+    DoorOpenIcon,
     LayersIcon,
     LayoutGridIcon,
     ListChecksIcon,
@@ -35,6 +36,11 @@ const platformMenu = [
         title: 'Booking',
         href: '/bookings',
         icon: ListChecksIcon,
+    },
+    {
+        title: 'Ruang Rapat',
+        href: '/meeting-rooms',
+        icon: DoorOpenIcon,
     },
 ];
 

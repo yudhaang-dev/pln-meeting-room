@@ -44,6 +44,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('infografis/{media}/toggle-active', [Web\MediaController::class, 'toggleActiveGlobal'])->name('infografis.toggleActive');
     Route::delete('infografis/{media}', [Web\MediaController::class, 'destroyGlobal'])->name('infografis.destroy');
 
+    Route::get('meeting-rooms', [Web\MeetingRoomController::class, 'index'])->name('meeting-rooms.index');
+    Route::get('meeting-rooms/{room}', [Web\MeetingRoomController::class, 'show'])->name('meeting-rooms.show');
+
     Route::resource('bookings', Web\BookingController::class)->except(['create', 'edit']);
     Route::post('/bookings/{booking}/status/reject', [Web\BookingController::class, 'reject'])->name('bookings.reject');
     Route::post('/bookings/{booking}/finish', [Web\BookingController::class, 'finish'])->name('bookings.finish');
