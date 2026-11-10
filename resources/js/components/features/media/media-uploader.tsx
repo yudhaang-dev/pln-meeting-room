@@ -225,7 +225,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
             });
 
             if (!assembleResponse.ok) {
-                throw new Error('Assembly failed');
+                throw new Error('Penggabungan gagal');
             }
 
             const result = (await assembleResponse.json()) as {
@@ -259,7 +259,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
             const accepted = files.filter(isAcceptedFile);
 
             if (accepted.length === 0) {
-                toast.error('No supported files selected.');
+                toast.error('Tidak ada file yang didukung.');
 
                 return;
             }
@@ -305,7 +305,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                     <div className="flex flex-col items-center gap-2">
                         <Spinner />
                         <span className="text-muted-foreground text-sm">
-                            Uploading...
+                            Mengunggah...
                         </span>
                     </div>
                 ) : (
@@ -322,8 +322,8 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                             </button>
                         </p>
                         <p className="text-muted-foreground text-xs">
-                            Images, videos and PDFs (large files supported via
-                            chunk upload)
+                            Gambar, video, dan PDF (file besar didukung lewat
+                            unggah bertahap)
                         </p>
                     </>
                 )}
@@ -448,11 +448,11 @@ function UploadItem({
                     )}
                     {status === 'done' && (
                         <span className="text-muted-foreground text-xs">
-                            Done
+                            Selesai
                         </span>
                     )}
                     {status === 'error' && (
-                        <span className="text-destructive text-xs">Failed</span>
+                        <span className="text-destructive text-xs">Gagal</span>
                     )}
                 </div>
                 {(status === 'uploading' || status === 'pending') && (

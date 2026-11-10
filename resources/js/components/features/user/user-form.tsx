@@ -89,17 +89,17 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing ? 'Edit User' : 'Create User'}
+                        {isEditing ? 'Ubah Pengguna' : 'Tambah Pengguna'}
                     </DialogTitle>
                     <DialogDescription>
                         {isEditing
-                            ? 'Update user details below. Leave password blank to keep current.'
-                            : 'Fill in the details to create a new user.'}
+                            ? 'Ubah rincian pengguna di bawah ini. Kosongkan kata sandi untuk tetap memakai yang lama.'
+                            : 'Isi rincian untuk menambah pengguna baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama</Label>
                         <Input
                             id="name"
                             value={data.name}
@@ -126,7 +126,7 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">Kata sandi</Label>
                         <Input
                             id="password"
                             type="password"
@@ -137,7 +137,7 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                         />
                         {isEditing && (
                             <p className="text-muted-foreground text-xs">
-                                Leave blank to keep current.
+                                Kosongkan untuk tetap memakai yang lama.
                             </p>
                         )}
                         {errors.password && (
@@ -149,7 +149,7 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                     {data.password && (
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                Confirm Password
+                                Konfirmasi Kata Sandi
                             </Label>
                             <Input
                                 id="password_confirmation"
@@ -165,7 +165,7 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                         </div>
                     )}
                     <div className="grid gap-2">
-                        <Label htmlFor="role">Role</Label>
+                        <Label htmlFor="role">Peran</Label>
                         <Select
                             value={data.role}
                             onValueChange={(value) => {
@@ -175,14 +175,14 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                             }}
                         >
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select role" />
+                                <SelectValue placeholder="Pilih peran" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="admin">Admin</SelectItem>
                                 <SelectItem value="operator">
                                     Operator
                                 </SelectItem>
-                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="user">Pengguna</SelectItem>
                             </SelectContent>
                         </Select>
                         {errors.role && (
@@ -194,7 +194,7 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                     <DialogFooter>
                         <Button type="submit" disabled={processing}>
                             {processing && <Spinner />}
-                            {isEditing ? 'Update' : 'Create'}
+                            {isEditing ? 'Simpan' : 'Tambah'}
                         </Button>
                     </DialogFooter>
                 </form>

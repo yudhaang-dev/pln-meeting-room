@@ -68,7 +68,7 @@ class StoreBookingRequest extends FormRequest
                 if ($start->lt($advanceDeadline)) {
                     $validator->errors()->add(
                         'start_time',
-                        "Bookings must be made at least {$settings->booking_advance_hours} hour(s) in advance."
+                        __('Bookings must be made at least :hours hour(s) in advance.', ['hours' => $settings->booking_advance_hours])
                     );
                 }
 
@@ -76,7 +76,7 @@ class StoreBookingRequest extends FormRequest
                 if ($start->gt($maxDeadline)) {
                     $validator->errors()->add(
                         'start_time',
-                        "Bookings cannot be made more than {$settings->booking_max_days_ahead} day(s) in advance."
+                        __('Bookings cannot be made more than :days day(s) in advance.', ['days' => $settings->booking_max_days_ahead])
                     );
                 }
 
@@ -92,7 +92,7 @@ class StoreBookingRequest extends FormRequest
                     if ($hasOverlap) {
                         $validator->errors()->add(
                             'room_id',
-                            'This room is already booked for the selected time slot.'
+                            __('This room is already booked for the selected time slot.')
                         );
                     }
                 }

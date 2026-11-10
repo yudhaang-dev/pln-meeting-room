@@ -51,14 +51,14 @@ export default function OshLevelsIndex({ oshLevels }: Props) {
 
     return (
         <>
-            <Head title="OSH Levels" />
+            <Head title="Level K3" />
 
             <PageContainer>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">OSH Levels</h1>
+                    <h1 className="text-2xl font-bold">Level K3</h1>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 size-4" />
-                        Add Level
+                        Tambah Level
                     </Button>
                 </div>
 
@@ -103,7 +103,7 @@ export default function OshLevelsIndex({ oshLevels }: Props) {
 OshLevelsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'OSH Levels',
+            title: 'Level K3',
             href: oshLevelRoutes.index(),
         },
     ],

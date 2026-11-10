@@ -79,17 +79,17 @@ export function BuildingForm({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {building ? 'Edit Building' : 'Create Gedung'}
+                        {building ? 'Ubah Gedung' : 'Tambah Gedung'}
                     </DialogTitle>
                     <DialogDescription>
                         {building
-                            ? 'Update the building details below.'
-                            : 'Fill in the details to create a new building.'}
+                            ? 'Ubah rincian gedung di bawah ini.'
+                            : 'Isi rincian untuk menambah gedung baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama</Label>
                         <Input
                             id="name"
                             value={data.name}
@@ -109,12 +109,12 @@ export function BuildingForm({
                                 setData('is_active', checked)
                             }
                         />
-                        <Label htmlFor="is_active">Active</Label>
+                        <Label htmlFor="is_active">Aktif</Label>
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={processing}>
                             {processing && <Spinner />}
-                            {building ? 'Update' : 'Create'}
+                            {building ? 'Simpan' : 'Tambah'}
                         </Button>
                     </DialogFooter>
                 </form>

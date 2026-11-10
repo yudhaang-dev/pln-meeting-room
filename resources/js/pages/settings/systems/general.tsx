@@ -56,7 +56,7 @@ export default function AdminSettings({ settings }: Props) {
 
     return (
         <>
-            <Head title="General Settings" />
+            <Head title="Pengaturan Umum" />
 
             <PageContainer>
                 <h1 className="text-2xl font-bold">Pengaturan Sistem</h1>
@@ -202,7 +202,7 @@ export default function AdminSettings({ settings }: Props) {
 AdminSettings.layout = {
     breadcrumbs: [
         {
-            title: 'System Settings',
+            title: 'Pengaturan Sistem',
             href: general.edit(),
         },
     ],

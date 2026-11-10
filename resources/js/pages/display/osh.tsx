@@ -109,7 +109,7 @@ export default function Osh({
 
     return (
         <>
-            <Head title={docTitle ?? 'OSH Display'} />
+            <Head title={docTitle ?? 'Display K3'} />
             <div className="bg-linear-to-b flex min-h-svh w-full flex-col from-white/70 to-transparent">
                 <TopBar
                     className="w-full gap-6 p-6 md:p-10"

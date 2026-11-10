@@ -60,15 +60,15 @@ export default function BookingsIndex({
 
     return (
         <>
-            <Head title="Bookings" />
+            <Head title="Booking" />
 
             <PageContainer>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Bookings</h1>
+                    <h1 className="text-2xl font-bold">Booking</h1>
                     {allowCreate && (
                         <Button onClick={openCreate}>
                             <CalendarPlus className="mr-2 size-4" />
-                            Book Room
+                            Ajukan Booking
                         </Button>
                     )}
                 </div>
@@ -103,7 +103,7 @@ export default function BookingsIndex({
 BookingsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Bookings',
+            title: 'Booking',
             href: bookings.index(),
         },
     ],

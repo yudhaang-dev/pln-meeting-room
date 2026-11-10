@@ -117,7 +117,7 @@ class BookingController extends Controller
 
             BookingCreated::dispatch($booking);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking created successfully.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Booking created successfully.')]);
 
             return to_route('bookings.index');
         }, __('Failed to create booking.'));
@@ -170,7 +170,7 @@ class BookingController extends Controller
 
             BookingUpdated::dispatch($booking);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking updated.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Booking updated.')]);
 
             return back();
         }, __('Failed to update booking.'));
@@ -182,12 +182,13 @@ class BookingController extends Controller
             $this->authorize('delete', $booking);
 
             $booking->deleteAttachment();
+            $booking->deleteQrAttendance();
 
             BookingUpdated::dispatch($booking);
 
             $booking->delete();
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Booking deleted.')]);
 
             return to_route('bookings.index');
         }, __('Failed to delete booking.'));
@@ -206,7 +207,7 @@ class BookingController extends Controller
 
             BookingUpdated::dispatch($booking);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking approved.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Booking approved.')]);
 
             return back();
         }, __('Failed to approve booking.'));
@@ -230,7 +231,7 @@ class BookingController extends Controller
 
             BookingUpdated::dispatch($booking);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Booking rejected.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Booking rejected.')]);
 
             return back();
         }, __('Failed to reject booking.'));

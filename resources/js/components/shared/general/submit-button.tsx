@@ -19,7 +19,7 @@ function DefaultContent({
 }: { showText?: boolean } & ComponentProps<'div'>) {
     return (
         <div className="flex items-center gap-2">
-            {showText && <span>Save</span>}
+            {showText && <span>Simpan</span>}
             <SaveIcon />
         </div>
     );

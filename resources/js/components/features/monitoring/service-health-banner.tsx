@@ -11,8 +11,8 @@ export function ServiceHealthBanner({
     reverbRunning,
 }: ServiceHealthBannerProps) {
     const services = [
-        { name: 'Background worker', running: workerRunning },
-        { name: 'WebSocket server', running: reverbRunning },
+        { name: 'Pekerja latar belakang', running: workerRunning },
+        { name: 'Server WebSocket', running: reverbRunning },
     ];
 
     const down = services.filter((service) => !service.running);
@@ -41,13 +41,13 @@ export function ServiceHealthBanner({
                         )}
                     >
                         {allRunning
-                            ? 'All services are running'
-                            : `${down.length} service${down.length > 1 ? 's' : ''} need${down.length > 1 ? '' : 's'} attention`}
+                            ? 'Semua layanan berjalan'
+                            : `${down.length} layanan perlu perhatian`}
                     </p>
                     <p className="text-muted-foreground text-sm">
                         {allRunning
-                            ? 'Background worker and WebSocket server are active.'
-                            : `${down.map((service) => service.name).join(' and ')} ${down.length > 1 ? 'are' : 'is'} not running.`}
+                            ? 'Pekerja latar belakang dan server WebSocket aktif.'
+                            : `${down.map((service) => service.name).join(' dan ')} tidak berjalan.`}
                     </p>
                 </div>
             </div>

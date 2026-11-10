@@ -70,6 +70,9 @@ export default function BookingsShow({
     const isOperator = auth.user.role == 'operator';
     const isAdmin = auth.user.role == 'admin';
     const isAllowAction = isOperator || isAdmin;
+    const isOwnerRejected =
+        auth.user.id === booking.requested_by.id &&
+        booking.status === 'rejected';
 
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [approveOpen, setApproveOpen] = useState(false);
@@ -127,7 +130,7 @@ export default function BookingsShow({
                 {isAllowAction && (booking.status === 'pending' || isAdmin) && (
                     <div className="rounded-md border p-4">
                         <h2 className="text-muted-foreground mb-3 text-sm font-medium">
-                            Actions
+                            Aksi
                         </h2>
                         <div className="grid gap-2">
                             {booking.status === 'pending' && (
@@ -143,7 +146,7 @@ export default function BookingsShow({
                                         ) : (
                                             <Check className="size-4" />
                                         )}
-                                        Approve
+                                        Setujui
                                     </Button>
                                     <Button
                                         size="sm"
@@ -160,7 +163,7 @@ export default function BookingsShow({
                                         ) : (
                                             <X className="size-4" />
                                         )}
-                                        Reject
+                                        Tolak
                                     </Button>
                                 </>
                             )}
@@ -173,7 +176,7 @@ export default function BookingsShow({
                                         onClick={() => setEditOpen(true)}
                                     >
                                         <Pencil className="size-4" />
-                                        Edit
+                                        Ubah
                                     </Button>
                                     <Button
                                         size="sm"
@@ -182,11 +185,27 @@ export default function BookingsShow({
                                         onClick={() => setDeleteOpen(true)}
                                     >
                                         <Trash2 className="size-4" />
-                                        Delete
+                                        Hapus
                                     </Button>
                                 </>
                             )}
                         </div>
+                    </div>
+                )}
+                {isOwnerRejected && !isAllowAction && (
+                    <div className="rounded-md border p-4">
+                        <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+                            Aksi
+                        </h2>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:text-destructive w-full justify-start gap-2"
+                            onClick={() => setDeleteOpen(true)}
+                        >
+                            <Trash2 className="size-4" />
+                            Hapus
+                        </Button>
                     </div>
                 )}
             </BookingShow>
@@ -194,11 +213,11 @@ export default function BookingsShow({
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Booking</DialogTitle>
+                        <DialogTitle>Hapus Booking</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete{' '}
-                            <strong>{booking.title}</strong>? This action cannot
-                            be undone.
+                            Apakah Anda yakin ingin menghapus{' '}
+                            <strong>{booking.title}</strong>? Tindakan ini tidak
+                            dapat dibatalkan.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -206,7 +225,7 @@ export default function BookingsShow({
                             variant="outline"
                             onClick={() => setDeleteOpen(false)}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             variant="destructive"
@@ -214,7 +233,7 @@ export default function BookingsShow({
                             disabled={processing}
                         >
                             {processing && <Spinner />}
-                            Delete
+                            Hapus
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -223,9 +242,9 @@ export default function BookingsShow({
             <Dialog open={approveOpen} onOpenChange={setApproveOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Approve Booking</DialogTitle>
+                        <DialogTitle>Setujui Booking</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to approve{' '}
+                            Apakah Anda yakin ingin menyetujui{' '}
                             <strong>{booking.title}</strong>?
                         </DialogDescription>
                     </DialogHeader>
@@ -234,11 +253,11 @@ export default function BookingsShow({
                             variant="outline"
                             onClick={() => setApproveOpen(false)}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button onClick={handleApprove} disabled={processing}>
                             {processing && <Spinner />}
-                            Approve
+                            Setujui
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -255,19 +274,19 @@ export default function BookingsShow({
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Reject Booking</DialogTitle>
+                        <DialogTitle>Tolak Booking</DialogTitle>
                         <DialogDescription>
-                            Please provide a reason for rejecting{' '}
+                            Berikan alasan penolakan untuk{' '}
                             <strong>{booking.title}</strong>.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-2">
-                        <Label htmlFor="reject-reason">Reason *</Label>
+                        <Label htmlFor="reject-reason">Alasan *</Label>
                         <Textarea
                             id="reject-reason"
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
-                            placeholder="Enter rejection reason..."
+                            placeholder="Tulis alasan penolakan..."
                             rows={3}
                         />
                     </div>
@@ -279,7 +298,7 @@ export default function BookingsShow({
                                 setRejectReason('');
                             }}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             variant="destructive"
@@ -287,7 +306,7 @@ export default function BookingsShow({
                             disabled={processing || !rejectReason.trim()}
                         >
                             {processing && <Spinner />}
-                            Reject
+                            Tolak
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -322,7 +341,7 @@ export default function BookingsShow({
 BookingsShow.layout = {
     breadcrumbs: [
         {
-            title: 'Bookings',
+            title: 'Booking',
             href: bookings.index(),
         },
         {

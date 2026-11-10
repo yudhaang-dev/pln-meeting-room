@@ -66,7 +66,7 @@ export function PeopleDataTable({
     return (
         <>
             <SearchBar
-                placeholder="Search people..."
+                placeholder="Cari pimpinan..."
                 search={search}
                 onSearch={onSearch}
                 perPage={String(perPage)}
@@ -84,7 +84,7 @@ export function PeopleDataTable({
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Name
+                                Nama
                             </SortableHeader>
                             <SortableHeader
                                 column="is_active"
@@ -102,7 +102,7 @@ export function PeopleDataTable({
                             <TableEmpty
                                 colSpan={4}
                                 icon={Users}
-                                title="No people found."
+                                title="Tidak ada pimpinan."
                             />
                         ) : (
                             data.data.map((person) => (
@@ -132,8 +132,8 @@ export function PeopleDataTable({
                                             }`}
                                         >
                                             {person.is_active
-                                                ? 'Active'
-                                                : 'Inactive'}
+                                                ? 'Aktif'
+                                                : 'Nonaktif'}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -167,16 +167,16 @@ export function PeopleDataTable({
                                                 <DialogContent>
                                                     <DialogHeader>
                                                         <DialogTitle>
-                                                            Delete Person
+                                                            Hapus Pimpinan
                                                         </DialogTitle>
                                                         <DialogDescription>
-                                                            Are you sure you
-                                                            want to delete{' '}
+                                                            Apakah Anda yakin
+                                                            ingin menghapus{' '}
                                                             <strong>
                                                                 {person.name}
                                                             </strong>
-                                                            ? This action cannot
-                                                            be undone.
+                                                            ? Tindakan ini tidak
+                                                            dapat dibatalkan.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
@@ -188,7 +188,7 @@ export function PeopleDataTable({
                                                                 )
                                                             }
                                                         >
-                                                            Cancel
+                                                            Batal
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -196,7 +196,7 @@ export function PeopleDataTable({
                                                                 onDeleteConfirm
                                                             }
                                                         >
-                                                            Delete
+                                                            Hapus
                                                         </Button>
                                                     </DialogFooter>
                                                 </DialogContent>

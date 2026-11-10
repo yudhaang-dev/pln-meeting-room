@@ -49,7 +49,7 @@ type Props = {
 export default function BookingShow({ booking, children }: Props) {
     const [imagePreview, setImagePreview] = useState<string>('');
 
-    const safeUrl = imagePreview.replace('http://', 'https://');
+    const safeUrl = imagePreview;
 
     const isPdf: boolean = useMemo(() => {
         return safeUrl.split('?')[0].toLowerCase().endsWith('.pdf');
@@ -133,6 +133,14 @@ export default function BookingShow({ booking, children }: Props) {
                                                     level={booking.osh_level}
                                                 />
                                             </div>
+                                        </dd>
+                                    </div>
+                                    <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                        <dt className="text-muted-foreground">
+                                            Keterangan
+                                        </dt>
+                                        <dd className="mt-1 whitespace-pre-line font-medium sm:col-span-2 sm:mt-0">
+                                            {booking.description || '-'}
                                         </dd>
                                     </div>
                                     <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -279,7 +287,7 @@ export default function BookingShow({ booking, children }: Props) {
                             {isPdf ? (
                                 <iframe
                                     src={`${safeUrl}#toolbar=0`}
-                                    title="File Preview"
+                                    title="Pratinjau File"
                                     className="size-full object-contain"
                                 />
                             ) : (

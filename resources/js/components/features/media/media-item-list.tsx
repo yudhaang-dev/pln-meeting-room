@@ -246,11 +246,11 @@ export function MediaItemList({
     return (
         <Card className={cn('pt-0! gap-2 p-2', className)}>
             <CardHeader className="pb-0! flex min-h-14 items-center gap-4 border-b p-0">
-                <CardTitle>Media List</CardTitle>
+                <CardTitle>Daftar Media</CardTitle>
                 <Separator orientation="vertical" />
                 <CardDescription>
                     <Label htmlFor="check-all">
-                        Select all
+                        Pilih semua
                         <Checkbox
                             id="check-all"
                             checked={items.length == selected.length}
@@ -309,9 +309,9 @@ export function MediaItemList({
                             <EmptyMedia variant="icon">
                                 <ImageIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No data</EmptyTitle>
+                            <EmptyTitle>Tidak ada data</EmptyTitle>
                             <EmptyDescription>
-                                No media uploaded
+                                Belum ada media diunggah
                             </EmptyDescription>
                         </EmptyHeader>
                     </Empty>

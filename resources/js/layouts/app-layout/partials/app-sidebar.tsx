@@ -32,7 +32,7 @@ const platformMenu = [
         icon: LayoutGridIcon,
     },
     {
-        title: 'Bookings',
+        title: 'Booking',
         href: '/bookings',
         icon: ListChecksIcon,
     },
@@ -83,7 +83,7 @@ export function AppSidebar() {
                                     <AppLogo className="h-auto w-full transition-all duration-300 ease-in-out" />
                                     <div className="transition-all duration-300 ease-in-out">
                                         <p className="font-bold uppercase">
-                                            Home
+                                            Beranda
                                         </p>
                                         <p className="text-muted-foreground text-xs">
                                             {name}

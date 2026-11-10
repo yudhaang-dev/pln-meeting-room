@@ -98,17 +98,17 @@ export function RoomForm({
             <DialogContent className="max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
-                        {room ? 'Edit Room' : 'Create Room'}
+                        {room ? 'Ubah Ruangan' : 'Tambah Ruangan'}
                     </DialogTitle>
                     <DialogDescription>
                         {room
-                            ? 'Update the room details below.'
-                            : 'Fill in the details to create a new room.'}
+                            ? 'Ubah rincian ruangan di bawah ini.'
+                            : 'Isi rincian untuk menambah ruangan baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama</Label>
                         <Input
                             id="name"
                             value={data.name}
@@ -121,7 +121,7 @@ export function RoomForm({
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="capacity">Capacity</Label>
+                        <Label htmlFor="capacity">Kapasitas</Label>
                         <Input
                             id="capacity"
                             type="number"
@@ -141,7 +141,7 @@ export function RoomForm({
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="building_id">Building</Label>
+                        <Label htmlFor="building_id">Gedung</Label>
                         <Combobox
                             items={buildings}
                             value={
@@ -161,13 +161,11 @@ export function RoomForm({
                             itemToStringLabel={(building) => building.name}
                         >
                             <ComboboxInput
-                                placeholder="Select building"
+                                placeholder="Pilih gedung"
                                 showClear
                             />
                             <ComboboxContent>
-                                <ComboboxEmpty>
-                                    No buildings found.
-                                </ComboboxEmpty>
+                                <ComboboxEmpty>Tidak ada gedung.</ComboboxEmpty>
                                 <ComboboxList>
                                     {(building) => (
                                         <ComboboxItem
@@ -189,12 +187,12 @@ export function RoomForm({
                                 setData('is_active', checked)
                             }
                         />
-                        <Label htmlFor="is_active">Active</Label>
+                        <Label htmlFor="is_active">Aktif</Label>
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={processing}>
                             {processing && <Spinner />}
-                            {room ? 'Update' : 'Create'}
+                            {room ? 'Simpan' : 'Tambah'}
                         </Button>
                     </DialogFooter>
                 </form>

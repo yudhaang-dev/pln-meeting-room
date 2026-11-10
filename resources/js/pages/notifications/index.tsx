@@ -69,7 +69,7 @@ export default function NotificationsIndex({
     return (
         <PageContainer>
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Notifications</h1>
+                <h1 className="text-2xl font-bold">Notifikasi</h1>
                 <div className="flex gap-2">
                     <Button
                         variant="outline"
@@ -77,7 +77,7 @@ export default function NotificationsIndex({
                         render={<button onClick={handleMarkAllAsRead} />}
                     >
                         <CheckCheck className="mr-1 size-4" />
-                        Mark all read
+                        Tandai semua dibaca
                     </Button>
                     <Button
                         variant="destructive"
@@ -85,7 +85,7 @@ export default function NotificationsIndex({
                         render={<button onClick={handleClearAll} />}
                     >
                         <Trash2 className="mr-1 size-4" />
-                        Clear all
+                        Bersihkan semua
                     </Button>
                 </div>
             </div>
@@ -96,7 +96,7 @@ export default function NotificationsIndex({
                         <div className="py-12 text-center">
                             <Bell className="text-muted-foreground mx-auto mb-4 size-12" />
                             <p className="text-muted-foreground text-sm">
-                                No notifications yet.
+                                Belum ada notifikasi.
                             </p>
                         </div>
                     ) : (
@@ -176,7 +176,7 @@ export default function NotificationsIndex({
 NotificationsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Notifications',
+            title: 'Notifikasi',
             href: notifications.index(),
         },
     ],

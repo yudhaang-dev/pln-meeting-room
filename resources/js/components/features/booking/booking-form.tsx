@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import bookings from '@/routes/bookings';
 
 type Room = { id: number; name: string; capacity: number };
@@ -140,12 +141,12 @@ export function BookingForm({
             <DialogContent className="max-h-[95vh] max-w-3xl overflow-y-auto md:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing ? 'Edit Booking' : 'Book Room'}
+                        {isEditing ? 'Ubah Booking' : 'Ajukan Booking'}
                     </DialogTitle>
                     <DialogDescription>
                         {isEditing
-                            ? 'Update the booking details below.'
-                            : 'Fill in the details to create a new booking.'}
+                            ? 'Ubah rincian booking di bawah ini.'
+                            : 'Isi rincian untuk mengajukan booking baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -189,12 +190,12 @@ export function BookingForm({
                                 itemToStringLabel={(person) => person.name}
                             >
                                 <ComboboxInput
-                                    placeholder="Select leader"
+                                    placeholder="Pilih pimpinan"
                                     showClear
                                 />
                                 <ComboboxContent>
                                     <ComboboxEmpty>
-                                        No people found.
+                                        Tidak ada pimpinan.
                                     </ComboboxEmpty>
                                     <ComboboxList>
                                         {(person) => (
@@ -231,12 +232,12 @@ export function BookingForm({
                                 itemToStringLabel={(room) => room.name}
                             >
                                 <ComboboxInput
-                                    placeholder="Select room"
+                                    placeholder="Pilih ruangan"
                                     showClear
                                 />
                                 <ComboboxContent>
                                     <ComboboxEmpty>
-                                        No rooms found.
+                                        Tidak ada ruangan.
                                     </ComboboxEmpty>
                                     <ComboboxList>
                                         {(room) => (
@@ -340,7 +341,7 @@ export function BookingForm({
                                     }
                                 >
                                     <ComboboxInput
-                                        placeholder="Select level"
+                                        placeholder="Pilih level"
                                         showClear
                                     />
                                     <ComboboxContent>
@@ -367,6 +368,23 @@ export function BookingForm({
                             </Field>
                         )}
 
+                        <Field className="md:col-span-2">
+                            <FieldLabel htmlFor="description">
+                                Keterangan
+                            </FieldLabel>
+                            <Textarea
+                                id="description"
+                                rows={3}
+                                value={data.description}
+                                onChange={(e) =>
+                                    setData('description', e.target.value)
+                                }
+                            />
+                            {errors.description && (
+                                <FieldError>{errors.description}</FieldError>
+                            )}
+                        </Field>
+
                         <FieldSeparator className="md:col-span-2" />
                         <Field>
                             <FieldLabel htmlFor="attachment">
@@ -388,6 +406,14 @@ export function BookingForm({
                             {errors.attachment && (
                                 <FieldError>{errors.attachment}</FieldError>
                             )}
+                            <a
+                                href="https://amskorporat.pln.co.id/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline"
+                            >
+                                https://amskorporat.pln.co.id/
+                            </a>
                         </Field>
                         <Field>
                             <FieldLabel htmlFor="qr_attendance">
@@ -409,6 +435,14 @@ export function BookingForm({
                             {errors.qr_attendance && (
                                 <FieldError>{errors.qr_attendance}</FieldError>
                             )}
+                            <a
+                                href="https://hadir.plnnusantarapower.co.id/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline"
+                            >
+                                https://hadir.plnnusantarapower.co.id/
+                            </a>
                         </Field>
                         <Field className="md:col-span-2">
                             <DialogFooter>
@@ -417,11 +451,11 @@ export function BookingForm({
                                     variant="outline"
                                     onClick={handleClose}
                                 >
-                                    Cancel
+                                    Batal
                                 </Button>
                                 <Button type="submit" disabled={processing}>
                                     {processing && <Spinner />}
-                                    {isEditing ? 'Update' : 'Create'}
+                                    {isEditing ? 'Perbarui' : 'Ajukan'}
                                 </Button>
                             </DialogFooter>
                         </Field>

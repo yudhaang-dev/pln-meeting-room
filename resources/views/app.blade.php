@@ -34,6 +34,19 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+        {{-- Konfigurasi Reverb dibaca saat runtime (bukan ditanam saat build), sehingga
+             satu build berlaku untuk IP/host server mana pun tanpa build ulang. --}}
+        @php
+            $reverbClient = [
+                'key' => config('broadcasting.connections.reverb.key'),
+                'port' => (int) config('broadcasting.connections.reverb.options.port'),
+                'scheme' => config('broadcasting.connections.reverb.options.scheme'),
+            ];
+        @endphp
+        <script>
+            window.__REVERB__ = @json($reverbClient);
+        </script>
+
         @fonts
 
         @viteReactRefresh

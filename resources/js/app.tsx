@@ -21,8 +21,27 @@ import.meta.glob([
     '../assets/audio/**/*',
 ]);
 
+// Host WebSocket diambil dari alamat yang dipakai browser (Reverb berjalan di
+// server yang sama dengan web). Key/port/scheme disisipkan server saat runtime,
+// jadi tidak perlu build ulang saat IP/host server berubah.
+const reverb = (
+    window as unknown as {
+        __REVERB__?: { key?: string; port?: number; scheme?: string };
+    }
+).__REVERB__;
+
 configureEcho({
     broadcaster: 'reverb',
+    ...(reverb?.key
+        ? {
+              key: reverb.key,
+              wsHost: window.location.hostname,
+              wsPort: reverb.port,
+              wssPort: reverb.port,
+              forceTLS: reverb.scheme === 'https',
+              enabledTransports: ['ws', 'wss'] as ('ws' | 'wss')[],
+          }
+        : {}),
 });
 
 setupAudioUnlock();

@@ -37,14 +37,14 @@ export function ConfirmDeleteDialog({
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                     >
-                        Cancel
+                        Batal
                     </Button>
                     <Button
                         variant="destructive"
                         onClick={onConfirm}
                         disabled={processing}
                     >
-                        Delete
+                        Hapus
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -211,10 +211,10 @@ export function MediaManager({
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Media</DialogTitle>
+                        <DialogTitle>Hapus Media</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete this media item?
-                            This action cannot be undone.
+                            Apakah Anda yakin ingin menghapus media ini?
+                            Tindakan ini tidak dapat dibatalkan.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -223,7 +223,7 @@ export function MediaManager({
                             onClick={() => setDeleteId(null)}
                             disabled={processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             variant="destructive"
@@ -231,7 +231,7 @@ export function MediaManager({
                             disabled={processing}
                         >
                             {processing && <Spinner />}
-                            Delete
+                            Hapus
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -244,12 +244,11 @@ export function MediaManager({
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Multiple Media</DialogTitle>
+                        <DialogTitle>Hapus Beberapa Media</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete{' '}
-                            {bulkDeleteIds?.length} media item
-                            {(bulkDeleteIds?.length ?? 0) > 1 ? 's' : ''}? This
-                            action cannot be undone.
+                            Apakah Anda yakin ingin menghapus{' '}
+                            {bulkDeleteIds?.length} media? Tindakan ini tidak
+                            dapat dibatalkan.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -258,7 +257,7 @@ export function MediaManager({
                             onClick={() => setBulkDeleteIds(null)}
                             disabled={processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             variant="destructive"
@@ -266,7 +265,7 @@ export function MediaManager({
                             disabled={processing}
                         >
                             {processing && <Spinner />}
-                            Delete All
+                            Hapus Semua
                         </Button>
                     </DialogFooter>
                 </DialogContent>

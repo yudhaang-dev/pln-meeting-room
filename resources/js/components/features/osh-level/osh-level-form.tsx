@@ -93,17 +93,17 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing ? 'Edit OSH Level' : 'Create OSH Level'}
+                        {isEditing ? 'Ubah Level K3' : 'Tambah Level K3'}
                     </DialogTitle>
                     <DialogDescription>
                         {isEditing
-                            ? 'Update the OSH level details below.'
-                            : 'Fill in the details to create a new OSH level.'}
+                            ? 'Ubah rincian level K3 di bawah ini.'
+                            : 'Isi rincian untuk menambah level K3 baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama</Label>
                         <Input
                             id="name"
                             value={data.name}
@@ -116,7 +116,7 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="color">Color</Label>
+                        <Label htmlFor="color">Warna</Label>
                         <InputGroup>
                             <Input
                                 id="color"
@@ -144,7 +144,7 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="min_participants">
-                                Min Participants
+                                Peserta Minimum
                             </Label>
                             <Input
                                 id="min_participants"
@@ -166,7 +166,7 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="max_participants">
-                                Max Participants
+                                Peserta Maksimum
                             </Label>
                             <Input
                                 id="max_participants"
@@ -189,7 +189,7 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="sort_order">Sort Order</Label>
+                            <Label htmlFor="sort_order">Urutan</Label>
                             <Input
                                 id="sort_order"
                                 type="number"
@@ -211,7 +211,7 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                                     setData('is_active', checked)
                                 }
                             />
-                            <Label htmlFor="is_active">Active</Label>
+                            <Label htmlFor="is_active">Aktif</Label>
                         </div>
                     </div>
                     <DialogFooter>
@@ -220,11 +220,11 @@ export function OshLevelForm({ open, onOpenChange, level, onSuccess }: Props) {
                             variant="outline"
                             onClick={handleClose}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={processing}>
                             {processing && <Spinner />}
-                            {isEditing ? 'Update' : 'Create'}
+                            {isEditing ? 'Simpan' : 'Tambah'}
                         </Button>
                     </DialogFooter>
                 </form>

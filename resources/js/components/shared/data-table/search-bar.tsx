@@ -42,7 +42,7 @@ export function SearchBar({
                 onValueChange={(value) => value !== null && onPerPage(value)}
             >
                 <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="Per page" />
+                    <SelectValue placeholder="Per halaman" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="5">5 / page</SelectItem>

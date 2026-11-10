@@ -34,7 +34,7 @@ export default function RoomMedia({ room }: Props) {
 RoomMedia.layout = {
     breadcrumbs: [
         {
-            title: 'Rooms',
+            title: 'Ruangan',
             href: rooms.index(),
         },
         {

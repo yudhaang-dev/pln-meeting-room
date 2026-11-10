@@ -62,9 +62,9 @@ async function uploadChunk(
     if (!response.ok) {
         const error = await response
             .json()
-            .catch(() => ({ message: 'Upload failed' }));
+            .catch(() => ({ message: 'Unggah gagal' }));
 
-        throw new Error(error.message || 'Upload failed');
+        throw new Error(error.message || 'Unggah gagal');
     }
 
     return response.json();
@@ -99,9 +99,9 @@ async function assembleChunks(
     if (!response.ok) {
         const error = await response
             .json()
-            .catch(() => ({ message: 'Assembly failed' }));
+            .catch(() => ({ message: 'Penggabungan gagal' }));
 
-        throw new Error(error.message || 'Assembly failed');
+        throw new Error(error.message || 'Penggabungan gagal');
     }
 
     const result = await response.json();
@@ -151,7 +151,7 @@ export function createUploadQueue(
         } catch (err) {
             uploadFile.status = 'error';
             uploadFile.error =
-                err instanceof Error ? err.message : 'Upload failed';
+                err instanceof Error ? err.message : 'Unggah gagal';
             callbacks.onFileStatusChange(id, 'error');
             callbacks.onError(id, uploadFile.error);
         }

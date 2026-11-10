@@ -57,18 +57,18 @@ export function UserDataTable({
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Name</TableHead>
+                        <TableHead>Nama</TableHead>
                         <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>Peran</TableHead>
+                        <TableHead>Dibuat</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {data.data.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={5} className="text-center">
-                                No users found.
+                                Tidak ada pengguna.
                             </TableCell>
                         </TableRow>
                     ) : (
@@ -118,16 +118,16 @@ export function UserDataTable({
                                             <DialogContent>
                                                 <DialogHeader>
                                                     <DialogTitle>
-                                                        Delete User
+                                                        Hapus Pengguna
                                                     </DialogTitle>
                                                     <DialogDescription>
-                                                        Are you sure you want to
-                                                        delete{' '}
+                                                        Apakah Anda yakin ingin
+                                                        menghapus{' '}
                                                         <strong>
                                                             {user.name}
                                                         </strong>
-                                                        ? This action cannot be
-                                                        undone.
+                                                        ? Tindakan ini tidak
+                                                        dapat dibatalkan.
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <DialogFooter>
@@ -139,7 +139,7 @@ export function UserDataTable({
                                                             )
                                                         }
                                                     >
-                                                        Cancel
+                                                        Batal
                                                     </Button>
                                                     <Button
                                                         variant="destructive"
@@ -147,7 +147,7 @@ export function UserDataTable({
                                                             onDeleteConfirm
                                                         }
                                                     >
-                                                        Delete
+                                                        Hapus
                                                     </Button>
                                                 </DialogFooter>
                                             </DialogContent>

@@ -37,7 +37,7 @@ class SendBookingNotification implements ShouldQueue
 
             Notification::send($recipients, new BookingStatusNotification(
                 'Booking',
-                "New Booking '{$booking->title}' by {$requestedBy?->name}",
+                "Pengajuan booking baru '{$booking->title}' dari {$requestedBy?->name}",
                 $this->payload($booking)
             ));
         }
@@ -45,7 +45,12 @@ class SendBookingNotification implements ShouldQueue
         // Skenario 2: Booking Diupdate (Approved / Rejected)
         if ($event instanceof BookingUpdated) {
 
-            $status = ucfirst($booking->status);
+            $status = match ($booking->status) {
+                'approved' => 'disetujui',
+                'rejected' => 'ditolak',
+                'cancelled' => 'dibatalkan',
+                default => $booking->status,
+            };
             $requestedBy = $booking->requestedBy;
             $approvedBy = $booking->approvedBy;
 
@@ -53,7 +58,7 @@ class SendBookingNotification implements ShouldQueue
             if ($requestedBy && $approvedBy && $requestedBy->id !== $approvedBy->id) {
                 $requestedBy->notify(new BookingStatusNotification(
                     'Booking',
-                    "Your booking '{$booking->title}' has been {$status} by {$approvedBy->name}",
+                    "Booking Anda '{$booking->title}' telah {$status} oleh {$approvedBy->name}",
                     $this->payload($booking)
                 ));
             }
@@ -65,7 +70,7 @@ class SendBookingNotification implements ShouldQueue
 
             Notification::send($staff, new BookingStatusNotification(
                 'Booking',
-                "Booking '{$booking->title}' {$status} by {$approvedBy?->name}",
+                "Booking '{$booking->title}' {$status} oleh {$approvedBy?->name}",
                 $this->payload($booking)
             ));
         }

@@ -66,7 +66,7 @@ export function RoomGroupDataTable({
     return (
         <>
             <SearchBar
-                placeholder="Search room groups..."
+                placeholder="Cari kelompok ruangan..."
                 search={search}
                 onSearch={onSearch}
                 perPage={String(perPage)}
@@ -83,7 +83,7 @@ export function RoomGroupDataTable({
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Name
+                                Nama
                             </SortableHeader>
                             <SortableHeader
                                 column="building_id"
@@ -91,7 +91,7 @@ export function RoomGroupDataTable({
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Building
+                                Gedung
                             </SortableHeader>
                             <SortableHeader
                                 column="is_active"
@@ -101,9 +101,7 @@ export function RoomGroupDataTable({
                             >
                                 Status
                             </SortableHeader>
-                            <TableHead className="text-right">
-                                Actions
-                            </TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -111,7 +109,7 @@ export function RoomGroupDataTable({
                             <TableEmpty
                                 colSpan={4}
                                 icon={Layers}
-                                title="No room groups found."
+                                title="Tidak ada kelompok ruangan."
                             />
                         ) : (
                             data.data.map((group) => (
@@ -129,8 +127,8 @@ export function RoomGroupDataTable({
                                             }`}
                                         >
                                             {group.is_active
-                                                ? 'Active'
-                                                : 'Inactive'}
+                                                ? 'Aktif'
+                                                : 'Nonaktif'}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -166,16 +164,17 @@ export function RoomGroupDataTable({
                                                 <DialogContent>
                                                     <DialogHeader>
                                                         <DialogTitle>
-                                                            Delete Room Group
+                                                            Hapus Kelompok
+                                                            Ruangan
                                                         </DialogTitle>
                                                         <DialogDescription>
-                                                            Are you sure you
-                                                            want to delete{' '}
+                                                            Apakah Anda yakin
+                                                            ingin menghapus{' '}
                                                             <strong>
                                                                 {group.name}
                                                             </strong>
-                                                            ? This action cannot
-                                                            be undone.
+                                                            ? Tindakan ini tidak
+                                                            dapat dibatalkan.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
@@ -187,7 +186,7 @@ export function RoomGroupDataTable({
                                                                 )
                                                             }
                                                         >
-                                                            Cancel
+                                                            Batal
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -195,7 +194,7 @@ export function RoomGroupDataTable({
                                                                 onDeleteConfirm
                                                             }
                                                         >
-                                                            Delete
+                                                            Hapus
                                                         </Button>
                                                     </DialogFooter>
                                                 </DialogContent>

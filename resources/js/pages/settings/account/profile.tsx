@@ -5,7 +5,7 @@ import profile from '@/routes/settings/account/profile';
 export default function AdminProfile() {
     return (
         <>
-            <Head title="Profile settings" />
+            <Head title="Pengaturan profil" />
             <ProfileForm />
         </>
     );
@@ -14,7 +14,7 @@ export default function AdminProfile() {
 AdminProfile.layout = {
     breadcrumbs: [
         {
-            title: 'Profile settings',
+            title: 'Pengaturan profil',
             href: profile.edit(),
         },
     ],

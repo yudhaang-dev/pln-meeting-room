@@ -10,7 +10,7 @@ type Props = {
 export default function AdminSecurity(props: Props) {
     return (
         <>
-            <Head title="Security settings" />
+            <Head title="Pengaturan keamanan" />
             <SecurityForm
                 action={security.password.update()}
                 method="put"
@@ -23,7 +23,7 @@ export default function AdminSecurity(props: Props) {
 AdminSecurity.layout = {
     breadcrumbs: [
         {
-            title: 'Security settings',
+            title: 'Pengaturan keamanan',
             href: security.edit(),
         },
     ],

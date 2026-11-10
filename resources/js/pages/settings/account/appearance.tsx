@@ -5,7 +5,7 @@ import appearance from '@/routes/settings/account/appearance';
 export default function AdminAppearance() {
     return (
         <>
-            <Head title="Appearance settings" />
+            <Head title="Pengaturan tampilan" />
             <AppearanceForm />
         </>
     );
@@ -14,7 +14,7 @@ export default function AdminAppearance() {
 AdminAppearance.layout = {
     breadcrumbs: [
         {
-            title: 'Appearance settings',
+            title: 'Pengaturan tampilan',
             href: appearance.edit(),
         },
     ],

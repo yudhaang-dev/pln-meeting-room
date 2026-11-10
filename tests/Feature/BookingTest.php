@@ -199,7 +199,7 @@ test('booking rejected when within advance hours window', function () {
 
     $response->assertUnprocessable();
     $response->assertJsonValidationErrors(['start_time']);
-    $response->assertJsonFragment(['start_time' => ['Bookings must be made at least 48 hour(s) in advance.']]);
+    $response->assertJsonFragment(['start_time' => ['Booking harus diajukan minimal 48 jam sebelumnya.']]);
 });
 
 test('booking rejected when beyond max days ahead', function () {
@@ -223,7 +223,7 @@ test('booking rejected when beyond max days ahead', function () {
 
     $response->assertUnprocessable();
     $response->assertJsonValidationErrors(['start_time']);
-    $response->assertJsonFragment(['start_time' => ['Bookings cannot be made more than 7 day(s) in advance.']]);
+    $response->assertJsonFragment(['start_time' => ['Booking tidak dapat diajukan lebih dari 7 hari ke depan.']]);
 });
 
 test('booking allowed when within advance hours window', function () {

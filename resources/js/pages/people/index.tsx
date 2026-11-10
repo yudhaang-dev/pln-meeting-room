@@ -56,7 +56,7 @@ export default function PeopleIndex({ people }: Props) {
                     <h1 className="text-2xl font-bold">Pimpinan Acara</h1>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 size-4" />
-                        Add Person
+                        Tambah Pimpinan
                     </Button>
                 </div>
 

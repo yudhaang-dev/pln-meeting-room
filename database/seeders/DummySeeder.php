@@ -249,7 +249,7 @@ class DummySeeder extends Seeder
                 'data' => json_encode([
                     'type' => 'booking_created',
                     'booking_id' => 23,
-                    'message' => 'New booking "Team Huddle" submitted by Regular User for Ruang Rajawali',
+                    'message' => 'Pengajuan booking baru "Team Huddle" dari Regular User untuk Ruang Rajawali',
                     'booking' => ['id' => 23, 'title' => 'Team Huddle', 'room' => 'Ruang Rajawali', 'start_time' => now()->setTime(15, 0)->toIso8601String(), 'end_time' => now()->setTime(16, 30)->toIso8601String()],
                 ]),
                 'read_at' => null,
@@ -265,7 +265,7 @@ class DummySeeder extends Seeder
                 'data' => json_encode([
                     'type' => 'booking_created',
                     'booking_id' => 26,
-                    'message' => 'New booking "Safety Induction" submitted by Regular User for Ruang Pelatihan A',
+                    'message' => 'Pengajuan booking baru "Safety Induction" dari Regular User untuk Ruang Pelatihan A',
                     'booking' => ['id' => 26, 'title' => 'Safety Induction', 'room' => 'Ruang Pelatihan A', 'start_time' => now()->addDay()->setTime(9, 0)->toIso8601String(), 'end_time' => now()->addDay()->setTime(12, 0)->toIso8601String()],
                 ]),
                 'read_at' => null,
@@ -281,7 +281,7 @@ class DummySeeder extends Seeder
                 'data' => json_encode([
                     'type' => 'booking_cancelled',
                     'booking_id' => 27,
-                    'message' => 'Booking "Evening Sync" has been cancelled.',
+                    'message' => 'Booking "Evening Sync" telah dibatalkan.',
                     'booking' => ['id' => 27, 'title' => 'Evening Sync', 'room' => 'Ruang Garuda', 'start_time' => now()->setTime(17, 0)->toIso8601String(), 'end_time' => now()->setTime(18, 0)->toIso8601String()],
                 ]),
                 'read_at' => null,

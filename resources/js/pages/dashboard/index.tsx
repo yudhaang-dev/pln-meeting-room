@@ -222,7 +222,7 @@ export default function UserDashboard({
                                             className="h-24 text-center"
                                         >
                                             <p className="text-muted-foreground text-sm">
-                                                No upcoming bookings found.
+                                                Tidak ada acara mendatang.
                                             </p>
                                         </TableCell>
                                     </TableRow>

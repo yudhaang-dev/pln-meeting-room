@@ -133,12 +133,12 @@ class Booking extends Model
 
     public function getAttachmentUrlAttribute(): ?string
     {
-        return $this->attachment_path ? Storage::disk('public')->url($this->attachment_path) : null;
+        return $this->attachment_path ? '/storage/'.ltrim($this->attachment_path, '/') : null;
     }
 
     public function getQrAttendanceUrlAttribute(): ?string
     {
-        return $this->qr_attendance_path ? Storage::disk('public')->url($this->qr_attendance_path) : null;
+        return $this->qr_attendance_path ? '/storage/'.ltrim($this->qr_attendance_path, '/') : null;
     }
 
     public function deleteAttachment(): void

@@ -67,22 +67,22 @@ function CardItem({
 export default function DisplayIndex({ roomGroups, rooms }: Props) {
     return (
         <>
-            <Head title="Display Launcher" />
+            <Head title="Peluncur Display" />
             <div className="bg-linear-to-b flex min-h-svh w-full flex-col from-white/70 to-transparent">
                 <TopBar className="w-full gap-6 p-6" logoClass="max-h-12" />
                 <main className="flex h-full w-full flex-1 flex-col items-center justify-center p-6">
                     <div className="mx-auto w-full max-w-7xl px-6 py-6">
                         <h1 className="mb-2 text-3xl font-bold">
-                            Display Launcher
+                            Peluncur Display
                         </h1>
                         <p className="mb-10 text-gray-500">
-                            Select a display to launch in full-screen kiosk
-                            mode.
+                            Pilih display untuk dibuka dalam mode kiosk layar
+                            penuh.
                         </p>
                         <div className="grid gap-4 md:grid-cols-3">
                             <div className="space-y-3">
                                 <h2 className="text-xl font-semibold">
-                                    Lobby Displays
+                                    Display Lobi
                                 </h2>
                                 <div className="grid grid-cols-1 gap-4">
                                     {roomGroups.map((group, index) => (
@@ -97,7 +97,7 @@ export default function DisplayIndex({ roomGroups, rooms }: Props) {
                             </div>
                             <div className="space-y-3">
                                 <h2 className="text-xl font-semibold">
-                                    Room Displays
+                                    Display Ruangan
                                 </h2>
                                 <div className="grid grid-cols-1 gap-4">
                                     {rooms.map((room, index) => (
@@ -112,17 +112,17 @@ export default function DisplayIndex({ roomGroups, rooms }: Props) {
                             </div>
                             <div className="space-y-3">
                                 <h2 className="text-xl font-semibold">
-                                    Other Displays
+                                    Display Lainnya
                                 </h2>
                                 <div className="grid grid-cols-1 gap-4">
                                     <CardItem
-                                        title="OSH Display"
-                                        description="Security Support display"
+                                        title="Display K3"
+                                        description="Display untuk Security Support"
                                         href={`/display/osh`}
                                     />
                                     <CardItem
-                                        title="Infografis Display"
-                                        description="Infografis media player"
+                                        title="Display Infografis"
+                                        description="Pemutar media infografis"
                                         href={`/display/infografis`}
                                     />
                                 </div>

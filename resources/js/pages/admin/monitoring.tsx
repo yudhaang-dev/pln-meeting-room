@@ -86,7 +86,7 @@ export default function Monitoring({ queue, reverb, checked_at }: Props) {
                     <div>
                         <h1 className="flex items-center gap-2 text-2xl font-bold">
                             <Activity className="size-6" />
-                            Service Monitoring
+                            Pemantauan Layanan
                         </h1>
                         <p className="text-muted-foreground text-sm">
                             Background worker &amp; WebSocket server &middot;
@@ -99,7 +99,7 @@ export default function Monitoring({ queue, reverb, checked_at }: Props) {
                         ) : (
                             <RefreshCw className="size-4" />
                         )}
-                        <span className="ml-2">Refresh</span>
+                        <span className="ml-2">Muat ulang</span>
                     </Button>
                 </div>
 
@@ -110,20 +110,22 @@ export default function Monitoring({ queue, reverb, checked_at }: Props) {
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <ServiceStatusCard
-                        title="Background Worker"
-                        description="Queue worker — processes background jobs like notifications."
+                        title="Pekerja Latar Belakang"
+                        description="Queue worker — memproses tugas latar belakang seperti notifikasi."
                         icon={
                             <Server className="text-muted-foreground size-4" />
                         }
-                        statusLabel={queue.worker.alive ? 'Running' : 'Stopped'}
+                        statusLabel={
+                            queue.worker.alive ? 'Berjalan' : 'Berhenti'
+                        }
                         statusTone={queue.worker.alive ? 'ok' : 'error'}
                         rows={[
                             {
-                                label: 'Jobs Waiting',
+                                label: 'Tugas Menunggu',
                                 value: queue.pending_jobs.toLocaleString(),
                             },
                             {
-                                label: 'Jobs Failed',
+                                label: 'Tugas Gagal',
                                 value: (
                                     <span
                                         className={cn(
@@ -136,7 +138,7 @@ export default function Monitoring({ queue, reverb, checked_at }: Props) {
                                 ),
                             },
                             {
-                                label: 'Last Seen',
+                                label: 'Terakhir Aktif',
                                 value: queue.worker.last_heartbeat_at
                                     ? formatTime(queue.worker.last_heartbeat_at)
                                     : '—',
@@ -145,30 +147,30 @@ export default function Monitoring({ queue, reverb, checked_at }: Props) {
                     />
 
                     <ServiceStatusCard
-                        title="WebSocket Server"
-                        description="Reverb — sends real-time updates to displays."
+                        title="Server WebSocket"
+                        description="Reverb — mengirim pembaruan real-time ke layar display."
                         icon={
                             <Radio className="text-muted-foreground size-4" />
                         }
-                        statusLabel={reverb.up ? 'Running' : 'Stopped'}
+                        statusLabel={reverb.up ? 'Berjalan' : 'Berhenti'}
                         statusTone={reverb.up ? 'ok' : 'error'}
                         rows={[
                             {
-                                label: 'Devices Connected',
+                                label: 'Perangkat Terhubung',
                                 value:
                                     reverb.connected_clients !== null
                                         ? reverb.connected_clients.toLocaleString()
                                         : '—',
                             },
                             {
-                                label: 'Uptime',
+                                label: 'Waktu Aktif',
                                 value:
                                     reverb.uptime_seconds !== null
                                         ? formatUptime(reverb.uptime_seconds)
                                         : '—',
                             },
                             {
-                                label: 'Up Since',
+                                label: 'Aktif Sejak',
                                 value: reverb.up_since
                                     ? formatTime(reverb.up_since)
                                     : '—',

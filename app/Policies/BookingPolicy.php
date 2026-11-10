@@ -31,6 +31,10 @@ class BookingPolicy
 
     public function delete(User $user, Booking $booking): bool
     {
+        if ($booking->requested_id === $user->id && $booking->status === 'rejected') {
+            return true;
+        }
+
         return $user->isAdmin() || $user->isOperator();
     }
 

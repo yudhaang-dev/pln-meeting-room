@@ -104,12 +104,12 @@ export function PersonForm({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {person ? 'Edit Person' : 'Create Person'}
+                        {person ? 'Ubah Pimpinan' : 'Tambah Pimpinan'}
                     </DialogTitle>
                     <DialogDescription>
                         {person
-                            ? 'Update the person details below.'
-                            : 'Fill in the details to create a new person.'}
+                            ? 'Ubah rincian pimpinan acara di bawah ini.'
+                            : 'Isi rincian untuk menambah pimpinan acara baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form
@@ -118,7 +118,7 @@ export function PersonForm({
                     className="grid gap-4"
                 >
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama</Label>
                         <Input
                             id="name"
                             value={data.name}
@@ -131,13 +131,13 @@ export function PersonForm({
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label>Photo</Label>
+                        <Label>Foto</Label>
                         <div className="flex items-center gap-4">
                             <div className="bg-muted flex size-16 items-center justify-center overflow-hidden rounded-full border">
                                 {preview ? (
                                     <img
                                         src={preview}
-                                        alt="Preview"
+                                        alt="Pratinjau"
                                         className="size-full object-cover"
                                     />
                                 ) : (
@@ -170,12 +170,12 @@ export function PersonForm({
                                 setData('is_active', checked)
                             }
                         />
-                        <Label htmlFor="is_active">Active</Label>
+                        <Label htmlFor="is_active">Aktif</Label>
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={processing}>
                             {processing && <Spinner />}
-                            {person ? 'Update' : 'Create'}
+                            {person ? 'Simpan' : 'Tambah'}
                         </Button>
                     </DialogFooter>
                 </form>

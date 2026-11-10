@@ -78,7 +78,7 @@ export function RoomDataTable({
     return (
         <>
             <SearchBar
-                placeholder="Search rooms..."
+                placeholder="Cari ruangan..."
                 search={search}
                 onSearch={onSearch}
                 perPage={String(perPage)}
@@ -95,7 +95,7 @@ export function RoomDataTable({
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Name
+                                Nama
                             </SortableHeader>
                             <SortableHeader
                                 column="capacity"
@@ -103,25 +103,26 @@ export function RoomDataTable({
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Capacity
+                                Kapasitas
                             </SortableHeader>
-                            <TableHead>Groups</TableHead>
+                            <TableHead>Kelompok</TableHead>
                             <SortableHeader
                                 column="is_active"
                                 sortBy={sortBy}
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Active
+                                Aktif
                             </SortableHeader>
-                            <TableHead className="text-right">
-                                Actions
-                            </TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {data.data.length === 0 ? (
-                            <TableEmpty colSpan={5} title="No rooms found." />
+                            <TableEmpty
+                                colSpan={5}
+                                title="Tidak ada ruangan."
+                            />
                         ) : (
                             data.data.map((room) => (
                                 <TableRow key={room.id}>
@@ -189,16 +190,16 @@ export function RoomDataTable({
                                                 <DialogContent>
                                                     <DialogHeader>
                                                         <DialogTitle>
-                                                            Delete Room
+                                                            Hapus Ruangan
                                                         </DialogTitle>
                                                         <DialogDescription>
-                                                            Are you sure you
-                                                            want to delete{' '}
+                                                            Apakah Anda yakin
+                                                            ingin menghapus{' '}
                                                             <strong>
                                                                 {room.name}
                                                             </strong>
-                                                            ? This action cannot
-                                                            be undone.
+                                                            ? Tindakan ini tidak
+                                                            dapat dibatalkan.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
@@ -210,7 +211,7 @@ export function RoomDataTable({
                                                                 )
                                                             }
                                                         >
-                                                            Cancel
+                                                            Batal
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -218,7 +219,7 @@ export function RoomDataTable({
                                                                 onDeleteConfirm
                                                             }
                                                         >
-                                                            Delete
+                                                            Hapus
                                                         </Button>
                                                     </DialogFooter>
                                                 </DialogContent>

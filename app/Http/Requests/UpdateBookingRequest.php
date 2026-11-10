@@ -69,7 +69,7 @@ class UpdateBookingRequest extends FormRequest
                 if ($hasOverlap) {
                     $validator->errors()->add(
                         'room_id',
-                        'This room is already booked for the selected time slot.'
+                        __('This room is already booked for the selected time slot.')
                     );
                 }
             },

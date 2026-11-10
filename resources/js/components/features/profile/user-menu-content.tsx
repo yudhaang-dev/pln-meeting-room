@@ -48,7 +48,7 @@ export function UserMenuContent({ user }: Props) {
                             onClick={cleanup}
                         >
                             <UserCog className="mr-2" />
-                            Profile
+                            Profil
                         </Link>
                     }
                 />
@@ -63,7 +63,7 @@ export function UserMenuContent({ user }: Props) {
                             onClick={cleanup}
                         >
                             <ShieldCheck className="mr-2" />
-                            Security
+                            Keamanan
                         </Link>
                     }
                 />
@@ -78,7 +78,7 @@ export function UserMenuContent({ user }: Props) {
                             onClick={cleanup}
                         >
                             <Palette className="mr-2" />
-                            Appearance
+                            Tampilan
                         </Link>
                     }
                 />
@@ -95,7 +95,7 @@ export function UserMenuContent({ user }: Props) {
                         data-test="logout-button"
                     >
                         <LogOut className="mr-2" />
-                        Log out
+                        Keluar
                     </Link>
                 }
             />

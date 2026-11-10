@@ -107,17 +107,19 @@ export function RoomGroupForm({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing ? 'Edit Room Group' : 'Create Room Group'}
+                        {isEditing
+                            ? 'Ubah Kelompok Ruangan'
+                            : 'Tambah Kelompok Ruangan'}
                     </DialogTitle>
                     <DialogDescription>
                         {isEditing
-                            ? 'Update the room group details below.'
-                            : 'Fill in the details to create a new room group.'}
+                            ? 'Ubah rincian kelompok ruangan di bawah ini.'
+                            : 'Isi rincian untuk menambah kelompok ruangan baru.'}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="building_id">Building</Label>
+                        <Label htmlFor="building_id">Gedung</Label>
                         <Combobox
                             items={buildings}
                             value={
@@ -137,13 +139,11 @@ export function RoomGroupForm({
                             itemToStringLabel={(building) => building.name}
                         >
                             <ComboboxInput
-                                placeholder="Select building"
+                                placeholder="Pilih gedung"
                                 showClear
                             />
                             <ComboboxContent>
-                                <ComboboxEmpty>
-                                    No buildings found.
-                                </ComboboxEmpty>
+                                <ComboboxEmpty>Tidak ada gedung.</ComboboxEmpty>
                                 <ComboboxList>
                                     {(building) => (
                                         <ComboboxItem
@@ -163,7 +163,7 @@ export function RoomGroupForm({
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama</Label>
                         <Input
                             id="name"
                             value={data.name}
@@ -176,10 +176,10 @@ export function RoomGroupForm({
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label>Rooms</Label>
+                        <Label>Ruangan</Label>
                         {rooms.length === 0 ? (
                             <p className="text-muted-foreground text-sm">
-                                No rooms available.
+                                Tidak ada ruangan tersedia.
                             </p>
                         ) : (
                             <FormSelection
@@ -195,9 +195,9 @@ export function RoomGroupForm({
                                 }
                                 getItemValue={(room) => room.id}
                                 render={(room) => <span>{room.name}</span>}
-                                placeholder="No selected rooms."
-                                emptyText="No rooms found."
-                                searchPlaceholder="Search rooms..."
+                                placeholder="Belum ada ruangan dipilih."
+                                emptyText="Tidak ada ruangan."
+                                searchPlaceholder="Cari ruangan..."
                                 filterFn={(room, search) =>
                                     room.name
                                         .toLowerCase()
@@ -219,7 +219,7 @@ export function RoomGroupForm({
                                 setData('is_active', checked)
                             }
                         />
-                        <Label htmlFor="is_active">Active</Label>
+                        <Label htmlFor="is_active">Aktif</Label>
                     </div>
                     <DialogFooter>
                         <Button
@@ -227,11 +227,11 @@ export function RoomGroupForm({
                             variant="outline"
                             onClick={handleClose}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={processing}>
                             {processing && <Spinner />}
-                            {isEditing ? 'Update' : 'Create'}
+                            {isEditing ? 'Simpan' : 'Tambah'}
                         </Button>
                     </DialogFooter>
                 </form>

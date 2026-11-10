@@ -67,7 +67,7 @@ export function OshLevelDataTable({
     return (
         <>
             <SearchBar
-                placeholder="Search OSH levels..."
+                placeholder="Cari level K3..."
                 search={search}
                 onSearch={onSearch}
                 perPage={String(perPage)}
@@ -79,23 +79,23 @@ export function OshLevelDataTable({
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-10" />
-                            <TableHead>Color</TableHead>
+                            <TableHead>Warna</TableHead>
                             <SortableHeader
                                 column="name"
                                 sortBy={sortBy}
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Name
+                                Nama
                             </SortableHeader>
-                            <TableHead>Participants Range</TableHead>
+                            <TableHead>Rentang Peserta</TableHead>
                             <SortableHeader
                                 column="sort_order"
                                 sortBy={sortBy}
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Order
+                                Urutan
                             </SortableHeader>
                             <SortableHeader
                                 column="is_active"
@@ -105,9 +105,7 @@ export function OshLevelDataTable({
                             >
                                 Status
                             </SortableHeader>
-                            <TableHead className="text-right">
-                                Actions
-                            </TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -115,7 +113,7 @@ export function OshLevelDataTable({
                             <TableEmpty
                                 colSpan={7}
                                 icon={Shield}
-                                title="No OSH levels found."
+                                title="Tidak ada level K3."
                             />
                         ) : (
                             data.data.map((level) => (
@@ -156,8 +154,8 @@ export function OshLevelDataTable({
                                             }`}
                                         >
                                             {level.is_active
-                                                ? 'Active'
-                                                : 'Inactive'}
+                                                ? 'Aktif'
+                                                : 'Nonaktif'}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -193,16 +191,16 @@ export function OshLevelDataTable({
                                                 <DialogContent>
                                                     <DialogHeader>
                                                         <DialogTitle>
-                                                            Delete OSH Level
+                                                            Hapus Level K3
                                                         </DialogTitle>
                                                         <DialogDescription>
-                                                            Are you sure you
-                                                            want to delete{' '}
+                                                            Apakah Anda yakin
+                                                            ingin menghapus{' '}
                                                             <strong>
                                                                 {level.name}
                                                             </strong>
-                                                            ? This action cannot
-                                                            be undone.
+                                                            ? Tindakan ini tidak
+                                                            dapat dibatalkan.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
@@ -214,7 +212,7 @@ export function OshLevelDataTable({
                                                                 )
                                                             }
                                                         >
-                                                            Cancel
+                                                            Batal
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -222,7 +220,7 @@ export function OshLevelDataTable({
                                                                 onDeleteConfirm
                                                             }
                                                         >
-                                                            Delete
+                                                            Hapus
                                                         </Button>
                                                     </DialogFooter>
                                                 </DialogContent>

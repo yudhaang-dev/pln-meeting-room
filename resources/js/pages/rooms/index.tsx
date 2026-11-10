@@ -63,14 +63,14 @@ export default function RoomsIndex({ rooms, buildings }: Props) {
 
     return (
         <>
-            <Head title="Rooms" />
+            <Head title="Ruangan" />
 
             <PageContainer>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Rooms</h1>
+                    <h1 className="text-2xl font-bold">Ruangan</h1>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 size-4" />
-                        Add Room
+                        Tambah Ruangan
                     </Button>
                 </div>
 
@@ -116,7 +116,7 @@ export default function RoomsIndex({ rooms, buildings }: Props) {
 RoomsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Rooms',
+            title: 'Ruangan',
             href: roomRoutes.index(),
         },
     ],

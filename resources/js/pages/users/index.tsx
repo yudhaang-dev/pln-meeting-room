@@ -50,14 +50,14 @@ export default function UsersIndex({ users }: Props) {
 
     return (
         <>
-            <Head title="Users" />
+            <Head title="Pengguna" />
 
             <PageContainer>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Users</h1>
+                    <h1 className="text-2xl font-bold">Pengguna</h1>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 size-4" />
-                        Add User
+                        Tambah Pengguna
                     </Button>
                 </div>
 
@@ -102,7 +102,7 @@ export default function UsersIndex({ users }: Props) {
 UsersIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Users',
+            title: 'Pengguna',
             href: userRoutes.index(),
         },
     ],

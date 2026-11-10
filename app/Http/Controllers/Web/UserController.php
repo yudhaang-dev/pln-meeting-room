@@ -60,7 +60,7 @@ class UserController extends Controller
                 'role' => $request->input('role'),
             ]);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'User created.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('User created.')]);
 
             return to_route('users.index');
         }, __('Failed to create user.'));
@@ -83,7 +83,7 @@ class UserController extends Controller
 
             $user->update($data);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'User updated.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('User updated.')]);
 
             return back();
         }, __('Failed to update user.'));
@@ -96,7 +96,7 @@ class UserController extends Controller
 
             $user->delete();
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'User deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('User deleted.')]);
 
             return back();
         }, __('Failed to delete user.'));

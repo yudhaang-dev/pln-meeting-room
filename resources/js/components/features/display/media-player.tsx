@@ -35,7 +35,7 @@ function EmptyItem() {
                 <EmptyMedia variant="icon">
                     <ImageIcon />
                 </EmptyMedia>
-                <EmptyTitle>No Media Items</EmptyTitle>
+                <EmptyTitle>Belum ada media</EmptyTitle>
                 <EmptyDescription>
                     You haven&apos;t created any projects yet. Get started by
                     creating your first project.

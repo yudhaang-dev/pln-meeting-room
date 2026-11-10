@@ -26,7 +26,7 @@ export function LengthOptions({
 
     return (
         <div className="flex flex-row items-center gap-2">
-            <div className="text-muted-foreground text-xs">Show</div>
+            <div className="text-muted-foreground text-xs">Tampilkan</div>
             <Select
                 items={items}
                 value={current}

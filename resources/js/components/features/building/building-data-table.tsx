@@ -63,7 +63,7 @@ export function BuildingDataTable({
     return (
         <>
             <SearchBar
-                placeholder="Search buildings..."
+                placeholder="Cari gedung..."
                 search={search}
                 onSearch={onSearch}
                 perPage={String(perPage)}
@@ -80,7 +80,7 @@ export function BuildingDataTable({
                                 sortDirection={sortDirection}
                                 onSort={onSort}
                             >
-                                Name
+                                Nama
                             </SortableHeader>
                             <SortableHeader
                                 column="is_active"
@@ -90,17 +90,12 @@ export function BuildingDataTable({
                             >
                                 Status
                             </SortableHeader>
-                            <TableHead className="text-right">
-                                Actions
-                            </TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {data.data.length === 0 ? (
-                            <TableEmpty
-                                colSpan={3}
-                                title="No buildings found."
-                            />
+                            <TableEmpty colSpan={3} title="Tidak ada gedung." />
                         ) : (
                             data.data.map((building) => (
                                 <TableRow key={building.id}>
@@ -116,8 +111,8 @@ export function BuildingDataTable({
                                             }`}
                                         >
                                             {building.is_active
-                                                ? 'Active'
-                                                : 'Inactive'}
+                                                ? 'Aktif'
+                                                : 'Nonaktif'}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -153,16 +148,16 @@ export function BuildingDataTable({
                                                 <DialogContent>
                                                     <DialogHeader>
                                                         <DialogTitle>
-                                                            Delete Building
+                                                            Hapus Gedung
                                                         </DialogTitle>
                                                         <DialogDescription>
-                                                            Are you sure you
-                                                            want to delete{' '}
+                                                            Apakah Anda yakin
+                                                            ingin menghapus{' '}
                                                             <strong>
                                                                 {building.name}
                                                             </strong>
-                                                            ? This action cannot
-                                                            be undone.
+                                                            ? Tindakan ini tidak
+                                                            dapat dibatalkan.
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <DialogFooter>
@@ -174,7 +169,7 @@ export function BuildingDataTable({
                                                                 )
                                                             }
                                                         >
-                                                            Cancel
+                                                            Batal
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -182,7 +177,7 @@ export function BuildingDataTable({
                                                                 onDeleteConfirm
                                                             }
                                                         >
-                                                            Delete
+                                                            Hapus
                                                         </Button>
                                                     </DialogFooter>
                                                 </DialogContent>

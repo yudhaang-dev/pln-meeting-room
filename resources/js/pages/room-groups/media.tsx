@@ -34,7 +34,7 @@ export default function RoomGroupMedia({ roomGroup }: Props) {
 RoomGroupMedia.layout = {
     breadcrumbs: [
         {
-            title: 'Room Groups',
+            title: 'Kelompok Ruangan',
             href: roomGroups.index(),
         },
         {

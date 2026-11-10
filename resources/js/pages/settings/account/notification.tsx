@@ -73,15 +73,15 @@ export default function AdminNotification({
 
     return (
         <>
-            <Head title="Notification settings" />
+            <Head title="Pengaturan notifikasi" />
 
-            <h1 className="sr-only">Notification settings</h1>
+            <h1 className="sr-only">Pengaturan notifikasi</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Notification"
-                    description="Personalize the audio used for your notifications"
+                    title="Notifikasi"
+                    description="Atur audio yang dipakai untuk notifikasi Anda"
                 />
 
                 <form onSubmit={handleSubmit}>
@@ -157,7 +157,7 @@ export default function AdminNotification({
                                 variant="outline"
                                 onClick={handleTestSound}
                             >
-                                Test Sound
+                                Tes Suara
                             </Button>
                             <SubmitButton processing={processing} />
                         </CardFooter>
@@ -171,7 +171,7 @@ export default function AdminNotification({
 AdminNotification.layout = {
     breadcrumbs: [
         {
-            title: 'Notification settings',
+            title: 'Pengaturan notifikasi',
             href: notification.edit(),
         },
     ],

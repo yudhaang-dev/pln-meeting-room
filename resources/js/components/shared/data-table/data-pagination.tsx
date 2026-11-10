@@ -30,7 +30,7 @@ export function DataPagination<T>({
     return (
         <div className="flex items-center justify-between">
             <p className="text-muted-foreground text-sm">
-                Showing {data.data.length} of {data.total} results
+                Menampilkan {data.data.length} dari {data.total} hasil
             </p>
             <Pagination>
                 <PaginationContent>

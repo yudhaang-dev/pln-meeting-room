@@ -66,14 +66,14 @@ export default function RoomGroupsIndex({
 
     return (
         <>
-            <Head title="Room Groups" />
+            <Head title="Kelompok Ruangan" />
 
             <PageContainer>
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Room Groups</h1>
+                    <h1 className="text-2xl font-bold">Kelompok Ruangan</h1>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 size-4" />
-                        Add Group
+                        Tambah Kelompok
                     </Button>
                 </div>
 
@@ -121,7 +121,7 @@ export default function RoomGroupsIndex({
 RoomGroupsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Room Groups',
+            title: 'Kelompok Ruangan',
             href: roomGroupRoutes.index(),
         },
     ],

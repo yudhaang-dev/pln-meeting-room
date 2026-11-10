@@ -1,6 +1,8 @@
 import { router, usePage } from '@inertiajs/react';
 import { useEchoNotification } from '@laravel/echo-react';
 import { Bell } from 'lucide-react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +26,41 @@ interface NotificationItem {
     created_at: string;
 }
 
+const ANNOUNCED_KEY = 'announced-notification-ids';
+
+function readAnnounced(): string[] {
+    try {
+        return JSON.parse(
+            window.sessionStorage.getItem(ANNOUNCED_KEY) ?? '[]',
+        ) as string[];
+    } catch {
+        return [];
+    }
+}
+
+function writeAnnounced(ids: string[]) {
+    try {
+        window.sessionStorage.setItem(
+            ANNOUNCED_KEY,
+            JSON.stringify(ids.slice(-100)),
+        );
+    } catch {
+        // sessionStorage tidak tersedia; abaikan
+    }
+}
+
+function showPopup(message: string, status?: unknown) {
+    const options = { duration: 10000 };
+
+    if (status === 'rejected') {
+        toast.error(message, options);
+    } else if (status === 'approved') {
+        toast.success(message, options);
+    } else {
+        toast.info(message, options);
+    }
+}
+
 export function NotificationBell() {
     // Ambil data langsung dari Inertia global props alih-alih local state
     const { auth, _token } = usePage().props;
@@ -33,13 +70,66 @@ export function NotificationBell() {
     const items = unreadNotifications ?? [];
 
     // Jika ada notifikasi real-time masuk via Echo, suruh Inertia memperbarui props
-    useEchoNotification(`App.Models.User.${user?.id}`, () => {
-        flashTitle('Notifikasi Baru');
-        router.reload({
-            only: ['auth'], // Hanya perbarui data auth (hemat bandwidth)
-            onSuccess: () => playBeep(),
-        });
-    });
+    useEchoNotification(
+        `App.Models.User.${user?.id}`,
+        (notification: unknown) => {
+            const n = notification as {
+                id?: string;
+                message?: string;
+                payload?: { status?: string };
+            };
+
+            flashTitle('Notifikasi Baru');
+            showPopup(n.message ?? 'Notifikasi baru', n.payload?.status);
+            playBeep();
+
+            if (n.id) {
+                writeAnnounced([...readAnnounced(), n.id]);
+            }
+
+            router.reload({
+                only: ['auth'], // Hanya perbarui data auth (hemat bandwidth)
+            });
+        },
+    );
+
+    // Notifikasi yang tertunda (mis. booking ditolak saat user belum login)
+    // diumumkan sekali saat halaman dibuka.
+    useEffect(() => {
+        const announced = readAnnounced();
+        const pending = (unreadNotifications ?? []).filter(
+            (item: NotificationItem) => !announced.includes(item.id),
+        );
+
+        if (pending.length === 0) {
+            return;
+        }
+
+        // Tunda sedikit agar <Toaster /> sudah terpasang sebelum toast dibuat.
+        const timer = setTimeout(() => {
+            pending.slice(0, 3).forEach((item: NotificationItem) => {
+                showPopup(
+                    item.data.message,
+                    (item.data.payload as { status?: string }).status,
+                );
+            });
+
+            if (pending.length > 3) {
+                toast.info(
+                    `Dan ${pending.length - 3} notifikasi belum dibaca lainnya`,
+                );
+            }
+
+            playBeep();
+            writeAnnounced([
+                ...announced,
+                ...pending.map((i: NotificationItem) => i.id),
+            ]);
+        }, 800);
+
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Tandai semua dibaca: Controller backend harus me-return redirect() setelah update query
     const handleMarkAllAsRead = () => {
@@ -89,7 +179,7 @@ export function NotificationBell() {
             />
             <DropdownMenuContent align="end" className="w-80">
                 <div className="flex items-center justify-between border-b px-4 py-2">
-                    <span className="text-sm font-semibold">Notifications</span>
+                    <span className="text-sm font-semibold">Notifikasi</span>
                     {unreadCount > 0 && (
                         <Button
                             variant="ghost"
@@ -97,13 +187,13 @@ export function NotificationBell() {
                             className="h-auto text-xs"
                             onClick={handleMarkAllAsRead}
                         >
-                            Mark all read
+                            Tandai semua dibaca
                         </Button>
                     )}
                 </div>
                 {items.length === 0 ? (
                     <div className="text-muted-foreground px-4 py-6 text-center text-sm">
-                        No new notifications
+                        Tidak ada notifikasi baru
                     </div>
                 ) : (
                     <div className="max-h-80 overflow-y-auto">
@@ -126,8 +216,7 @@ export function NotificationBell() {
                     onClick={() => router.visit(notifications.index.url())}
                 >
                     <span className="text-muted-foreground text-xs">
-                        View all {unreadCount} notification
-                        {unreadCount !== 1 ? 's' : ''}
+                        Lihat semua notifikasi ({unreadCount})
                     </span>
                 </DropdownMenuItem>
             </DropdownMenuContent>

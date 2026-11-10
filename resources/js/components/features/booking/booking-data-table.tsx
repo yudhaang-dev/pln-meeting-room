@@ -134,10 +134,10 @@ export function BookingDataTable({
                 </div>
                 <div className="flex items-center gap-1">
                     {[
-                        { label: 'All', value: undefined },
+                        { label: 'Semua', value: undefined },
                         { label: 'Pending', value: 'pending' },
-                        { label: 'Approved', value: 'approved' },
-                        { label: 'Rejected', value: 'rejected' },
+                        { label: 'Disetujui', value: 'approved' },
+                        { label: 'Ditolak', value: 'rejected' },
                     ].map((item) => (
                         <Button
                             key={item.label}
@@ -155,7 +155,7 @@ export function BookingDataTable({
                     <div className="relative">
                         <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
                         <Input
-                            placeholder="Search bookings..."
+                            placeholder="Cari booking..."
                             value={searchInput}
                             onChange={(e) => {
                                 const value = e.target.value;
@@ -199,7 +199,7 @@ export function BookingDataTable({
                         <TableRow>
                             <TableCell colSpan={6} className="h-24 text-center">
                                 <p className="text-muted-foreground text-sm">
-                                    No bookings found.
+                                    Tidak ada booking.
                                 </p>
                             </TableCell>
                         </TableRow>
@@ -285,8 +285,8 @@ export function BookingDataTable({
             <div className="flex w-full items-center justify-between gap-2 p-2">
                 <div>
                     <p className="text-muted-foreground text-sm">
-                        Showing {pagination.per_page} of {pagination.total}{' '}
-                        results
+                        Menampilkan {pagination.per_page} dari{' '}
+                        {pagination.total} hasil
                     </p>
                 </div>
                 <div>

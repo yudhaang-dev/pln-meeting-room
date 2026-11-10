@@ -50,7 +50,7 @@ export default function Home() {
                                     <MonitorIcon className="text-muted-foreground size-14" />
                                 </ItemMedia>
                                 <ItemContent>
-                                    <ItemTitle>Display Launcher</ItemTitle>
+                                    <ItemTitle>Peluncur Display</ItemTitle>
                                     <ItemDescription>
                                         Pilih salah satu display untuk
                                         menampilkan pada signage.

@@ -54,7 +54,7 @@ class MediaController extends Controller
                 $name = Str::random(40).'.'.$file->getClientOriginalExtension();
                 $stream = fopen($file->getPathname(), 'r');
                 if ($stream === false) {
-                    Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
+                    Inertia::flash('toast', ['type' => 'error', 'message' => __('Could not read the uploaded file.')]);
 
                     return back();
                 }
@@ -78,7 +78,7 @@ class MediaController extends Controller
                 $this->broadcastMediaUpdated($created[0]);
             }
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __(':count media uploaded.', ['count' => count($created)])]);
             Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
 
             return back();
@@ -104,7 +104,7 @@ class MediaController extends Controller
                 $name = Str::random(40).'.'.$file->getClientOriginalExtension();
                 $stream = fopen($file->getPathname(), 'r');
                 if ($stream === false) {
-                    Inertia::flash('toast', ['type' => 'error', 'message' => 'Could not read the uploaded file.']);
+                    Inertia::flash('toast', ['type' => 'error', 'message' => __('Could not read the uploaded file.')]);
 
                     return back();
                 }
@@ -128,7 +128,7 @@ class MediaController extends Controller
                 $this->broadcastMediaUpdated($created[0]);
             }
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => count($created).' media uploaded.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __(':count media uploaded.', ['count' => count($created)])]);
             Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
 
             return back();
@@ -157,7 +157,7 @@ class MediaController extends Controller
 
             $stream = fopen(request()->file('file')->getPathname(), 'r');
             if ($stream === false) {
-                return response()->json(['message' => 'Could not read the uploaded chunk.'], 500);
+                return response()->json(['message' => __('Could not read the uploaded chunk.')], 500);
             }
             $disk->put($chunkPath, $stream);
             fclose($stream);
@@ -166,7 +166,7 @@ class MediaController extends Controller
                 'uploaded' => $validated['index'] + 1,
                 'total' => $validated['total_chunks'],
             ]);
-        }, 'Failed to upload chunk.');
+        }, __('Failed to upload chunk.'));
     }
 
     public function assemble(): JsonResponse
@@ -206,7 +206,7 @@ class MediaController extends Controller
             $targetPath = Storage::disk('public')->path($finalPath);
             $target = fopen($targetPath, 'wb');
             if ($target === false) {
-                return response()->json(['message' => 'Could not open target file.'], 500);
+                return response()->json(['message' => __('Could not open target file.')], 500);
             }
 
             for ($i = 0; $i < $validated['total_chunks']; $i++) {
@@ -249,7 +249,7 @@ class MediaController extends Controller
             return response()->json([
                 'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
             ]);
-        }, 'Failed to assemble media.');
+        }, __('Failed to assemble media.'));
     }
 
     public function reorder(): RedirectResponse
@@ -299,7 +299,7 @@ class MediaController extends Controller
             $this->resequenceSortOrder($media);
             $this->broadcastMediaUpdated($media);
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Media deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Media deleted.')]);
 
             return back();
         }, __('Failed to delete media.'));
@@ -341,7 +341,7 @@ class MediaController extends Controller
                 $this->broadcastMediaUpdated($mediaItems->first());
             }
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __(':count media deleted.', ['count' => count($mediaItems)])]);
 
             return back();
         }, __('Failed to delete media.'));
@@ -369,7 +369,7 @@ class MediaController extends Controller
                 $this->broadcastMediaUpdated($mediaItems->first());
             }
 
-            Inertia::flash('toast', ['type' => 'success', 'message' => count($mediaItems).' media deleted.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __(':count media deleted.', ['count' => count($mediaItems)])]);
 
             return back();
         }, __('Failed to delete media.'));
