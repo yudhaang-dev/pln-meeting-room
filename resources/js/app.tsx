@@ -2,6 +2,7 @@ import '../assets/css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/react';
 import { configureEcho } from '@laravel/echo-react';
+import { AudioBlockedNotice } from '@/components/features/notification/audio-blocked-notice';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -81,6 +82,7 @@ createInertiaApp({
             <TooltipProvider delay={0}>
                 {app}
                 <Toaster richColors />
+                <AudioBlockedNotice />
             </TooltipProvider>
         );
     },

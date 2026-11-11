@@ -93,12 +93,44 @@ export function NotificationBell() {
         },
     );
 
-    // Notifikasi yang tertunda (mis. booking ditolak saat user belum login)
-    // diumumkan sekali saat halaman dibuka.
+    // Pengguna bisa jauh dari perangkat (PC standby, jaringan putus, tab di
+    // belakang), sehingga event realtime terlewat. Saat tab terlihat lagi atau
+    // jaringan kembali, ambil ulang data notifikasi; efek di bawah lalu
+    // mengumumkan yang belum diumumkan.
     useEffect(() => {
-        const announced = readAnnounced();
+        let last = 0;
+
+        const refresh = () => {
+            if (document.visibilityState !== 'visible') {
+                return;
+            }
+
+            const now = Date.now();
+
+            if (now - last < 5000) {
+                return;
+            }
+
+            last = now;
+            router.reload({ only: ['auth'] });
+        };
+
+        document.addEventListener('visibilitychange', refresh);
+        window.addEventListener('online', refresh);
+
+        return () => {
+            document.removeEventListener('visibilitychange', refresh);
+            window.removeEventListener('online', refresh);
+        };
+    }, []);
+
+    // Notifikasi belum dibaca yang belum diumumkan (mis. booking ditolak saat
+    // user belum login, atau terlewat saat perangkat tidur) diumumkan setiap
+    // kali datanya berubah, bukan hanya saat halaman dibuka. Daftar
+    // `announced` mencegah bunyi dobel dengan jalur realtime di atas.
+    useEffect(() => {
         const pending = (unreadNotifications ?? []).filter(
-            (item: NotificationItem) => !announced.includes(item.id),
+            (item: NotificationItem) => !readAnnounced().includes(item.id),
         );
 
         if (pending.length === 0) {
@@ -107,29 +139,42 @@ export function NotificationBell() {
 
         // Tunda sedikit agar <Toaster /> sudah terpasang sebelum toast dibuat.
         const timer = setTimeout(() => {
-            pending.slice(0, 3).forEach((item: NotificationItem) => {
+            // Jalur realtime mungkin sudah mengumumkannya selama jeda ini.
+            const announced = readAnnounced();
+            const fresh = pending.filter(
+                (item: NotificationItem) => !announced.includes(item.id),
+            );
+
+            if (fresh.length === 0) {
+                return;
+            }
+
+            fresh.slice(0, 3).forEach((item: NotificationItem) => {
+                // Baris notifikasi lama bisa tidak punya `payload`; jangan
+                // sampai satu baris itu mematikan popup dan suara semuanya.
                 showPopup(
-                    item.data.message,
-                    (item.data.payload as { status?: string }).status,
+                    item.data.message ?? 'Notifikasi baru',
+                    (item.data.payload as { status?: string } | undefined)
+                        ?.status,
                 );
             });
 
-            if (pending.length > 3) {
+            if (fresh.length > 3) {
                 toast.info(
-                    `Dan ${pending.length - 3} notifikasi belum dibaca lainnya`,
+                    `Dan ${fresh.length - 3} notifikasi belum dibaca lainnya`,
                 );
             }
 
+            flashTitle('Notifikasi Baru');
             playBeep();
             writeAnnounced([
                 ...announced,
-                ...pending.map((i: NotificationItem) => i.id),
+                ...fresh.map((i: NotificationItem) => i.id),
             ]);
         }, 800);
 
         return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [unreadNotifications]);
 
     // Tandai semua dibaca: Controller backend harus me-return redirect() setelah update query
     const handleMarkAllAsRead = () => {
