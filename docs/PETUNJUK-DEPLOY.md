@@ -3,7 +3,7 @@
 Untuk: petugas IT yang mengelola server Aplikasi Jadwal Rapat UP Tarahan.
 Waktu pengerjaan: sekitar 15 menit. Aplikasi tidak bisa dipakai selama langkah 4-6 (beberapa menit), jadi pilih jam sepi.
 
-Semua perintah dijalankan di folder aplikasi (contoh: `E:\Laragon\www\meeting-room`) lewat Terminal Laragon atau Command Prompt.
+Semua perintah dijalankan di **folder aplikasi**, yaitu folder yang berisi berkas `artisan` dan `.env`. Lokasinya bisa berbeda di tiap server (misalnya langsung di `C:\laragon\www`, atau di dalam subfolder), jadi pindah dulu ke folder itu (`cd /d <folder aplikasi>`). Gunakan Terminal Laragon atau Command Prompt.
 
 ## 1. Sebelum mulai
 
