@@ -1,7 +1,4 @@
 import { Link } from '@inertiajs/react';
-import { formatTime } from '@/lib/utils';
-import { cn } from '@/lib/utils';
-import bookings from '@/routes/bookings';
 import {
     Card,
     CardContent,
@@ -9,6 +6,9 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { formatTime } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import bookings from '@/routes/bookings';
 
 export type RoomStatus = {
     id: number;

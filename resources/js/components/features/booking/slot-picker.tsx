@@ -50,7 +50,10 @@ const absOf = (date: string, minutes: number) => {
 
 /** "YYYY-MM-DD HH:mm" atau "YYYY-MM-DDTHH:mm" -> menit absolut. */
 const absOfFull = (value: string) =>
-    absOf(value.slice(0, 10), Number(value.slice(11, 13)) * 60 + Number(value.slice(14, 16)));
+    absOf(
+        value.slice(0, 10),
+        Number(value.slice(11, 13)) * 60 + Number(value.slice(14, 16)),
+    );
 
 const fromAbs = (minutes: number) =>
     new Date(minutes * 60000).toISOString().slice(0, 16);
@@ -65,8 +68,18 @@ export function SlotPicker({
     onChange,
     errors,
 }: Props) {
-    const [data, setData] = useState<RoomData | null>(null);
-    const [failed, setFailed] = useState(false);
+    // Hasil dikunci per permintaan (ruangan + booking yang dikecualikan), jadi
+    // data lama otomatis dianggap kosong saat ruangan berganti dan tidak perlu
+    // di-reset lewat efek.
+    const requestKey = roomId ? `${roomId}:${excludeId ?? ''}` : null;
+    const [result, setResult] = useState<{
+        key: string;
+        data: RoomData | null;
+        failed: boolean;
+    } | null>(null);
+    const loaded = result && result.key === requestKey ? result : null;
+    const data = loaded?.data ?? null;
+    const failed = loaded?.failed ?? false;
     const [calendarOpen, setCalendarOpen] = useState(false);
 
     const prevRoom = useRef(roomId);
@@ -80,10 +93,7 @@ export function SlotPicker({
     }, [roomId]);
 
     useEffect(() => {
-        setData(null);
-        setFailed(false);
-
-        if (!roomId) {
+        if (!roomId || !requestKey) {
             return;
         }
 
@@ -109,15 +119,17 @@ export function SlotPicker({
 
                 return response.json();
             })
-            .then((json: RoomData) => setData(json))
+            .then((json: RoomData) =>
+                setResult({ key: requestKey, data: json, failed: false }),
+            )
             .catch((error: unknown) => {
                 if ((error as Error).name !== 'AbortError') {
-                    setFailed(true);
+                    setResult({ key: requestKey, data: null, failed: true });
                 }
             });
 
         return () => controller.abort();
-    }, [roomId, excludeId]);
+    }, [roomId, excludeId, requestKey]);
 
     const model = useMemo(() => {
         if (!data) {
@@ -193,7 +205,9 @@ export function SlotPicker({
             }
 
             const dayStart = absOf(day, 0);
-            const touched = slots.some((x) => x.s < dayStart + DAY && x.e > dayStart);
+            const touched = slots.some(
+                (x) => x.s < dayStart + DAY && x.e > dayStart,
+            );
 
             return touched ? ('partial' as const) : ('free' as const);
         };
@@ -203,7 +217,12 @@ export function SlotPicker({
 
     // Setelah ruangan diganti: bersihkan jam yang tidak lagi tersedia di ruangan baru.
     useEffect(() => {
-        if (!model || !data || String(data.room_id) !== roomId || !revalidate.current) {
+        if (
+            !model ||
+            !data ||
+            String(data.room_id) !== roomId ||
+            !revalidate.current
+        ) {
             return;
         }
 
@@ -232,9 +251,16 @@ export function SlotPicker({
         }
     }, [model, data, roomId, date, start, end, onChange]);
 
-    const withCurrent = (options: Option[], current: string, currentLabel: string) =>
+    const withCurrent = (
+        options: Option[],
+        current: string,
+        currentLabel: string,
+    ) =>
         current && !options.some((o) => o.value === current)
-            ? [...options, { value: current, label: currentLabel, disabled: false }]
+            ? [
+                  ...options,
+                  { value: current, label: currentLabel, disabled: false },
+              ]
             : options;
 
     const startItems = useMemo(() => {
@@ -257,7 +283,9 @@ export function SlotPicker({
         return withCurrent(
             model.endOptions(date, start),
             end,
-            end ? `${end.slice(11, 16)}${end.slice(0, 10) !== date ? ` (${end.slice(5, 10)})` : ''}` : '',
+            end
+                ? `${end.slice(11, 16)}${end.slice(0, 10) !== date ? ` (${end.slice(5, 10)})` : ''}`
+                : '',
         );
     }, [model, date, start, end]);
 
@@ -308,7 +336,9 @@ export function SlotPicker({
         onChange({ start: value, end: keep?.value ?? preferred?.value ?? '' });
     };
 
-    const selectedDate = date ? parse(date, DATE_FORMAT, new Date()) : undefined;
+    const selectedDate = date
+        ? parse(date, DATE_FORMAT, new Date())
+        : undefined;
     const ready = !!roomId && !!model;
 
     return (
@@ -353,7 +383,9 @@ export function SlotPicker({
                                         format(day, DATE_FORMAT),
                                     );
 
-                                    return state === 'closed' || state === 'full';
+                                    return (
+                                        state === 'closed' || state === 'full'
+                                    );
                                 }}
                                 modifiers={{
                                     partial: (day) =>
@@ -446,7 +478,8 @@ export function SlotPicker({
                     failed ? 'text-amber-700' : 'text-muted-foreground',
                 )}
             >
-                {!roomId && 'Pilih ruangan terlebih dahulu untuk memilih tanggal dan jam.'}
+                {!roomId &&
+                    'Pilih ruangan terlebih dahulu untuk memilih tanggal dan jam.'}
                 {roomId && !model && !failed && 'Memuat ketersediaan ruangan…'}
                 {failed &&
                     'Ketersediaan tidak dapat dimuat. Muat ulang halaman, atau coba lagi nanti.'}
