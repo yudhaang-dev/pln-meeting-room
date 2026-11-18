@@ -257,7 +257,7 @@ export function BookingForm({
                                                 key={room.id}
                                                 value={room}
                                             >
-                                                {room.name} (capacity:{' '}
+                                                {room.name} (kapasitas:{' '}
                                                 {room.capacity})
                                             </ComboboxItem>
                                         )}

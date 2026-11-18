@@ -283,8 +283,8 @@ export default function UserDashboard({
 
                         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
                             <p className="text-muted-foreground text-sm">
-                                Showing {approvedSchedule.per_page} of{' '}
-                                {approvedSchedule.total} results
+                                Menampilkan {approvedSchedule.per_page} dari{' '}
+                                {approvedSchedule.total} hasil
                             </p>
                             <div>
                                 <NavPagination

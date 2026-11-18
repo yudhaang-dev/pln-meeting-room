@@ -156,7 +156,7 @@ export function RoomDataTable({
                                                     : 'bg-gray-100 text-gray-600'
                                             }`}
                                         >
-                                            {room.is_active ? 'Yes' : 'No'}
+                                            {room.is_active ? 'Ya' : 'Tidak'}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right">

@@ -71,7 +71,7 @@ export default function AppLayout({
                                 <span className="font-bold">
                                     {pending_count}
                                 </span>{' '}
-                                bookings yang belum di tindak lanjuti.
+                                booking yang belum ditindaklanjuti.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

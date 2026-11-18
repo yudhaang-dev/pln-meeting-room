@@ -155,7 +155,7 @@ export default function AdminSettings({ settings }: Props) {
                                         </InputGroupAddon>
                                     </InputGroup>
                                     <FieldDescription>
-                                        Durasi tampilnya inforgrafis pada media
+                                        Durasi tampilnya infografis pada media
                                         player.
                                     </FieldDescription>
                                     {errors.media_loop_duration && (

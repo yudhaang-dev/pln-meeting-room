@@ -45,7 +45,7 @@ export function LengthOptions({
                     </SelectGroup>
                 </SelectContent>
             </Select>
-            <div className="text-muted-foreground text-xs">per page</div>
+            <div className="text-muted-foreground text-xs">per halaman</div>
         </div>
     );
 }

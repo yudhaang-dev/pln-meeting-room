@@ -398,13 +398,13 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                     <>
                         <UploadIcon className="text-muted-foreground mb-2 size-8" />
                         <p className="text-muted-foreground mb-1 text-sm">
-                            Drag & drop or{' '}
+                            Seret & lepas berkas, atau{' '}
                             <button
                                 type="button"
                                 className="text-primary hover:underline"
                                 onClick={() => inputRef.current?.click()}
                             >
-                                browse
+                                telusuri
                             </button>
                         </p>
                         <p className="text-muted-foreground text-xs">

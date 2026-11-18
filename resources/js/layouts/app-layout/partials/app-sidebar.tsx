@@ -116,7 +116,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={platformMenu} groupLabel="Patform" />
+                <NavMain items={platformMenu} groupLabel="Platform" />
                 {auth.user.role == 'admin' && (
                     <NavMain items={masterMenu} groupLabel="Master" />
                 )}

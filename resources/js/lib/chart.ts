@@ -15,6 +15,7 @@ export const STATUS_LABELS: Record<string, string> = {
     approved: 'Disetujui',
     rejected: 'Ditolak',
     pending: 'Menunggu',
+    cancelled: 'Dibatalkan',
 };
 
 export const STATUS_COLORS: Record<string, string> = {
