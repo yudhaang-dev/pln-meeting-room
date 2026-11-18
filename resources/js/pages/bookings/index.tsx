@@ -19,8 +19,8 @@ type Booking = {
     status: string;
     participants_count: number;
     room: { id: number; name: string; building: { id: number; name: string } };
-    requested_by: { id: number; name: string };
-    approved_by: { id: number; name: string };
+    requested_by: { id: number; name: string; email: string };
+    approved_by: { id: number; name: string; email: string };
     chairperson: { name: string };
     osh_level: { name: string; color: string } | null;
 };
