@@ -132,7 +132,7 @@ export function BookingDataTable({
                 <div className="flex items-center gap-2">
                     <LengthOptions current={perPage} onChange={handlePerPage} />
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                     {[
                         { label: 'Semua', value: undefined },
                         { label: 'Pending', value: 'pending' },
