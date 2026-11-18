@@ -71,11 +71,23 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         return items[currentIndex] || items[0];
     }, [items, currentIndex]);
 
-    // PERBAIKAN UTAMA: Menggunakan flag penjaga agar pergantian indeks lebih stabil
+    // Pembaruan data (polling/WebSocket) membuat objek `item` baru walau isinya sama.
+    // Efek dan timer hanya boleh bergantung pada nilai primitif ini agar tidak ter-reset.
+    const itemId = item?.id ?? null;
+    const itemType = item?.type ?? '';
+    const itemUrl = item?.file_url ?? '';
+
+    const itemTypeRef = useRef(itemType);
+
+    useEffect(() => {
+        itemTypeRef.current = itemType;
+    }, [itemType]);
+
+    // Callback stabil: tidak berubah saat data diperbarui, jadi timer PdfViewer tidak ter-reset
     const handleNextItem = useCallback(() => {
         if (items.length <= 1) {
             // Item tunggal video: putar ulang dari awal agar tidak beku di akhir
-            if (item?.type.startsWith('video') && videoRef.current) {
+            if (itemTypeRef.current.startsWith('video') && videoRef.current) {
                 videoRef.current.currentTime = 0;
                 videoRef.current.play().catch(() => {});
             }
@@ -91,11 +103,11 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         }, 350); // Diberi kelonggaran sedikit di atas durasi CSS transition (300ms)
 
         return () => clearTimeout(timer);
-    }, [items.length, item]);
+    }, [items.length]);
 
     // Memaksa video berputar otomatis dari awal dengan aman
     useEffect(() => {
-        if (!item || !item.type.startsWith('video') || !videoRef.current) {
+        if (!itemType.startsWith('video') || !videoRef.current) {
             return;
         }
 
@@ -126,7 +138,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         };
 
         playVideo();
-    }, [currentIndex, item]);
+    }, [currentIndex, itemId, itemType, itemUrl]);
 
     // Aktifkan audio sekali: ikuti user gesture (klik/tap/tombol) untuk melewati kebijakan autoplay browser
     const unlockAudio = useCallback(() => {
@@ -165,7 +177,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
 
     // Timer otomatis khusus untuk tipe Gambar (Image)
     useEffect(() => {
-        if (!item || !item.type.startsWith('image') || items.length <= 1) {
+        if (!itemType.startsWith('image') || items.length <= 1) {
             return;
         }
 
@@ -177,7 +189,14 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
         );
 
         return () => clearTimeout(timer);
-    }, [currentIndex, item, items.length, intervalDuration, handleNextItem]);
+    }, [
+        currentIndex,
+        itemId,
+        itemType,
+        items.length,
+        intervalDuration,
+        handleNextItem,
+    ]);
 
     if (!item) {
         return <EmptyItem />;
