@@ -12,6 +12,13 @@ const statusColors: Record<string, string> = {
     rejected: 'bg-red-100 text-red-700',
 };
 
+const statusText: Record<string, string> = {
+    pending: 'Pending',
+    approved: 'Disetujui',
+    rejected: 'Ditolak',
+    cancelled: 'Dibatalkan',
+};
+
 const roleColors: Record<string, string> = {
     admin: 'bg-blue-100 text-blue-700',
     operator: 'bg-purple-100 text-purple-700',
@@ -42,7 +49,7 @@ export function StatusBadge({
                 color,
             )}
         >
-            {label}
+            {variant === 'status' ? (statusText[label] ?? label) : label}
         </span>
     );
 }
