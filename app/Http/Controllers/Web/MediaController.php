@@ -79,7 +79,7 @@ class MediaController extends Controller
             }
 
             Inertia::flash('toast', ['type' => 'success', 'message' => __(':count media uploaded.', ['count' => count($created)])]);
-            Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+            Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url', 'page_urls']))->all());
 
             return back();
         }, __('Failed to upload media.'));
@@ -129,7 +129,7 @@ class MediaController extends Controller
             }
 
             Inertia::flash('toast', ['type' => 'success', 'message' => __(':count media uploaded.', ['count' => count($created)])]);
-            Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']))->all());
+            Inertia::flash('media', collect($created)->map(fn ($m) => $m->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url', 'page_urls']))->all());
 
             return back();
         }, __('Failed to upload media.'));
@@ -237,6 +237,7 @@ class MediaController extends Controller
                 'path' => $finalPath,
                 'type' => $this->determineFileType($extension),
                 'name' => $originalFilename,
+                'size' => filesize($targetPath) ?: 0,
                 'mime' => $validated['mime_type'],
                 'sort_order' => ($maxSort ?? 0) + 1,
                 'is_active' => true,
@@ -247,9 +248,54 @@ class MediaController extends Controller
             $this->broadcastMediaUpdated($media);
 
             return response()->json([
-                'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url']),
+                'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url', 'page_urls']),
             ]);
         }, __('Failed to assemble media.'));
+    }
+
+    /**
+     * Terima gambar halaman PDF hasil render di browser (bertahap) dan simpan di media.
+     */
+    public function storePages(Media $media): JsonResponse
+    {
+        return $this->catchErrorsJson(function () use ($media) {
+            $this->authorize('create', Media::class);
+
+            if ($media->type !== 'document') {
+                return response()->json(['message' => __('Only documents can have pages.')], 422);
+            }
+
+            $validated = request()->validate([
+                'pages' => ['required', 'array', 'min:1', 'max:20'],
+                'pages.*' => ['image', 'mimes:jpeg,png,webp', 'max:8192'],
+                'start' => ['required', 'integer', 'min:0', 'max:1000'],
+                'final' => ['sometimes', 'boolean'],
+            ]);
+
+            // Batch pertama (start = 0) mengganti hasil konversi sebelumnya.
+            if ($validated['start'] === 0) {
+                $media->deletePages();
+                $paths = [];
+            } else {
+                $paths = $media->pages ?? [];
+            }
+
+            foreach (request()->file('pages') as $file) {
+                $name = 'media/pages/'.$media->id.'-'.Str::random(12).'.'.$file->extension();
+                Storage::disk('public')->put($name, fopen($file->getPathname(), 'r'));
+                $paths[] = $name;
+            }
+
+            $media->update(['pages' => $paths]);
+
+            if (request()->boolean('final')) {
+                $this->broadcastMediaUpdated($media);
+            }
+
+            return response()->json([
+                'media' => $media->only(['id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active', 'file_url', 'page_urls']),
+            ]);
+        }, __('Failed to save document pages.'));
     }
 
     public function reorder(): RedirectResponse

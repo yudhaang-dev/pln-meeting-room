@@ -15,6 +15,7 @@ type Media = {
     type: string;
     name: string | null;
     file_url: string;
+    page_urls?: string[];
     mime: string | null;
     path: string;
 };

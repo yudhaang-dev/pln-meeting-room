@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
+import { renderPdfPages } from '@/lib/pdf-to-images';
 import infografis from '@/routes/infografis';
 import roomGroupsMedia from '@/routes/room-groups/media';
 import roomsMedia from '@/routes/rooms/media';
@@ -25,6 +26,7 @@ type Props = {
 };
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
+const PAGE_BATCH = 4;
 const ACCEPTED = 'image/*,video/*,application/pdf';
 
 function getStoreUrl(
@@ -75,6 +77,17 @@ function isAcceptedFile(file: File): boolean {
         'mov',
         'pdf',
     ].includes(ext ?? '');
+}
+
+function createUploadId(): string {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function isPdfFile(file: File): boolean {
+    return (
+        file.type === 'application/pdf' ||
+        file.name.toLowerCase().endsWith('.pdf')
+    );
 }
 
 function formatFileSize(bytes: number): string {
@@ -174,7 +187,7 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
     async function uploadViaChunk(id: string, file: File) {
         updateUpload(id, { status: 'uploading', progress: 0 });
 
-        const uploadId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+        const uploadId = createUploadId();
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
         try {
@@ -232,6 +245,11 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
                 media: MediaItem;
             };
             setMedia((prev) => [...prev, result.media]);
+
+            if (isPdfFile(file)) {
+                await convertPdf(id, file, result.media);
+            }
+
             updateUpload(id, { status: 'done', progress: 100 });
             toast.success(`${file.name} uploaded.`);
         } catch {
@@ -240,11 +258,79 @@ export function MediaUploader({ mediableType, mediableId, setMedia }: Props) {
         }
     }
 
+    /**
+     * Ubah PDF menjadi gambar per halaman di browser lalu kirim ke server.
+     * Bila gagal, PDF tetap tersimpan dan layar memakai PDF.js sebagai cadangan.
+     */
+    async function convertPdf(id: string, file: File, media: MediaItem) {
+        updateUpload(id, { status: 'uploading', progress: 0 });
+
+        try {
+            const blobs = await renderPdfPages(file, (done, total) =>
+                updateUpload(id, {
+                    progress: Math.min(Math.round((done / total) * 50), 50),
+                }),
+            );
+
+            let latest: MediaItem = media;
+
+            for (let start = 0; start < blobs.length; start += PAGE_BATCH) {
+                const batch = blobs.slice(start, start + PAGE_BATCH);
+                const formData = new FormData();
+                batch.forEach((blob, i) =>
+                    formData.append(
+                        'pages[]',
+                        blob,
+                        `page-${start + i + 1}.jpg`,
+                    ),
+                );
+                formData.append('start', String(start));
+
+                if (start + PAGE_BATCH >= blobs.length) {
+                    formData.append('final', '1');
+                }
+
+                const response = await fetch(`/media/${media.id}/pages`, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-XSRF-TOKEN': getCsrfToken(),
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Gagal mengirim halaman');
+                }
+
+                latest = ((await response.json()) as { media: MediaItem })
+                    .media;
+                updateUpload(id, {
+                    progress:
+                        50 +
+                        Math.round(
+                            ((start + batch.length) / blobs.length) * 50,
+                        ),
+                });
+            }
+
+            setMedia((prev) =>
+                prev.map((m) => (m.id === latest.id ? latest : m)),
+            );
+        } catch {
+            toast.warning(
+                `${file.name}: konversi ke gambar gagal, PDF diunggah apa adanya.`,
+            );
+        }
+    }
+
     const uploadFile = useCallback(
         async (upload: UploadFile) => {
             const { id, file } = upload;
 
-            if (file.size > CHUNK_SIZE) {
+            // PDF selalu lewat jalur chunk (respons JSON berisi id media untuk konversi halaman).
+            if (file.size > CHUNK_SIZE || isPdfFile(file)) {
                 await uploadViaChunk(id, file);
             } else {
                 await uploadViaForm(id, file);

@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('media/chunk', [Web\MediaController::class, 'chunk'])->name('media.chunk');
     Route::post('media/assemble', [Web\MediaController::class, 'assemble'])->name('media.assemble');
+    Route::post('media/{media}/pages', [Web\MediaController::class, 'storePages'])->name('media.pages');
 
     Route::get('infografis', [Web\MediaController::class, 'indexGlobal'])->name('infografis.index');
     Route::post('infografis', [Web\MediaController::class, 'storeGlobal'])->name('infografis.store');

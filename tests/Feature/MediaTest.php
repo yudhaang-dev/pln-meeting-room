@@ -366,3 +366,97 @@ test('regular user cannot assemble chunks', function () {
 
     $response->assertForbidden();
 });
+
+test('assembled chunks store the real file size', function () {
+    $this->actingAs($this->admin);
+    Storage::fake('public');
+    $disk = Storage::disk('local');
+
+    $uploadId = 'test-size-789';
+    $chunkDir = 'uploads/chunks/'.$uploadId;
+    $disk->makeDirectory($chunkDir);
+    $disk->put($chunkDir.'/0', str_repeat('A', 1024));
+    $disk->put($chunkDir.'/1', str_repeat('B', 512));
+
+    $this->postJson(route('media.assemble'), [
+        'upload_id' => $uploadId,
+        'mediable_type' => 'rooms',
+        'mediable_id' => $this->room->id,
+        'original_name' => 'big.mp4',
+        'mime_type' => 'video/mp4',
+        'total_chunks' => 2,
+    ])->assertOk();
+
+    $this->assertDatabaseHas('media', ['name' => 'big', 'size' => 1536]);
+});
+
+test('admin can attach rendered pdf pages to a document in batches', function () {
+    $this->actingAs($this->admin);
+    Storage::fake('public');
+
+    $media = Media::factory()->create([
+        'mediable_type' => null,
+        'mediable_id' => null,
+        'type' => 'document',
+        'path' => 'media/doc.pdf',
+        'name' => 'doc',
+    ]);
+
+    $first = $this->postJson(route('media.pages', $media), [
+        'pages' => [UploadedFile::fake()->image('p1.jpg'), UploadedFile::fake()->image('p2.jpg')],
+        'start' => 0,
+    ])->assertOk();
+    expect($first->json('media.page_urls'))->toHaveCount(2);
+
+    $second = $this->postJson(route('media.pages', $media), [
+        'pages' => [UploadedFile::fake()->image('p3.jpg')],
+        'start' => 2,
+        'final' => 1,
+    ])->assertOk();
+    expect($second->json('media.page_urls'))->toHaveCount(3);
+
+    $paths = $media->fresh()->pages;
+    expect($paths)->toHaveCount(3);
+    Storage::disk('public')->assertExists($paths);
+
+    // Mengunggah ulang dari awal mengganti halaman lama.
+    $this->postJson(route('media.pages', $media), [
+        'pages' => [UploadedFile::fake()->image('n1.jpg')],
+        'start' => 0,
+        'final' => 1,
+    ])->assertOk();
+    Storage::disk('public')->assertMissing($paths);
+    expect($media->fresh()->pages)->toHaveCount(1);
+
+    // Hapus media ikut menghapus gambar halaman.
+    $remaining = $media->fresh()->pages;
+    $media->fresh()->deleteFile();
+    Storage::disk('public')->assertMissing($remaining);
+});
+
+test('pages endpoint rejects non-document media and non-images', function () {
+    $this->actingAs($this->admin);
+    Storage::fake('public');
+
+    $image = Media::factory()->create(['type' => 'image', 'mediable_type' => null, 'mediable_id' => null]);
+    $this->postJson(route('media.pages', $image), [
+        'pages' => [UploadedFile::fake()->image('p.jpg')],
+        'start' => 0,
+    ])->assertStatus(422);
+
+    $doc = Media::factory()->create(['type' => 'document', 'mediable_type' => null, 'mediable_id' => null]);
+    $this->postJson(route('media.pages', $doc), [
+        'pages' => [UploadedFile::fake()->create('x.pdf', 10, 'application/pdf')],
+        'start' => 0,
+    ])->assertStatus(422);
+});
+
+test('regular user cannot attach pages', function () {
+    $this->actingAs(User::factory()->create(['role' => 'user']));
+    $doc = Media::factory()->create(['type' => 'document', 'mediable_type' => null, 'mediable_id' => null]);
+
+    $this->postJson(route('media.pages', $doc), [
+        'pages' => [UploadedFile::fake()->image('p.jpg')],
+        'start' => 0,
+    ])->assertForbidden();
+});

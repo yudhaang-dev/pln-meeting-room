@@ -10,6 +10,7 @@ type Media = {
     name: string;
     path: string;
     file_url: string;
+    page_urls?: string[];
     mime: string;
 };
 

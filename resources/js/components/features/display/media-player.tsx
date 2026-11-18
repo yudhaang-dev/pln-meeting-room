@@ -19,6 +19,7 @@ type Item = {
     type: string;
     name: string | null;
     file_url: string;
+    page_urls?: string[];
 };
 
 type Props = {
@@ -213,6 +214,7 @@ export function MediaPlayer({ items = [], duration = 5, className }: Props) {
                     <PdfViewer
                         key={`pdf-${item.id}`} // Ditambahkan prefix unik pada key
                         src={item.file_url}
+                        pages={item.page_urls}
                         duration={duration}
                         onEnded={handleNextItem}
                         className="size-full"

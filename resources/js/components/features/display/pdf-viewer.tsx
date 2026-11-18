@@ -11,6 +11,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 type Props = {
     src: string;
+    /** Gambar per halaman hasil konversi saat unggah; bila ada, PDF.js tidak dipakai (kompatibel Tizen). */
+    pages?: string[];
     duration?: number;
     onEnded?: () => void;
     className?: string;
@@ -19,6 +21,7 @@ type Props = {
 
 export function PdfViewer({
     src,
+    pages,
     duration = 10,
     onEnded,
     className,
@@ -29,7 +32,7 @@ export function PdfViewer({
         return duration * 1000;
     }, [duration]);
 
-    const [totalPage, setTotalPage] = useState<number>(0);
+    const [docPages, setDocPages] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [displayPage, setDisplayPage] = useState<number>(1);
 
@@ -56,8 +59,12 @@ export function PdfViewer({
         return () => observer.disconnect();
     }, []);
 
+    const hasPages = Array.isArray(pages) && pages.length > 0;
+    const pageCount = hasPages ? pages.length : 0;
+    const totalPage = hasPages ? pageCount : docPages;
+
     function onDocumentLoadSuccess(pdf: { numPages: number }): void {
-        setTotalPage(pdf.numPages);
+        setDocPages(pdf.numPages);
         setCurrentPage(1);
         setDisplayPage(1);
     }
@@ -164,23 +171,33 @@ export function PdfViewer({
                 className,
             )}
         >
-            <Document
-                file={src}
-                onLoadSuccess={onDocumentLoadSuccess}
-                loading={<Spinner />}
-                className="flex size-full items-center justify-center"
-            >
-                <Page
-                    pageNumber={displayPage}
-                    onLoadSuccess={onPageLoadSuccess}
-                    {...pageDimensions}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    className={`transition-opacity duration-300 ease-in-out ${
+            {hasPages ? (
+                <img
+                    src={pages[Math.min(displayPage, pageCount) - 1]}
+                    alt=""
+                    className={`size-full object-contain transition-opacity duration-300 ease-in-out ${
                         isFade ? 'opacity-100' : 'opacity-0'
                     }`}
                 />
-            </Document>
+            ) : (
+                <Document
+                    file={src}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    loading={<Spinner />}
+                    className="flex size-full items-center justify-center"
+                >
+                    <Page
+                        pageNumber={displayPage}
+                        onLoadSuccess={onPageLoadSuccess}
+                        {...pageDimensions}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                        className={`transition-opacity duration-300 ease-in-out ${
+                            isFade ? 'opacity-100' : 'opacity-0'
+                        }`}
+                    />
+                </Document>
+            )}
 
             {totalPage > 0 && (
                 <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 transform rounded-full bg-black/60 px-3 py-1 text-xs text-white">

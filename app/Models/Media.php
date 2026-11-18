@@ -20,21 +20,23 @@ use Illuminate\Support\Facades\Storage;
  * @property string $path
  * @property int $size
  * @property string|null $mime
+ * @property array<int, string>|null $pages
  * @property int $sort_order
  * @property bool $is_active
  */
-#[Fillable(['mediable_type', 'mediable_id', 'type', 'name', 'path', 'size', 'mime', 'sort_order', 'is_active'])]
+#[Fillable(['mediable_type', 'mediable_id', 'type', 'name', 'path', 'size', 'mime', 'pages', 'sort_order', 'is_active'])]
 class Media extends Model
 {
     /** @use HasFactory<MediaFactory> */
     use HasFactory, LogsActivity;
 
-    protected $appends = ['file_url'];
+    protected $appends = ['file_url', 'page_urls'];
 
     protected function casts(): array
     {
         return [
             'size' => 'integer',
+            'pages' => 'array',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
         ];
@@ -53,10 +55,34 @@ class Media extends Model
         return $this->path ? Storage::disk('public')->url($this->path) : null;
     }
 
+    /**
+     * URL gambar per halaman untuk dokumen PDF (kosong bila belum dikonversi).
+     *
+     * @return array<int, string>
+     */
+    public function getPageUrlsAttribute(): array
+    {
+        return collect($this->pages ?? [])
+            ->map(fn (string $page) => Storage::disk('public')->url($page))
+            ->values()
+            ->all();
+    }
+
     public function deleteFile(): void
     {
+        $this->deletePages();
+
         if ($this->path && Storage::disk('public')->exists($this->path)) {
             Storage::disk('public')->delete($this->path);
+        }
+    }
+
+    public function deletePages(): void
+    {
+        foreach ($this->pages ?? [] as $page) {
+            if (Storage::disk('public')->exists($page)) {
+                Storage::disk('public')->delete($page);
+            }
         }
     }
 

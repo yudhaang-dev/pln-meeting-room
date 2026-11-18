@@ -26,6 +26,7 @@ export type MediaItem = {
     sort_order: number;
     is_active: boolean;
     file_url: string | null;
+    page_urls?: string[];
 };
 
 type Props = {
