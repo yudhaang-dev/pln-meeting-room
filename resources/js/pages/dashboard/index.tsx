@@ -11,7 +11,6 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RoomStatusGrid } from '@/components/features/dashboard/room-status-grid';
 import type { RoomStatus } from '@/components/features/dashboard/room-status-grid';
-import { useRoomStatusRefresh } from '@/hooks/use-room-status-refresh';
 import { LengthOptions } from '@/components/shared/data-table/length-options';
 import { NavPagination } from '@/components/shared/data-table/nav-pagination';
 import { PageContainer } from '@/components/shared/page-container';
@@ -33,6 +32,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useCrudIndex } from '@/hooks/use-crud-index';
+import { useRoomStatusRefresh } from '@/hooks/use-room-status-refresh';
 import { cn, formatDate, formatTime } from '@/lib/utils';
 import type { PaginatedData } from '@/lib/utils';
 import { dashboard } from '@/routes';

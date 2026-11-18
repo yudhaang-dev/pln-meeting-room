@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { AvailabilityPanel } from '@/components/features/booking/availability-panel';
 import { SlotPicker } from '@/components/features/booking/slot-picker';
 import { Button } from '@/components/ui/button';
@@ -111,12 +111,20 @@ export function BookingForm({
         ...(booking ? bookingToFormData(booking) : {}),
     });
 
-    useEffect(() => {
-        if (open && booking) {
+    // Isi ulang formulir dari data booking tiap dialog dibuka (atau booking
+    // lain dipilih). Disinkronkan saat render, bukan lewat efek, agar tidak
+    // memicu render berantai.
+    const syncKey = open && booking ? String(booking.id) : null;
+    const [syncedKey, setSyncedKey] = useState(syncKey);
+
+    if (syncKey !== syncedKey) {
+        setSyncedKey(syncKey);
+
+        if (booking && syncKey) {
             setData(bookingToFormData(booking));
             setPickedDate(booking.start_time.slice(0, 10));
         }
-    }, [open, booking, setData]);
+    }
 
     const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
