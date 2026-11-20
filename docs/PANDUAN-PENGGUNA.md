@@ -1,4 +1,4 @@
-# Panduan Pengguna — PLN Meeting Room & Booking Management
+# Panduan Pengguna — Jadwal Rapat Online UP Tarahan
 
 Pesan ruang rapat tanpa telepon, tanpa spreadsheet, tanpa jadwal bentrok.
 

@@ -1,6 +1,6 @@
 # Petunjuk Pembaruan Aplikasi (Revisi November 2026)
 
-Untuk: petugas IT yang mengelola server Aplikasi Jadwal Rapat UP Tarahan.
+Untuk: petugas IT yang mengelola server Aplikasi Jadwal Rapat Online UP Tarahan.
 Waktu pengerjaan: sekitar 15 menit. Aplikasi tidak bisa dipakai selama langkah 4-6 (beberapa menit), jadi pilih jam sepi.
 
 Semua perintah dijalankan di **folder aplikasi**, yaitu folder yang berisi berkas `artisan` dan `.env`. Lokasinya bisa berbeda di tiap server (misalnya langsung di `C:\laragon\www`, atau di dalam subfolder), jadi pindah dulu ke folder itu (`cd /d <folder aplikasi>`). Gunakan Terminal Laragon atau Command Prompt.
@@ -33,6 +33,7 @@ Buka `.env` dan pastikan baris berikut:
 
 | Baris | Nilai | Keterangan |
 |---|---|---|
+| `APP_NAME` | `"Jadwal Rapat Online UP Tarahan"` | Judul aplikasi (tab browser dan halaman awal). Pakai tanda kutip karena ada spasi. |
 | `APP_LOCALE` | `id` | Wajib agar pesan dari sistem berbahasa Indonesia. Bila masih `en`, ubah. |
 | `APP_URL` | alamat yang dipakai pengguna | Contoh `http://192.168.1.2`. Tidak lagi menjadi penyebab preview lampiran gagal, tetapi tetap sebaiknya benar. |
 | `PHP_CLI_PATH` | (opsional) | Isi jalur `php.exe` hanya jika tombol Jalankan/Restart di Pemantauan Layanan gagal menemukan PHP. Biasanya dikosongkan. |

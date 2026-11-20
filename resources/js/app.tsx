@@ -54,7 +54,7 @@ router.on('success', (event) => {
     configureNotificationSound((notificationSound as string | null) ?? null);
 });
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Jadwal Rapat Online UP Tarahan';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
